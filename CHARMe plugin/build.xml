@@ -1,0 +1,43 @@
+<?xml version="1.0"?>   
+<project name="PROJECTNAME" basedir="." default="main">
+	<property file="build.properties"/>
+	<target name="clean">
+		<delete dir="${plugin.dir}"/>
+		<delete dir="${build.dir}"/>
+	</target>
+	<target name="_check_env">
+		<condition property="env.error">
+			<and>
+				<available file="build.properties"/>
+			</and>
+		</condition>
+	</target>
+	<target name="_on_error" depends="_check_env" unless="env.error">
+		<fail message="build.properties not defined"/>
+	</target>
+	<target name="init" depends="_on_error">
+	</target>
+	<target name="build" depends="init">
+		<mkdir dir="${build.dir}" />
+		<copy todir="${build.dir}" flatten="false" overwrite="true">
+			<resources>
+				<fileset dir="${src.dir}">
+					<exclude name="**/tests.html"/>
+					<exclude name="**/tests.js"/>
+				</fileset>
+			</resources> 
+		</copy>
+	</target>
+	
+	<target name="dev" depends="build"> 
+		<mkdir dir="${plugin.dir}" />
+		<copy todir="${plugin.dir}" flatten="false" overwrite="true">
+			<resources>
+				<fileset dir="${build.dir}">
+				</fileset>
+			</resources> 
+		</copy>
+	</target>
+	
+	<target name="main" depends="dev"/>
+</project>
