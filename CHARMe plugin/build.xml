@@ -22,22 +22,28 @@
 		<copy todir="${build.dir}" flatten="false" overwrite="true">
 			<resources>
 				<fileset dir="${src.dir}">
-					<exclude name="**/tests.html"/>
-					<exclude name="**/tests.js"/>
 				</fileset>
 			</resources> 
 		</copy>
 	</target>
-	
+	<target name="qunit" depends="build">
+		<echo message="Executing QUnit Javascript Unit Tests..."/>
+		<exec dir="${phantom.js.dir}" resolveexecutable="true" executable="${phantom.js.exe}" failonerror="true">
+			<arg value="run-qunit.js" />
+			<arg value="C:/Users/henryad/git/charme_plugin/CHARMe plugin/${build.dir}/plugin/tests.html" />
+		</exec>
+	</target>
 	<target name="dev" depends="build"> 
 		<mkdir dir="${plugin.dir}" />
 		<copy todir="${plugin.dir}" flatten="false" overwrite="true">
 			<resources>
 				<fileset dir="${build.dir}">
+					<exclude name="**/tests.html"/>
+					<exclude name="**/tests.js"/>
 				</fileset>
-			</resources> 
+			</resources>
 		</copy>
 	</target>
-	
+
 	<target name="main" depends="dev"/>
 </project>
