@@ -55,10 +55,14 @@ charme.web.fetching = function(){
 	charme.web.fetchCount++;
 };
 
+/**
+ * TODO: FIX THIS. Use classes etc.
+ */
 charme.web.fetchCheck = function(){
 	if (charme.web.fetchCount == 0){
 		var txtLoading = $('#text-loading');
 		var refLoading = $('#ref-loading');
+		var linkLoading = $('#link-loading');
 		
 		if (txtLoading.is(":visible") ){
 			txtLoading.hide();
@@ -67,6 +71,10 @@ charme.web.fetchCheck = function(){
 		if (refLoading.is(":visible") ){
 			refLoading.hide();
 			$('#no-ref-annos').show();
+		}
+		if (linkLoading.is(":visible") ){
+			linkLoading.hide();
+			$('#no-link-annos').show();
 		}		
 	}
 };
@@ -94,7 +102,7 @@ charme.web.fetchAdditionalData = function(annotation){
 	            	$('#text-list:last').append(htmlObj);
 	            	$('#no-text-annos').hide();
 	            	$('#text-loading').hide();
-				} else {
+				} else if (fetchedAnno.body instanceof OA.OARefBody){
 	        		var html = 
 	        			'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
 	        			'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
@@ -103,7 +111,18 @@ charme.web.fetchAdditionalData = function(annotation){
 	            	$('#ref-list:last').append(htmlObj);
 	            	$('#no-ref-annos').hide();
 	            	$('#ref-loading').hide();
+				} else {
+	        		var html = 
+	        			'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
+	        			'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+            			'</li>                                                                                                        ';
+	        		var htmlObj = $(html);
+	            	$('#link-list:last').append(htmlObj);
+					$('#no-link-annos').hide();
+					$('#link-loading').hide();
 				}
+
+
 				charme.web.fetched();
 			},
 			function() {
@@ -125,7 +144,9 @@ charme.web.showAnnotations=function(state, targetId){
 	$('#no-text-annos').hide();
 	$('#text-loading').show();
 	$('#no-ref-annos').hide();
-	$('#ref-loading').show();	
+	$('#ref-loading').show();
+	$('#no-link-annos').hide();
+	$('#link-loading').show();
 	
 	//Make a call to the lower-level charme.logic function that makes the ajax call to fetch the annotations
 	charme.logic.fetchAnnotations(state,
@@ -146,6 +167,8 @@ charme.web.showAnnotations=function(state, targetId){
 			$('#no-text-annos').show();
 			$('#ref-loading').hide();
 			$('#no-ref-annos').show();
+			$('#link-loading').hide();			
+			$('#no-link-annos').show();		
 		},
 		targetId
 	);
@@ -158,6 +181,7 @@ charme.web.clearAnnotations=function(){
 	$('.annotation-row').remove();
 	$('#no-text-annos').show();
 	$('#no-ref-annos').show();
+	$('#no-link-annos').show();	
 };
 
 /**
@@ -187,12 +211,22 @@ charme.web.saveAnnotation=function(){
 		body.setId(charme.logic.constants.BODY_ID_PREFIX + 'bodyID');
 		body.text=form.elements['bodyContentText'].value;
 		annotation.body = body;
-	} else {
+	} else if (typeSelect.val() == 'url'){
+		var doiVal = form.elements['bodyContentURL'].value;
+		if (!doiVal.match('^' + charme.logic.regExpEscape(charme.logic.constants.URL_PREFIX))){
+			doiVal = charme.logic.constants.URL_PREFIX + doiVal;
+		}
+		var body = new OA.OABody();
+		body.setId(doiVal);
+		annotation.body = body;
+	} else if (typeSelect.val() == 'cito'){
 		var doiVal = form.elements['bodyContentDOI'].value;
 		if (!doiVal.match('^' + charme.logic.regExpEscape(charme.logic.constants.DOI_PREFIX))){
 			doiVal = charme.logic.constants.DOI_PREFIX + doiVal;
 		}
-		var body = new OA.OABody();
+		var body = new OA.OARefBody();
+		body.citedEntity=target.getId();
+		body.citingEntity=doiVal;
 		body.setId(doiVal);
 		annotation.body = body;
 	}
@@ -205,8 +239,8 @@ charme.web.saveAnnotation=function(){
 				charme.web.showAnnotations('submitted', annotation.target.getId());
 			}, 
 			function(){
-				$('#newAnnotation').hide();
-				$('#dialogHolder').show();
+				charme.web.clearAnnotations();
+				charme.web.showAnnotations('submitted', annotation.target.getId());
 				//Error callback
 				$('#create-error').show();
 			}
@@ -262,9 +296,15 @@ charme.web.changeType=function(e){
 	if (type=='cito'){
 		$('#AnnoBodyCito').show();
 		$('#AnnoBodyText').hide();
-	} else {
+		$('#AnnoBodyURL').hide();
+	} else if (type=='text'){
 		$('#AnnoBodyText').show();
 		$('#AnnoBodyCito').hide();
+		$('#AnnoBodyURL').hide();
+	} else if (type=='url'){
+		$('#AnnoBodyURL').show();
+		$('#AnnoBodyCito').hide();
+		$('#AnnoBodyText').hide();
 	}
 };
 
@@ -284,6 +324,7 @@ charme.web.init=function(){
 				$('#create-error').hide();
 				$('#annotation-form')[0].reset();
 				$('#dialogHolder').hide();
+				$('#AnnoType').change();
 				$('#newAnnotation').show(); 
 			}
 	);
@@ -293,14 +334,14 @@ charme.web.init=function(){
 				$('#newAnnotation').hide();
 				$('#dialogHolder').show();
 			}
-	);
+	); 
 	
 	$('#annotation-form').submit( function(){
 		return false;
 	});
 	
 	$('#DoneButton').unbind(charme.web.closeCallback);
-	$('#DoneButton').on('click', function (){
+	$('#DoneButton').on('click', function (){ 
 		if (charme.web.closeCallback){
 			charme.web.closeCallback();
 		}
@@ -314,11 +355,8 @@ charme.web.init=function(){
 	
 	$('#SaveButton').unbind(charme.web.saveAnnotation).click(charme.web.saveAnnotation);
 	
-	$('#state-tabs li').unbind(charme.web.changeTab).click(charme.web.changeTab);
 	$('#AnnoType').change(charme.web.changeType);
 	$('#AnnoType').change();
-	
-	$('#dialogHolder').modal({backdrop: false});
 };
 
 $(document).ready(function(){

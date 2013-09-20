@@ -11,7 +11,7 @@ var OA = {
 			TYPE_ANNO: 'http://www.w3.org/ns/oa#Annotation',
 			TYPE_CONT_AS_TEXT: 'http://www.w3.org/2011/content#ContentAsText',
 			TYPE_TEXT: 'http://purl.org/dc/dcmitype/Text',
-			TYPE_CITE: '?',
+			TYPE_CITE: 'http://purl.org/spar/cito/CitationAct',
 			
 			ATTR_GRAPH:'@graph',
 			ATTR_TYPE: '@type',
@@ -21,7 +21,11 @@ var OA = {
 			ATTR_TARGET:'http://www.w3.org/ns/oa#hasTarget',
 			ATTR_FORMAT:'http://purl.org/dc/elements/1.1/format',
 			ATTR_CHARS:'http://www.w3.org/2011/content#chars',
+			ATTR_CITE_EVENT:'http://purl.org/spar/cito/hasCitationEvent',
+			ATTR_CITED_ENT:'http://purl.org/spar/cito/hasCitedEntity',
+			ATTR_CITING_ENT:'http://purl.org/spar/cito/hasCitingEntity',
 			
+			CITE_EVENT_DS:'http://purl.org/spar/cito/citesAsDataSource',
 			FORMAT_TEXT: 'text/plain',
 			FORMAT_HTML: 'text/html'
 		},
@@ -103,7 +107,7 @@ var OA = {
 				
 				var annoJSON = {};
 				annoJSON[OA.constants.ATTR_ID] = this.getId();
-				annoJSON[OA.constants.ATTR_TYPE] = OA.constants.TYPE_ANNO;
+				annoJSON[OA.constants.ATTR_TYPE] =[OA.constants.TYPE_ANNO];
 				annoJSON[OA.constants.ATTR_BODY] = {}; 
 				annoJSON[OA.constants.ATTR_BODY][OA.constants.ATTR_ID] = this.body.getId();
 				
@@ -164,6 +168,33 @@ var OA = {
 			};
 		},
 		
+		/**
+		 * Represents the body of a reference (citation) type annotation
+		 */
+		OARefBody: function OARefBody(){
+			OA.OABody.call(this);
+			this.prototype=new OA.OABody();
+			this.citingEntity='';
+			this.citedEntity='',
+
+			this.serialize = function(){
+				if (this.types.length == 0){
+					this.types = [OA.constants.TYPE_CITE];
+				}
+				var thisJSON = this.prototype.serialize.call(this);
+				thisJSON[OA.constants.ATTR_CITE_EVENT]={}
+				thisJSON[OA.constants.ATTR_CITE_EVENT][OA.constants.ATTR_ID]=OA.constants.CITE_EVENT_DS;
+				
+				thisJSON[OA.constants.ATTR_CITED_ENT]={};
+				thisJSON[OA.constants.ATTR_CITED_ENT][OA.constants.ATTR_ID]=this.citedEntity;
+
+				thisJSON[OA.constants.ATTR_CITING_ENT]={}
+				thisJSON[OA.constants.ATTR_CITING_ENT][OA.constants.ATTR_ID]=this.citingEntity;
+				
+				return thisJSON;
+			};
+		},
+
 		OATarget: function OATarget(){
 			this.prototype=new OA.OANode();
 			OA.OANode.call(this);
@@ -182,7 +213,7 @@ var OA = {
 			body.types = [OA.constants.TYPE_CONT_AS_TEXT, OA.constants.TYPE_TEXT];
 			body.format=OA.constants.FORMAT_TEXT;
 			return body;
-		},
+		},		
 		
 		/**
 		 * Given some JSON-LD data, generate a new Annotation object
@@ -238,7 +269,14 @@ var OA = {
 							node.format=n[OA.constants.ATTR_FORMAT];
 							node.text=n[OA.constants.ATTR_CHARS][0][OA.constants.ATTR_VALUE];
 							nodeMap[node.getId()]=node; // This node is a segment of an annotation, push it into a map for retrieval later
-						} else if ((type == undefined) || type.length == 0){
+						} else if ($.inArray(OA.constants.TYPE_CITE, type) >= 0){
+							node = new OA.OARefBody();
+							node.setId(n[OA.constants.ATTR_ID]);
+							node.citedEntity=n[OA.constants.ATTR_CITED_ENT][0][OA.constants.ATTR_ID];
+							node.citingEntity=n[OA.constants.ATTR_CITING_ENT][0][OA.constants.ATTR_ID];
+							nodeMap[node.getId()]=node;
+						}
+						else if ((type == undefined) || type.length == 0){
 							node = new OA.OATarget();
 							node.setId(n[OA.constants.ATTR_ID]);
 							nodeMap[node.getId()]=node; // Targets seem to be identifiable only by their lack of type? Not sure what to do with these right now...

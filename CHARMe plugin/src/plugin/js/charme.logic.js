@@ -12,7 +12,9 @@ charme.logic.constants={
 		ATN_ID_PREFIX:'http://localhost/',
 		BODY_ID_PREFIX:'http://localhost/',
 		REMOTE_BASE_URL: 'http://charme-dev.cems.rl.ac.uk/',
-		DOI_PREFIX: 'http://dx.doi.org/'
+		DOI_PREFIX: 'http://dx.doi.org/',
+		URL_PREFIX: 'http://'
+		
 };
 
 /**

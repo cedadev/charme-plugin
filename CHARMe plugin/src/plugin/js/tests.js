@@ -42,7 +42,7 @@ module(' Non-network Tests');
 			deepEqual(annoGraph.annotations[0].body.text, 'hello there!');
 			deepEqual(annoGraph.annotations[0].target.getId(), 'http://one.remote.host.io/ca960608.dm3');
 			start();
-		});
+		}, function(msg){ok( false, msg ); start();});
 	});
 	
 	asyncTest( "UT-003: Parse JSON-LD response for listing all nodes (second run)", function () {
@@ -62,7 +62,7 @@ module(' Non-network Tests');
 			deepEqual(annoGraph.annotations[5].body.getId(), 'http://charme-dev.cems.rl.ac.uk/resource/9bf1ba86f3b445a28c063ea847fda726');
 			deepEqual(annoGraph.annotations[5].target.getId(), 'http://dx.doi.org/10.1029/00EO00172');
 			start();
-		});
+		}, function(msg){ok( false, msg ); start();});
 	});
 	
 	asyncTest( "UT-006: Parse JSON-LD for single free-text metadata", function () {
@@ -80,7 +80,7 @@ module(' Non-network Tests');
 			'	               },                                                                  ' +
 			'	               {                                                                   ' +
 			'	                "@id": "http://localhost/freeTextAnnoId",                          ' +
-			'	                "@type": "http://www.w3.org/ns/oa#Annotation",                     ' +
+			'	                "@type": ["http://www.w3.org/ns/oa#Annotation"],                   ' +
 			'	                "http://www.w3.org/ns/oa#hasBody": {                               ' +
 			'	                   "@id": "http://localhost/bodyID"                                ' +
 			'	                 },                                                                ' +
@@ -100,67 +100,93 @@ module(' Non-network Tests');
 			deepEqual(annoGraph.annotations[0].getId(), 'http://localhost/freeTextAnnoId');
 			deepEqual(annoGraph.annotations[0].body.text, 'Basic free text metadata');
 			start();
-		});
+		}, function(msg){ok( false, msg ); start();});
 	});
-	
+
 	asyncTest( "UT-009: Parse JSON-LD response for single citation", function () {
+		expect(7);
 		var graphSrc = 
-			'{                                                                                                   ' +
-			'  "@graph": [                                                                                       ' +
-			'             {                                                                                      ' +
-			'               "@id": "http://charme-dev.cems.rl.ac.uk/resource/d84d989a955145069ec59935e11f908c",  ' +
-			'               "@type": "http://www.w3.org/ns/oa#Annotation",                                       ' +
-			'               "http://www.w3.org/ns/oa#hasBody": {                                                 ' +
-			'                 "@id": "http://charme-dev.cems.rl.ac.uk/resource/eb1a0e40bec14ee28d97aff30a04086c" ' +
-			'               },                                                                                   ' +
-			'               "http://www.w3.org/ns/oa#hasTarget": {                                               ' +
-			'                 "@id": "http://dom.spec.whatwg.org/#promises"                                      ' +
-			'               }                                                                                    ' +
-			'             },                                                                                     ' +
-			'             {                                                                                      ' +
-			'               "@id": "http://charme-dev.cems.rl.ac.uk/resource/eb1a0e40bec14ee28d97aff30a04086c",  ' +
-			'               "@type": [                                                                           ' +
-			'                 "http://purl.org/dc/dcmitype/Text",                                                ' +
-			'                 "http://www.w3.org/2011/content#ContentAsText"                                     ' +
-			'               ],                                                                                   ' +
-			'               "http://purl.org/dc/elements/1.1/format": "text/plain",                              ' +
-			'               "http://www.w3.org/2011/content#chars": "The spec on the promises model for DOM"     ' +
-			'             }                                                                                      ' +
-			'           ]                                                                                        ' +
-			'         }                                                                                          ';
+				'[{                                                                                       ' +
+				'	  "@id": "http://charme-dev.cems.rl.ac.uk/resource/302b85fdd054db9a7fae83ec7df17b8",  ' +
+				'	  "@type": "http://www.w3.org/ns/oa#Annotation",                                      ' +
+				'	  "http://www.w3.org/ns/oa#hasBody": {                                                ' +
+				'	    "@id": "http://charme-dev.cems.rl.ac.uk/resource/cb638111c094e83a2bfe6888e5d8bff" ' +
+				'	  },                                                                                  ' +
+				'	  "http://www.w3.org/ns/oa#hasTarget": {                                              ' +
+				'	    "@id": "http://dataprovider.org/datasets/sst"                                     ' +
+				'	  }                                                                                   ' +
+				'	}, {                                                                                  ' +
+				'	  "@id": "http://charme-dev.cems.rl.ac.uk/resource/cb638111c094e83a2bfe6888e5d8bff",  ' +
+				'	  "@type": ["http://purl.org/spar/cito/CitationAct"],                                 ' +
+				'	  "http://purl.org/spar/cito/hasCitationEvent": {                                     ' +
+				'	    "@id": "http://purl.org/spar/cito/citesAsDataSource"                              ' +
+				'	  },                                                                                  ' +
+				'	  "http://purl.org/spar/cito/hasCitedEntity": {                                       ' +
+				'	    "@id": "http://dataprovider.org/datasets/sst"                                     ' +
+				'	  },                                                                                  ' +
+				'	  "http://purl.org/spar/cito/hasCitingEntity": {                                      ' +
+				'	    "@id": "http://dx.doi.org/12345.678910"                                           ' +
+				'	  }                                                                                   ' +
+				'	}]                                                                                    ';
 		graphObj = $.parseJSON(graphSrc);
 		OA.deserialize(graphObj).then(function(annoGraph){
 			equal(annoGraph.annotations.length, 1);
-			deepEqual(annoGraph.annotations[0].getId(), 'http://charme-dev.cems.rl.ac.uk/resource/d84d989a955145069ec59935e11f908c');
-			deepEqual(annoGraph.annotations[0].body.getId(), 'http://charme-dev.cems.rl.ac.uk/resource/eb1a0e40bec14ee28d97aff30a04086c');
-			deepEqual(annoGraph.annotations[0].target.getId(), 'http://dom.spec.whatwg.org/#promises');
-			deepEqual(annoGraph.annotations[0].body.text, 'The spec on the promises model for DOM');
+			deepEqual(annoGraph.annotations[0].getId(), 'http://charme-dev.cems.rl.ac.uk/resource/302b85fdd054db9a7fae83ec7df17b8');
+			deepEqual(annoGraph.annotations[0].body.getId(), 'http://charme-dev.cems.rl.ac.uk/resource/cb638111c094e83a2bfe6888e5d8bff');
+			deepEqual(annoGraph.annotations[0].target.getId(), 'http://dataprovider.org/datasets/sst');
+			deepEqual(annoGraph.annotations[0].body.citedEntity, 'http://dataprovider.org/datasets/sst');
+			deepEqual(annoGraph.annotations[0].body.citingEntity, 'http://dx.doi.org/12345.678910');
+			deepEqual(annoGraph.annotations[0].body.types, ['http://purl.org/spar/cito/CitationAct']);
 			start();
-		});
+		}, function(msg){ok( false, msg ); start();});
 	});
 	
-	test( "UT-009: Create JSON-LD payload for new citation creation", function() {
+	test( "UT-010: Create JSON-LD payload for new citation creation", function() {
 		var jsonComp = 
-			'[{"@id":"http://charme-dev.cems.rl.ac.uk/resource/302b85fdd054db9a7fae83ec7df17b8","@type":"http://www.w3.org/ns/oa#Annotation","http://www.w3.org/ns/oa#hasBody":{"@id":"http://charme-dev.cems.rl.ac.uk/resource/cb638111c094e83a2bfe6888e5d8bff"},"http://www.w3.org/ns/oa#hasTarget":{"@id":"http://dx.doi.org/10.1030/00EO00173"}}]';
+			'[{                                                                                       ' +
+			'	  "@id": "http://localhost/annoID",                                                   ' +
+			'	  "@type": ["http://www.w3.org/ns/oa#Annotation"],                                    ' +
+			'	  "http://www.w3.org/ns/oa#hasBody": {                                                ' +
+			'	    "@id": "http://localhost/bodyID"                                                  ' +
+			'	  },                                                                                  ' +
+			'	  "http://www.w3.org/ns/oa#hasTarget": {                                              ' +
+			'	    "@id": "http://dataprovider.org/datasets/sst"                                     ' +
+			'	  }                                                                                   ' +
+			'  },                                                                                     ' +
+			'  {                                                                                      ' +
+			'	  "@id": "http://localhost/bodyID",                                                   ' +
+			'	  "@type": ["http://purl.org/spar/cito/CitationAct"],                                 ' +
+			'	  "http://purl.org/spar/cito/hasCitationEvent": {                                     ' +
+			'	    "@id": "http://purl.org/spar/cito/citesAsDataSource"                              ' +
+			'	  },                                                                                  ' +
+			'	  "http://purl.org/spar/cito/hasCitedEntity": {                                       ' +
+			'	    "@id": "http://dataprovider.org/datasets/sst"                                     ' +
+			'	  },                                                                                  ' +
+			'	  "http://purl.org/spar/cito/hasCitingEntity": {                                      ' +
+			'	    "@id": "http://dx.doi.org/12345.678910"                                           ' +
+			'	  }                                                                                   ' +
+			'  }]                                                                                     ';
 
 		var newAnno = new OA.OAnnotation();
-		newAnno.setId('http://charme-dev.cems.rl.ac.uk/resource/302b85fdd054db9a7fae83ec7df17b8');
+		newAnno.setId('http://localhost/annoID');
 		
-		var newBody = new OA.OABody();
-		newBody.setId('http://charme-dev.cems.rl.ac.uk/resource/cb638111c094e83a2bfe6888e5d8bff');
+		var newBody = new OA.OARefBody();
+		newBody.setId('http://localhost/bodyID');
+		newBody.citedEntity='http://dataprovider.org/datasets/sst';
+		newBody.citingEntity='http://dx.doi.org/12345.678910';
 		newAnno.body = newBody;
 		
 		var newTarget = new OA.OATarget();
-		newTarget.setId('http://dx.doi.org/10.1030/00EO00173');
+		newTarget.setId('http://dataprovider.org/datasets/sst');
 		newAnno.target = newTarget;
 		
 		var annoSrc = JSON.stringify(newAnno.serialize());
-		deepEqual(annoSrc, jsonComp);
+		deepEqual(annoSrc.replace(/[\s\t]/g,''), jsonComp.replace(/[\s\t]/g,''));
 		
 	});
 	
 	test( "UT-022: Generate valid JSON-LD payload for text annotation", function(){
-		var jsonComp = '[{"@id":"http://localhost/resource/1a71a7783f10","@type":"http://www.w3.org/ns/oa#Annotation","http://www.w3.org/ns/oa#hasBody":{"@id":"http://localhost/resource/9966bc8bb5d1"},"http://www.w3.org/ns/oa#hasTarget":{"@id":"http://ericleads.com/h5validate/"}},{"@id":"http://localhost/resource/9966bc8bb5d1","@type":["http://www.w3.org/2011/content#ContentAsText","http://purl.org/dc/dcmitype/Text"],"http://purl.org/dc/elements/1.1/format":"text/plain","http://www.w3.org/2011/content#chars":"Some text here"}]';
+		var jsonComp = '[{"@id":"http://localhost/resource/1a71a7783f10","@type":["http://www.w3.org/ns/oa#Annotation"],"http://www.w3.org/ns/oa#hasBody":{"@id":"http://localhost/resource/9966bc8bb5d1"},"http://www.w3.org/ns/oa#hasTarget":{"@id":"http://ericleads.com/h5validate/"}},{"@id":"http://localhost/resource/9966bc8bb5d1","@type":["http://www.w3.org/2011/content#ContentAsText","http://purl.org/dc/dcmitype/Text"],"http://purl.org/dc/elements/1.1/format":"text/plain","http://www.w3.org/2011/content#chars":"Some text here"}]';
 		
 		var newAnno = new OA.OAnnotation();
 		newAnno.setId('http://localhost/resource/1a71a7783f10');
@@ -177,19 +203,10 @@ module(' Non-network Tests');
 		var annoSrc = JSON.stringify(newAnno.serialize());
 		deepEqual(annoSrc, jsonComp);
 	});
-	
-	test( "UT-021: Generate valid JSON-LD payload for DOI annotation", function(){
-			ok(false);
-	});
-	
-	test( "UT-023: Generate valid JSON-LD payload for html annotation", function(){
-		ok(false);
-	});
-
 
 //Tests that require a remote site
 module('Network Tests');
-	asyncTest( 'UT-002: Generate request for presence of annotations, and receive non-error response', function () {
+/*	asyncTest( 'UT-002: Generate request for presence of annotations, and receive non-error response', function () {
 		var successCB = function(){
 			ok(true, 'Success');
 			start();
@@ -199,30 +216,4 @@ module('Network Tests');
 			start();
 		};
 		charme.logic.exists('submitted', successCB, failCB);
-	});
-	/*
-	asyncTest( 'UT-007: Generate request for creation of new citation, and receive a response that is not an http error', function () {
-		var successCB = function(){
-			ok(true, 'Success');
-			start();
-		};
-		var failCB = function(resp, status, err){
-			ok(false, 'Failed');
-			start();
-		};
-		
-		var newAnno = new OA.OAnnotation();
-		newAnno.setId('http://cgi.test.anno');
-		
-		var newBody = new OA.OABody();
-		newBody.setId('http://charme-dev.cems.rl.ac.uk/resource/1111111111');
-		newAnno.body = newBody;
-		
-		var newTarget = new OA.OATarget();
-		newTarget.setId('http://dx.doi.org/10.1030/00EO00173');
-		newAnno.target = newTarget;
-		
-		var annoSrc = JSON.stringify(newAnno.serialize());
-		charme.logic.createAnnotation(newAnno);
-		
 	});*/

@@ -52,18 +52,33 @@
 						<div class="accordion-group">
 							<div class="accordion-heading">
 								<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
-								  References
+								  Publications
 								</a>
 							</div>
 							<div id="collapseTwo" class="accordion-body collapse">
 								<div class="accordion-inner">
-									<ul id="ref-list">
+									<ul id="ref-list"> 
 											<li id="no-ref-annos">No annotations.</li>
 								 			<li id="ref-loading">Loading...</li>
 									</ul>
 								</div>
 							</div>
-						</div>						
+						</div>
+						<div class="accordion-group">
+							<div class="accordion-heading">
+								<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseThree">
+								  Links
+								</a>
+							</div>
+							<div id="collapseThree" class="accordion-body collapse">
+								<div class="accordion-inner">
+									<ul id="link-list">
+											<li id="no-link-annos">No annotations.</li>
+								 			<li id="link-loading">Loading...</li>
+									</ul>
+								</div>
+							</div>
+						</div>				
 					</div>
 		    	</div>
 		    </div>
@@ -83,14 +98,15 @@
 						    		<button type="button" class="close" data-dismiss="alert">&times;</button>
 						    		<h4>Error</h4>
 						    		<p>Could not save annotation data.</p>
-								</div>
+								</div> 
 								<fieldset>
 									<div class="control-group">
 										<label for="AnnoType" class="control-label">Type</label>
-										<div class="controls">
+										<div class="controls"> 
 											<select name="targetType" id="AnnoType">
-												<option value="cito">Citation</option>
-												<option value="text">Text</option>										
+												<option value="cito">Publication</option>
+												<option value="text">Text</option>
+												<option value="url">Link</option>								
 											</select>
 										</div>
 									</div>							
@@ -100,6 +116,13 @@
 											<input type="text" name="bodyContentDOI" id="AnnoBodyCitoInput" placeholder="Enter a DOI"></input>
 										</div>
 									</div>
+									<div id="AnnoBodyURL" class="input-prepend">
+										<label for="AnnoBodyURLInput" class="control-label"></label>
+										<div class="controls">
+											<span class="add-on">http://</span>
+											<input type="text" name="bodyContentURL" id="AnnoBodyURLInput" placeholder="Enter a URL"></input>
+										</div>
+									</div>									
 									<div id="AnnoBodyText" class="control-group">
 										<label for="AnnoBodyTextInput" class="control-label">Text</label>
 										<div class="controls">
