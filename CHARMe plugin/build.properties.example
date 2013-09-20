@@ -1,0 +1,7 @@
+deploy.dir	=C:/Users/henryad/Documents/Projects/CHARMe/http/DAV/
+src.dir		=src
+build.dir	=build
+plugin.dir	=${deploy.dir}js/charme/
+tools.dir  = tools/
+phantom.js.dir = ${tools.dir}phantomjs/
+phantom.js.exe= phantomjs.exe
