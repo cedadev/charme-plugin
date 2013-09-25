@@ -1,2 +1,7 @@
 /build
 /build.properties
+/charme.sublime-project
+/charme.sublime-workspace
+/.externalToolBuilders
+/.settings
+/.project
