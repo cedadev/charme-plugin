@@ -3,8 +3,12 @@
  * 
  * Functions for abstracting the lower level functions of the jsonoa.js library
  */
-if (!charme)
+if (!charme){
 	var charme= {};
+	if (typeof wgxpath !== 'undefined'){
+		wgxpath.install();
+	}
+}
 charme.logic = {};
 
 
@@ -13,7 +17,15 @@ charme.logic.constants={
 		BODY_ID_PREFIX:'http://localhost/',
 		REMOTE_BASE_URL: 'http://charme-dev.cems.rl.ac.uk/',
 		DOI_PREFIX: 'http://dx.doi.org/',
-		URL_PREFIX: 'http://'
+		URL_PREFIX: 'http://',
+		
+		CROSSREF_URL: 'http://www.crossref.org/openurl/',
+		CROSSREF_PARAM_EMAIL: 'akhenry@gmail.com',
+		CROSSREF_PARAM_FORMAT: 'unixref',
+		CROSSREF_PARAM_NOREDIRECT: 'true',
+		CROSSREF_CRITERIA_DOI:'id',
+
+		CITE_FMT_CHICAGO: '{authors[{surname}, {givenName}](, )}. "{title}"' 
 		
 };
 
@@ -44,6 +56,44 @@ charme.logic.stateRequest=function(newState){
 };
 charme.logic.fetchRequest=function (id){
 	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'data/' + id;
+};
+
+charme.logic.crossRefRequest=function(criteria){
+	var url=charme.logic.constants.CROSSREF_URL + '?';
+
+	//Append default params associated with all requests
+	url+='pid=' + charme.logic.constants.CROSSREF_PARAM_EMAIL;
+	url+='&format=' + charme.logic.constants.CROSSREF_PARAM_FORMAT;
+	url+='&noredirect=' + charme.logic.constants.CROSSREF_PARAM_NOREDIRECT;
+
+	//Append search criteria
+	for (c in criteria){
+		if (c===charme.logic.constants.CROSSREF_CRITERIA_DOI){
+			if (criteria[c].indexOf('doi:') != 0){
+				criteria[c]='doi:' + criteria[c];
+			}
+		}
+		url+='&' + c + '=' + criteria[c];
+	}
+	return url;
+};
+
+charme.logic.fetchCrossRefMetaData=function(criteria){
+	var dfr = new $.Deferred();
+	var reqUrl = charme.logic.crossRefRequest(criteria);
+	$.ajax(reqUrl, {
+		dataType: 'xml'
+	}).then(function(xmlResp){
+		try {
+			var metaData = new charme.crossref.MetaData(xmlResp);
+			dfr.resolve(metaData);
+		} catch(err){
+			dfr.reject(err);
+		}
+	}, function(e){
+		dfr.reject(e.toString());
+	});
+	return dfr.promise();
 };
 
 /*

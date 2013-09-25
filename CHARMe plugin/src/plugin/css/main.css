@@ -80,6 +80,17 @@ body {
 	background: none transparent;
 }
 
+#newAnnotation .popover {
+	max-width: 150px;
+	font-size: smaller;
+}
+
+#BibTextHolder{
+	font-size: smaller;
+}
+#anno-cats ul li{
+	margin-bottom: 10px;
+}
 /* ==========================================================================
    Media Queries
    ========================================================================== */

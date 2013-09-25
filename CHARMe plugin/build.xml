@@ -23,7 +23,7 @@
 			<resources>
 				<fileset dir="${src.dir}">
 				</fileset>
-			</resources> 
+			</resources>
 		</copy>
 	</target>
 	<target name="qunit" depends="build">

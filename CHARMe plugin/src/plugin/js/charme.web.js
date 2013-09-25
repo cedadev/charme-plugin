@@ -88,8 +88,38 @@ charme.web.fetched = function(){
 
 charme.web.fetchAdditionalData = function(annotation){
 	charme.web.fetching();
+	/**
+	 * DIRTY HACK.
+	 * This is intended to fetch DOI annotation metadata. This will not be necessary once this data is stored in the triplestore
+	 * 
+	 */
+	 if (annotation.body.getId().indexOf(charme.logic.constants.DOI_PREFIX)==0){
+	 	var doiTxt = annotation.body.getId().substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.getId().length);
+	 	var criteria = {};
+	 	criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
+
+	 	charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
+		    var html = 
+				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
+				'   ' + charme.crossref.format(metaData, charme.logic.constants.CITE_FMT_CHICAGO) + '                   <br />' +
+				'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+				'</li>                                                                                                        ';
+			var htmlObj = $(html);
+	    	$('#ref-list:last').append(htmlObj);
+	    	$('#no-ref-annos').hide();
+	    	$('#ref-loading').hide();
+	    	charme.web.fetched();
+	    }, function(){
+				$('#annotations-error').show();
+				charme.web.fetched();
+	    });
+    	return;
+	 }
 	charme.logic.fetchAnnotation(
 			annotation.getInternalId(),
+			/*
+			 * Success callback
+			 */
 			function(graph){
 				var fetchedAnno = graph.annotations[0];
 				
@@ -125,6 +155,9 @@ charme.web.fetchAdditionalData = function(annotation){
 
 				charme.web.fetched();
 			},
+			/*
+			 * Error callback
+			 */
 			function() {
 				$('#annotations-error').show();
 				charme.web.fetched();
@@ -233,7 +266,7 @@ charme.web.saveAnnotation=function(){
 	charme.logic.createAnnotation(annotation, 
 			function(){
 				//Success callback
-				$('#newAnnotation').hide();
+				$('#newAnnotation').addClass('hide');
 				$('#dialogHolder').show();
 				charme.web.clearAnnotations();
 				charme.web.showAnnotations('submitted', annotation.target.getId());
@@ -260,17 +293,6 @@ charme.web.changeTab=function(e){
 	$('.alert').hide();
 	charme.web.clearAnnotations();
 	charme.web.showAnnotations(state);
-};
-
-/**
- * This function is intended to highlight the annotation row with the given annotation id. This is useful after creation of a new annotation, so that it is clear to the user that an annotation has been successfully created.
- */
-charme.web.highlight=function(internalId){
-	//$('#annotation-row-' + internalId).animate({opacity: 0.25}, 500, function(){$('#annotation-row-' + internalId).animate({opacity: 1}, 500);});
-	var row = $('#annotation-row-' + internalId);
-	for (var i=0; i < 2; i++){
-		row.animate({opacity: 0.25}, 500).animate({opacity: 1}, 500);
-	}
 };
 
 /**
@@ -308,30 +330,54 @@ charme.web.changeType=function(e){
 	}
 };
 
-/**
- * An initialization function that is called when the DOM document is rendered, and ready.
- */
-charme.web.init=function(){ 
+charme.web.doiSearch=function(e){
+	var doiElement = $('#AnnoBodyCitoInput');
+	var doi = $.trim(doiElement.val());
+
+	var annoBodyCito = $('#AnnoBodyCito');
+	annoBodyCito.removeClass('error');
+	annoBodyCito.removeClass('success');
+	doiElement.popover('destroy');
 	
-	var targetId = charme.web.params['targetId']; 
-	if (targetId){
-		charme.web.showAnnotations('submitted', targetId);
+	if (doi.length==0){
+		annoBodyCito.addClass('error');
+		doiElement.attr('data-content', 'Please enter a DOI before searching');
+		doiElement.popover('show');
+		return true;
+	} else {
+		var criteria = {};
+		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] = doi;
+		charme.logic.fetchCrossRefMetaData(criteria).then(
+			function(data){
+				var fmtText = charme.crossref.format(data, charme.logic.constants.CITE_FMT_CHICAGO);
+				$('#BibTextHolder').html(fmtText);
+				$('#AnnoBodyBib').removeClass('hide');
+				annoBodyCito.addClass('success');
+			}, function(e){
+				annoBodyCito.addClass('error');
+				doiElement.attr('data-content', e.toString());
+				doiElement.popover('show');
+			});
 	}
-	$('#newAnnotation').hide();
-	
+};
+
+/**
+ * Define behaviour of html elements through progressive enhancement
+ */
+charme.web.behaviour = function(){
 	$('#newAnnotationButton').click(
 			function(){
 				$('#create-error').hide();
 				$('#annotation-form')[0].reset();
 				$('#dialogHolder').hide();
 				$('#AnnoType').change();
-				$('#newAnnotation').show(); 
+				$('#newAnnotation').removeClass('hide'); 
 			}
 	);
 	
 	$('#CancelButton').click(
 			function(){
-				$('#newAnnotation').hide();
+				$('#newAnnotation').addClass('hide');
 				$('#dialogHolder').show();
 			}
 	); 
@@ -340,7 +386,6 @@ charme.web.init=function(){
 		return false;
 	});
 	
-	$('#DoneButton').unbind(charme.web.closeCallback);
 	$('#DoneButton').on('click', function (){ 
 		if (charme.web.closeCallback){
 			charme.web.closeCallback();
@@ -353,10 +398,32 @@ charme.web.init=function(){
 		}
 	});
 	
-	$('#SaveButton').unbind(charme.web.saveAnnotation).click(charme.web.saveAnnotation);
+	$('#SaveButton').on('click', charme.web.saveAnnotation);
 	
 	$('#AnnoType').change(charme.web.changeType);
 	$('#AnnoType').change();
+
+	$('#DOISearchButton').on('click', charme.web.doiSearch);
+	$('#AnnoBodyCitoInput').on('change', function(){
+				$('#BibTextHolder').html('');
+				$('#AnnoBodyBib').addClass('hide');
+				var annoBodyCito = $('#AnnoBodyCito');
+				annoBodyCito.removeClass('success');
+				annoBodyCito.removeClass('error');
+	});
+};
+
+/**
+ * An initialization function that is called when the DOM document is rendered, and ready.
+ */
+charme.web.init=function(){ 
+	
+	var targetId = charme.web.params['targetId']; 
+	if (targetId){
+		charme.web.showAnnotations('submitted', targetId);
+	}
+
+	charme.web.behaviour();
 };
 
 $(document).ready(function(){

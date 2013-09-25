@@ -24,8 +24,10 @@ var OA = {
 			ATTR_CITE_EVENT:'http://purl.org/spar/cito/hasCitationEvent',
 			ATTR_CITED_ENT:'http://purl.org/spar/cito/hasCitedEntity',
 			ATTR_CITING_ENT:'http://purl.org/spar/cito/hasCitingEntity',
+			ATTR_MOTIVATED_BY:'http://www.openannotation.org/spec/core/motivatedBy',
 			
 			CITE_EVENT_DS:'http://purl.org/spar/cito/citesAsDataSource',
+			MOTIVE_LINKING:'http://www.openannotation.org/spec/core/linking',
 			FORMAT_TEXT: 'text/plain',
 			FORMAT_HTML: 'text/html'
 		},
@@ -114,6 +116,9 @@ var OA = {
 				annoJSON[OA.constants.ATTR_TARGET] = {};
 				annoJSON[OA.constants.ATTR_TARGET][OA.constants.ATTR_ID] = this.target.getId();
 				
+				annoJSON[OA.constants.ATTR_MOTIVATED_BY] = {};
+				annoJSON[OA.constants.ATTR_MOTIVATED_BY][OA.constants.ATTR_ID] = OA.constants.MOTIVE_LINKING;
+
 				annoNodes.push(annoJSON);
 				
 				var bodyNode = this.body.serialize();
@@ -261,6 +266,9 @@ var OA = {
 							var target = new OA.OATarget();
 							target.setId(n[OA.constants.ATTR_TARGET][0][OA.constants.ATTR_ID]);
 							node.target=target;
+							if (n[OA.constants.ATTR_MOTIVATED_BY]){
+								node.motivatedBy = n[OA.constants.ATTR_MOTIVATED_BY][0][OA.constants.ATTR_ID];
+							}
 							
 							oag.annotations.push(node); // As this is an annotation, push it into annotations collection
 						} else if ($.inArray(OA.constants.TYPE_CONT_AS_TEXT, type) >= 0 || $.inArray(OA.constants.TYPE_TEXT, type) >=0 ){

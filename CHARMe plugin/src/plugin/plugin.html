@@ -87,7 +87,7 @@
 				<button id="DoneButton" type="button" class="btn">Done</button>			
   			</div>
 	    </div>
-	    <div id="newAnnotation" class="modal" role="dialog" aria-hidden="true">
+	    <div id="newAnnotation" class="modal hide" role="dialog" aria-hidden="true">
 						<form action="#" class="form-horizontal" id="annotation-form">
 							<div class="modal-header">
 							    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -113,8 +113,13 @@
 									<div id="AnnoBodyCito" class="control-group">
 										<label for="AnnoBodyCitoInput" class="control-label">DOI</label>
 										<div class="controls">
-											<input type="text" name="bodyContentDOI" id="AnnoBodyCitoInput" placeholder="Enter a DOI"></input>
+											<input type="text" name="bodyContentDOI" id="AnnoBodyCitoInput" placeholder="Enter a DOI" data-placement="left" data-trigger="manual"></input>
+											<a id="DOISearchButton" class="btn btn-small"><i class="icon-search"></i></a>
 										</div>
+									</div>
+									<div id="AnnoBodyBib" class="control-group hide">
+										<label for="AnnoBodyCitoInput" class="control-label">Citation</label>
+										<div class="controls"><small><span id="BibTextHolder"></span></small></div>
 									</div>
 									<div id="AnnoBodyURL" class="input-prepend">
 										<label for="AnnoBodyURLInput" class="control-label"></label>
@@ -122,13 +127,13 @@
 											<span class="add-on">http://</span>
 											<input type="text" name="bodyContentURL" id="AnnoBodyURLInput" placeholder="Enter a URL"></input>
 										</div>
-									</div>									
+									</div>					
 									<div id="AnnoBodyText" class="control-group">
 										<label for="AnnoBodyTextInput" class="control-label">Text</label>
 										<div class="controls">
-											<textarea  name="bodyContentText" id="AnnoBodyTextInput" rows="3"></textarea>
+											<textarea name="bodyContentText" id="AnnoBodyTextInput" rows="3"></textarea>
 										</div>
-									</div>							
+									</div>
 								</fieldset>
 							</div>
 							<div class="modal-footer">
@@ -145,7 +150,9 @@
 		<script src="js/vendor/Promise.js"></script>
 		<script src="js/vendor/jsonld.js"></script>
 		<script src="js/jsonoa.js"></script>
+		<script src="js/vendor/wgxpath.install.js"></script>
 		<script src="js/charme.logic.js"></script>
+        <script src="js/charme.crossref.js"></script>		
 		<script src="js/charme.web.js"></script>
         <!-- ## END SCRIPTS -->
     </body>
