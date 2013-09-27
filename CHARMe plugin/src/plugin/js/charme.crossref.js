@@ -3,10 +3,20 @@ charme.crossref = {};
 charme.crossref.constants = {
 	XPATH_TITLE: '//title',
 	XPATH_DOI:'//doi_data//doi',
-	//XPATH_AUTHORS: '//person_name/given_name|//person_name/surname',
 	XPATH_AUTHORS: '//contributors/person_name',
 	XPATH_AUTHOR_SNAME: 'surname',
-	XPATH_AUTHOR_GNAME: 'given_name'
+	XPATH_AUTHOR_GNAME: 'given_name',
+	XPATH_JOURNAL: '//journal//full_title',
+	XPATH_VOLUME: '//journal_issue/issue',
+	XPATH_ISSUE: '//journal_issue/journal_volume/volume',
+	XPATH_YEAR: '//publication_date/year',
+	XPATH_PAGE_FIRST: '//journal/journal_article/pages/first_page',
+	XPATH_PAGE_LAST: '//journal/journal_article/pages/last_page',
+
+	CITE_CHICAGO_AUTH_1: '{surname}, {givenName}',
+	CITE_CHICAGO_AUTH_OTHERS: '{authors[, {givenName} {surname}]}',
+	CITE_CHICAGO_AUTH_LAST: ' and {givenName} {surname}',
+	CITE_CHICAGO_FMT: ' "{title}" <em>{journal}</em> {volume}, {(no. )issue} ({year}){(: )pages}'
 };
 
 /**
@@ -30,10 +40,23 @@ charme.crossref.MetaData = function(xmlDoc) {
 	if (doiNode == null){
 		throw "The provided DOI did not match any records";
 	}
-	this.doi=doiNode.textContent;
-	this.doi = $.trim(this.doi);
-	this.title=document.evaluate(charme.crossref.constants.XPATH_TITLE, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/g, ' ');
-	this.title = $.trim(this.title);
+	this.doi=$.trim(doiNode.textContent);
+	this.title=$.trim(document.evaluate(charme.crossref.constants.XPATH_TITLE, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.journal=$.trim(document.evaluate(charme.crossref.constants.XPATH_JOURNAL, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.volume=$.trim(document.evaluate(charme.crossref.constants.XPATH_VOLUME, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.issue=$.trim(document.evaluate(charme.crossref.constants.XPATH_ISSUE, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.year=$.trim(document.evaluate(charme.crossref.constants.XPATH_YEAR, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
+
+	this.pages='';
+	var startPage = document.evaluate(charme.crossref.constants.XPATH_PAGE_FIRST, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext();
+	if (startPage!=null){
+		this.pages+=startPage.textContent.replace(/\s\s*/, ' ');
+	}
+
+	var endPage = document.evaluate(charme.crossref.constants.XPATH_PAGE_LAST, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext();
+	if (endPage!=null){
+		this.pages+= '-' + endPage.textContent.replace(/\s\s*/, ' ');
+	}
 
 	this.authors=(function (){
 		var authorData = [];
@@ -49,6 +72,23 @@ charme.crossref.MetaData = function(xmlDoc) {
 		return authorData;
 	})();
 };
+
+charme.crossref.chicagoStyle = function(metaData){
+	var auths = metaData.authors;
+	var fmtText = '';
+	if (auths.length > 0){
+		fmtText += charme.crossref.format(auths[0], charme.crossref.constants.CITE_CHICAGO_AUTH_1);
+		if (auths.length > 1){
+			if (auths.length > 2){
+				fmtText += charme.crossref.format({'authors': auths.slice(1, -1)}, charme.crossref.constants.CITE_CHICAGO_AUTH_OTHERS);
+			}
+			fmtText += charme.crossref.format(auths[auths.length-1], charme.crossref.constants.CITE_CHICAGO_AUTH_LAST);
+		}
+	}
+
+	fmtText+= charme.crossref.format(metaData, charme.crossref.constants.CITE_CHICAGO_FMT);
+	return fmtText;
+}
 
 //'${authors[${surname}, ${name}]}'
 /*
@@ -75,7 +115,7 @@ charme.crossref.format = function(metaData, style){
 	var text=style;
 	$.each(metaData, function(key, val){
 		if ($.isArray(val)){
-			var regex = new RegExp('\\{' + key + '\\[(.*)\\](\\((.*)\\))?\\}');
+			var regex = new RegExp('\\{' + key + '\\[([^\\[\\]]*)\\](\\(([^\\(\\)]*)\\))?\\}');
 			if (!regex.test(style)){
 				return;
 			}
@@ -94,7 +134,10 @@ charme.crossref.format = function(metaData, style){
 				return res;
 			})());
 		} else {
-			text = text.replace(new RegExp('\\{' + key + '\\}'), val);
+			var regex = new RegExp('\\{(\\(([^\\(\\)]*)\\))?' + key + '\\}');
+			var regexArr = regex.exec(style);
+			var condTerm = regexArr == null || typeof regexArr[2] === 'undefined' ? '' : regexArr[2];
+			text = text.replace(regex, condTerm + val);
 		}
 	});
 	return text;

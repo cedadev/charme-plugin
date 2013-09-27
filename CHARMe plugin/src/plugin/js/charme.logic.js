@@ -24,8 +24,6 @@ charme.logic.constants={
 		CROSSREF_PARAM_FORMAT: 'unixref',
 		CROSSREF_PARAM_NOREDIRECT: 'true',
 		CROSSREF_CRITERIA_DOI:'id',
-
-		CITE_FMT_CHICAGO: '{authors[{surname}, {givenName}](, )}. "{title}"' 
 		
 };
 

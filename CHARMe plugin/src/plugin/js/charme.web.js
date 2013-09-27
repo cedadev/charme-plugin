@@ -101,7 +101,7 @@ charme.web.fetchAdditionalData = function(annotation){
 	 	charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
 		    var html = 
 				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-				'   ' + charme.crossref.format(metaData, charme.logic.constants.CITE_FMT_CHICAGO) + '                   <br />' +
+				'   ' + charme.crossref.chicagoStyle(metaData) + '                                                            ' +
 				'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
 				'</li>                                                                                                        ';
 			var htmlObj = $(html);
@@ -349,7 +349,7 @@ charme.web.doiSearch=function(e){
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] = doi;
 		charme.logic.fetchCrossRefMetaData(criteria).then(
 			function(data){
-				var fmtText = charme.crossref.format(data, charme.logic.constants.CITE_FMT_CHICAGO);
+				var fmtText = charme.crossref.chicagoStyle(data);
 				$('#BibTextHolder').html(fmtText);
 				$('#AnnoBodyBib').removeClass('hide');
 				annoBodyCito.addClass('success');
@@ -370,6 +370,11 @@ charme.web.behaviour = function(){
 				$('#create-error').hide();
 				$('#annotation-form')[0].reset();
 				$('#dialogHolder').hide();
+				$('#BibTextHolder').html('');
+				$('#AnnoBodyBib').addClass('hide');
+				var annoBodyCito = $('#AnnoBodyCito');
+				annoBodyCito.removeClass('success');
+				annoBodyCito.removeClass('error');
 				$('#AnnoType').change();
 				$('#newAnnotation').removeClass('hide'); 
 			}
