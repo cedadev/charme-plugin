@@ -25,6 +25,10 @@
 				</fileset>
 			</resources>
 		</copy>
+		<replace dir="${build.dir}" propertyfile="build.properties">
+			<include name="**/*.js" />
+			<replaceFilter token="@@triplestore.url@@" property="triplestore.url"></replaceFilter>
+		</replace>
 	</target>
 	<target name="qunit" depends="build">
 		<echo message="Executing QUnit Javascript Unit Tests..."/>

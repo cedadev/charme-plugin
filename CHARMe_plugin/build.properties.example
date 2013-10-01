@@ -1,7 +1,8 @@
-deploy.dir	=C:/Users/henryad/Documents/Projects/CHARMe/http/DAV/
-src.dir		=src
-build.dir	=build
-plugin.dir	=${deploy.dir}js/charme/
-tools.dir  = tools/
-phantom.js.dir = ${tools.dir}phantomjs/
-phantom.js.exe= phantomjs.exe
+deploy.dir		=C:/Users/henryad/Documents/Projects/CHARMe/http/DAV/
+src.dir			=src
+build.dir		=build
+plugin.dir		=${deploy.dir}js/charme/
+tools.dir		=tools/
+phantom.js.dir	=${tools.dir}phantomjs/
+phantom.js.exe	=phantomjs.exe
+triplestore.url	=http://charme-dev.cems.rl.ac.uk/ 
