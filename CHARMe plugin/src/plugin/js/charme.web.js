@@ -12,15 +12,15 @@ charme.web = {};
 
 charme.web.params = 
 	(function(a) {
-	    if (a == "") return {};
-	    var b = {};
-	    for (var i = 0; i < a.length; ++i)
-	    {
-	        var p=a[i].split('=');
-	        if (p.length != 2) continue;
-	        b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
-	    }
-	    return b;
+		if (a === "") return {};
+		var b = {};
+		for (var i = 0; i < a.length; ++i)
+		{
+			var p=a[i].split('=');
+			if (p.length != 2) continue;
+			b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+		}
+		return b;
 	})(window.location.search.substr(1).split('&'));
 
 /**
@@ -59,7 +59,7 @@ charme.web.fetching = function(){
  * TODO: FIX THIS. Use classes etc.
  */
 charme.web.fetchCheck = function(){
-	if (charme.web.fetchCount == 0){
+	if (charme.web.fetchCount === 0){
 		var txtLoading = $('#text-loading');
 		var refLoading = $('#ref-loading');
 		var linkLoading = $('#link-loading');
@@ -93,61 +93,65 @@ charme.web.fetchAdditionalData = function(annotation){
 	 * This is intended to fetch DOI annotation metadata. This will not be necessary once this data is stored in the triplestore
 	 * 
 	 */
-	 if (annotation.body.getId().indexOf(charme.logic.constants.DOI_PREFIX)==0){
-	 	var doiTxt = annotation.body.getId().substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.getId().length);
-	 	var criteria = {};
-	 	criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
+	if (annotation.body.getId().indexOf(charme.logic.constants.DOI_PREFIX)===0){
+		var doiTxt = annotation.body.getId().substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.getId().length);
+		var criteria = {};
+		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
 
-	 	charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
-		    var html = 
+		charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
+			var html = 
 				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
 				'   ' + charme.crossref.chicagoStyle(metaData) + '                                                            ' +
 				'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
 				'</li>                                                                                                        ';
 			var htmlObj = $(html);
-	    	$('#ref-list:last').append(htmlObj);
-	    	$('#no-ref-annos').hide();
-	    	$('#ref-loading').hide();
-	    	charme.web.fetched();
-	    }, function(){
+			$('#ref-list:last').append(htmlObj);
+			$('#no-ref-annos').hide();
+			$('#ref-loading').hide();
+			charme.web.fetched();
+		}, function(){
 				$('#annotations-error').show();
 				charme.web.fetched();
-	    });
-    	return;
-	 }
+		});
+		return;
+	}
 	charme.logic.fetchAnnotation(
 			annotation.getInternalId(),
 			/*
 			 * Success callback
 			 */
 			function(graph){
+				//Hoisted variables
+				var htmlStr='';
+				var htmlObj = {};
+				
 				var fetchedAnno = graph.annotations[0];
 				
 				if (fetchedAnno.body.text){
-	        		var html = 
-	        			'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
-	        			'	' + fetchedAnno.body.text + '                                                    ' +
-            			'</li>                                                                               ';
-	        		var htmlObj = $(html);
-	            	$('#text-list:last').append(htmlObj);
-	            	$('#no-text-annos').hide();
-	            	$('#text-loading').hide();
+					htmlStr = 
+						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
+						'	' + fetchedAnno.body.text + '                                                    ' +
+						'</li>                                                                               ';
+					htmlObj = $(htmlStr);
+					$('#text-list:last').append(htmlObj);
+					$('#no-text-annos').hide();
+					$('#text-loading').hide();
 				} else if (fetchedAnno.body instanceof OA.OARefBody){
-	        		var html = 
-	        			'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-	        			'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
-            			'</li>                                                                                                        ';
-	        		var htmlObj = $(html);
-	            	$('#ref-list:last').append(htmlObj);
-	            	$('#no-ref-annos').hide();
-	            	$('#ref-loading').hide();
+					htmlStr = 
+						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
+						'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+						'</li>                                                                                                        ';
+					htmlObj = $(htmlStr);
+					$('#ref-list:last').append(htmlObj);
+					$('#no-ref-annos').hide();
+					$('#ref-loading').hide();
 				} else {
-	        		var html = 
-	        			'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-	        			'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
-            			'</li>                                                                                                        ';
-	        		var htmlObj = $(html);
-	            	$('#link-list:last').append(htmlObj);
+					htmlStr = 
+						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
+						'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+						'</li>                                                                                                        ';
+					htmlObj = $(htmlStr);
+					$('#link-list:last').append(htmlObj);
 					$('#no-link-annos').hide();
 					$('#link-loading').hide();
 				}
@@ -168,8 +172,8 @@ charme.web.fetchAdditionalData = function(annotation){
 /*
  * Retrieve and show all annotations with a given state (eg. submitted, retired, etc.)
  * Parameters:
- * 		state: Return all annotations that match this state
- * 		targetId (optional): The id of a target on which to filter the results
+ *		state: Return all annotations that match this state
+ *		targetId (optional): The id of a target on which to filter the results
  */
 charme.web.showAnnotations=function(state, targetId){
 	$('#annotations-error').hide();
@@ -185,14 +189,14 @@ charme.web.showAnnotations=function(state, targetId){
 	charme.logic.fetchAnnotations(state,
 		function(graph){
 			
-        	$.each(graph.annotations, function(i, annotation){
-        		//Temporary hack in order to allow filtering by target
-        		if (!targetId || annotation.target.getId()==targetId){
-        			//For each annotation, go and fetch additional associated data.
-        			charme.web.fetchAdditionalData(annotation);
-        		}
-        	});
-        	charme.web.fetchCheck();
+			$.each(graph.annotations, function(i, annotation){
+				//Temporary hack in order to allow filtering by target
+				if (!targetId || annotation.target.getId()==targetId){
+					//For each annotation, go and fetch additional associated data.
+					charme.web.fetchAdditionalData(annotation);
+				}
+			});
+			charme.web.fetchCheck();
 		},
 		function(){
 			$('#annotations-error').show();
@@ -221,7 +225,10 @@ charme.web.clearAnnotations=function(){
  * Create a new annotation by saving the form, populating an annotation object, and serializing this into an ajax call
  */
 charme.web.saveAnnotation=function(){
+	var bodyObj = {};
+	var doiVal = '';
 	var form = $('#annotation-form')[0];
+	
 	//Clear all errors
 	$('.alert').hide();
 	
@@ -232,7 +239,7 @@ charme.web.saveAnnotation=function(){
 	
 	//Create and populate a Target object.
 	var target = new OA.OATarget();
-	target.setId(charme.web.params['targetId']);
+	target.setId(charme.web.params.targetId);
 	annotation.target = target;
 	
 	//The JSON-LD graph created will depend somewhat upon the type of annotation being created. This is abstracted in the js code by providing different types of
@@ -240,28 +247,28 @@ charme.web.saveAnnotation=function(){
 	var typeSelect = $('#AnnoType');
 
 	if (typeSelect.val()=='text'){
-		var body = OA.createTextBody();
-		body.setId(charme.logic.constants.BODY_ID_PREFIX + 'bodyID');
-		body.text=form.elements['bodyContentText'].value;
-		annotation.body = body;
+		bodyObj = OA.createTextBody();
+		bodyObj.setId(charme.logic.constants.BODY_ID_PREFIX + 'bodyID');
+		bodyObj.text=form.elements.bodyContentText.value;
+		annotation.body = bodyObj;
 	} else if (typeSelect.val() == 'url'){
-		var doiVal = form.elements['bodyContentURL'].value;
+		doiVal = form.elements.bodyContentURL.value;
 		if (!doiVal.match('^' + charme.logic.regExpEscape(charme.logic.constants.URL_PREFIX))){
 			doiVal = charme.logic.constants.URL_PREFIX + doiVal;
 		}
-		var body = new OA.OABody();
-		body.setId(doiVal);
-		annotation.body = body;
+		bodyObj = new OA.OABody();
+		bodyObj.setId(doiVal);
+		annotation.body = bodyObj;
 	} else if (typeSelect.val() == 'cito'){
-		var doiVal = form.elements['bodyContentDOI'].value;
+		doiVal = form.elements.bodyContentDOI.value;
 		if (!doiVal.match('^' + charme.logic.regExpEscape(charme.logic.constants.DOI_PREFIX))){
 			doiVal = charme.logic.constants.DOI_PREFIX + doiVal;
 		}
-		var body = new OA.OARefBody();
-		body.citedEntity=target.getId();
-		body.citingEntity=doiVal;
-		body.setId(doiVal);
-		annotation.body = body;
+		bodyObj = new OA.OARefBody();
+		bodyObj.citedEntity=target.getId();
+		bodyObj.citingEntity=doiVal;
+		bodyObj.setId(doiVal);
+		annotation.body = bodyObj;
 	}
 	charme.logic.createAnnotation(annotation, 
 			function(){
@@ -285,7 +292,7 @@ charme.web.saveAnnotation=function(){
  */
 charme.web.changeTab=function(e){
 	var el = e.currentTarget;
-	var state = el['id'].substring(4);
+	var state = el.id.substring(4);
 	el = $(el);
 	$('#state-tabs .active').removeClass('active');
 	el.addClass('active');
@@ -339,7 +346,7 @@ charme.web.doiSearch=function(e){
 	annoBodyCito.removeClass('success');
 	doiElement.popover('destroy');
 	
-	if (doi.length==0){
+	if (doi.length===0){
 		annoBodyCito.addClass('error');
 		doiElement.attr('data-content', 'Please enter a DOI before searching');
 		doiElement.popover('show');
@@ -423,7 +430,7 @@ charme.web.behaviour = function(){
  */
 charme.web.init=function(){ 
 	
-	var targetId = charme.web.params['targetId']; 
+	var targetId = charme.web.params.targetId; 
 	if (targetId){
 		charme.web.showAnnotations('submitted', targetId);
 	}

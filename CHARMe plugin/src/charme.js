@@ -15,7 +15,7 @@ charme.plugin.addEvent = function(el, ev, fn){
 	} else {
 		//Do nothing.
 	}
-} 
+};
 
 /**
  * Cross browser class selector
@@ -38,7 +38,7 @@ charme.plugin.getByClass = function(className){
 
         return elArray;
 	}
-}
+};
 
 /**
  * Finds the path to the current script (for referencing images etc.)
@@ -67,7 +67,7 @@ charme.plugin.markupTags = function(){
 		els[i].style.background = 'url("' + bgImage.src + '") no-repeat left top';
 		charme.plugin.addEvent(els[i], 'click', charme.plugin.showPlugin);
 	}
-}
+};
 
 charme.plugin.loadPlugin = function(){
 	/* Use an iframe to completely isolate plugin from javascript and css on the main site */
@@ -93,10 +93,9 @@ charme.plugin.loadPlugin = function(){
 		plugin.contentWindow.charme.web.setCloseCallback(function() {
 			plugin.style.display='none';
 		});
-		plugin.contentWindow.charme.web.setResizeFunction(function(){alert('resize')});
 		plugin.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
 	});
-}
+};
 
 charme.plugin.showPlugin = function(e){
 	var plugin = document.getElementById('charme-plugin-frame');
@@ -119,7 +118,7 @@ charme.plugin.showPlugin = function(e){
 	var url = charme.settings.path + '/plugin/plugin.html?targetId=' + encodeURIComponent(e.target.href);
 	
 	plugin.src = url;
-}
+};
 
 /**
  * Will execute on window load (most init code should go in here)
