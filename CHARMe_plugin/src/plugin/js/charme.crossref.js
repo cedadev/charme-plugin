@@ -32,40 +32,45 @@ charme.crossref.constants = {
  * }
  */
 charme.crossref.MetaData = function(xmlDoc) {
+	debugger;
 	if (typeof xmlDoc === 'string'){
 		xmlDoc = $.parseXML(xmlDoc);
 	}
+	var xmlEval = xmlDoc;
+	if (typeof xmlEval.evaluate === 'undefined'){
+		xmlEval = document;
+	}
 	//First, check that a DOI exists in the response
-	var doiNode = document.evaluate(charme.crossref.constants.XPATH_DOI, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext();
+	var doiNode = xmlEval.evaluate(charme.crossref.constants.XPATH_DOI, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
 	if (doiNode == null){
 		throw "The provided DOI did not match any records";
 	}
 	this.doi=$.trim(doiNode.textContent);
-	this.title=$.trim(document.evaluate(charme.crossref.constants.XPATH_TITLE, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
-	this.journal=$.trim(document.evaluate(charme.crossref.constants.XPATH_JOURNAL, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
-	this.volume=$.trim(document.evaluate(charme.crossref.constants.XPATH_VOLUME, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
-	this.issue=$.trim(document.evaluate(charme.crossref.constants.XPATH_ISSUE, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
-	this.year=$.trim(document.evaluate(charme.crossref.constants.XPATH_YEAR, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.title=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_TITLE, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.journal=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_JOURNAL, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.volume=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_VOLUME, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.issue=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_ISSUE, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
+	this.year=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_YEAR, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
 
 	this.pages='';
-	var startPage = document.evaluate(charme.crossref.constants.XPATH_PAGE_FIRST, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext();
+	var startPage = xmlEval.evaluate(charme.crossref.constants.XPATH_PAGE_FIRST, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
 	if (startPage!=null){
 		this.pages+=startPage.textContent.replace(/\s\s*/, ' ');
 	}
 
-	var endPage = document.evaluate(charme.crossref.constants.XPATH_PAGE_LAST, xmlDoc, null, XPathResult.ANY_TYPE).iterateNext();
+	var endPage = xmlEval.evaluate(charme.crossref.constants.XPATH_PAGE_LAST, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
 	if (endPage!=null){
 		this.pages+= '-' + endPage.textContent.replace(/\s\s*/, ' ');
 	}
 
 	this.authors=(function (){
 		var authorData = [];
-		var xmlAuthors = document.evaluate(charme.crossref.constants.XPATH_AUTHORS, xmlDoc, null, XPathResult.ANY_TYPE);
+		var xmlAuthors = xmlEval.evaluate(charme.crossref.constants.XPATH_AUTHORS, xmlDoc, null, XPathResult.ANY_TYPE, null);
 		var author = xmlAuthors.iterateNext();
 		while(author){
 			var a = {};
-			a.givenName = document.evaluate(charme.crossref.constants.XPATH_AUTHOR_GNAME, author, null, XPathResult.ANY_TYPE).iterateNext().textContent;
-			a.surname = document.evaluate(charme.crossref.constants.XPATH_AUTHOR_SNAME, author, null, XPathResult.ANY_TYPE).iterateNext().textContent;
+			a.givenName = xmlEval.evaluate(charme.crossref.constants.XPATH_AUTHOR_GNAME, author, null, XPathResult.ANY_TYPE, null).iterateNext().textContent;
+			a.surname = xmlEval.evaluate(charme.crossref.constants.XPATH_AUTHOR_SNAME, author, null, XPathResult.ANY_TYPE, null).iterateNext().textContent;
 			authorData.push(a);
 			author = xmlAuthors.iterateNext();
 		}

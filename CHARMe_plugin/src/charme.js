@@ -17,6 +17,16 @@ charme.plugin.addEvent = function(el, ev, fn){
 	}
 };
 
+charme.plugin.removeEvent = function(el, ev, fn){
+	if (el.removeEventListener){
+		el.removeEventListener(ev, fn, false);
+	} else if (el.detachEvent){
+		el.detachEvent("on" + ev, fn);
+	} else {
+		//Do nothing.
+	}
+};
+
 /**
  * Cross browser class selector
  */
@@ -89,16 +99,20 @@ charme.plugin.loadPlugin = function(){
 	plugin.style.height='480px';
 	plugin.setAttribute('scrolling','no');
 	
-	charme.plugin.addEvent(plugin, 'load', function(){
-		plugin.contentWindow.charme.web.setCloseCallback(function() {
-			plugin.style.display='none';
-		});
-		plugin.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
+};
+
+charme.plugin.loadFunc = function(){
+	var plugin = this;
+	this.contentWindow.charme.web.setCloseCallback(function() {
+		plugin.style.display='none';
 	});
+	this.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
 };
 
 charme.plugin.showPlugin = function(e){
 	var plugin = document.getElementById('charme-plugin-frame');
+	charme.plugin.removeEvent(plugin, 'load', charme.plugin.loadFunc);
+	charme.plugin.addEvent(plugin, 'load', charme.plugin.loadFunc);
 	
 	/*
 	 * Prevent default behaviour for anchor onclick (ie following the link)
@@ -115,7 +129,13 @@ charme.plugin.showPlugin = function(e){
 			e.returnValue=false;
 		}
 	}
-	var url = charme.settings.path + '/plugin/plugin.html?targetId=' + encodeURIComponent(e.target.href);
+	
+	var target = e.target;
+	if (typeof target==='undefined'){
+		target = e.srcElement;
+	}
+	
+	var url = charme.settings.path + '/plugin/plugin.html?targetId=' + encodeURIComponent(target.href);
 	
 	plugin.src = url;
 };
