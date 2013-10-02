@@ -2,6 +2,7 @@ charme.crossref = {};
 
 charme.crossref.constants = {
 	XPATH_TITLE: '//title',
+	XPATH_SUBTITLE: '//subtitle',
 	XPATH_DOI:'//doi_data//doi',
 	XPATH_AUTHORS: '//contributors/person_name',
 	XPATH_AUTHOR_SNAME: 'surname',
@@ -10,13 +11,14 @@ charme.crossref.constants = {
 	XPATH_VOLUME: '//journal_issue/issue',
 	XPATH_ISSUE: '//journal_issue/journal_volume/volume',
 	XPATH_YEAR: '//publication_date/year',
+	XPATH_PUBLISHER: '//publisher_name',
 	XPATH_PAGE_FIRST: '//journal/journal_article/pages/first_page',
 	XPATH_PAGE_LAST: '//journal/journal_article/pages/last_page',
 
 	CITE_CHICAGO_AUTH_1: '{surname}, {givenName}',
 	CITE_CHICAGO_AUTH_OTHERS: '{authors[, {givenName} {surname}]}',
 	CITE_CHICAGO_AUTH_LAST: ' and {givenName} {surname}',
-	CITE_CHICAGO_FMT: ' "{title}" <em>{journal}</em> {volume}, {(no. )issue} ({year}){(: )pages}'
+	CITE_CHICAGO_FMT: ' "{title}"<em>{( )journal}</em>{( )volume}, {(no. )issue} ({publisher}{( )year}){(: )pages}'
 };
 
 /**
@@ -26,13 +28,21 @@ charme.crossref.constants = {
  *    doi: '',
  *    title: '',
  *    authors: [{
- *       givenName: '',
- *       surname: ''	  
+ *			givenName: '',
+ *			surname: ''
  *    }],
  * }
  */
 charme.crossref.MetaData = function(xmlDoc) {
-	debugger;
+	this.journal='';
+	this.volume='';
+	this.doi='';
+	this.title='';
+	this.year='';
+	this.issue='';
+	this.pages='';
+	this.publisher='';
+	
 	if (typeof xmlDoc === 'string'){
 		xmlDoc = $.parseXML(xmlDoc);
 	}
@@ -42,24 +52,44 @@ charme.crossref.MetaData = function(xmlDoc) {
 	}
 	//First, check that a DOI exists in the response
 	var doiNode = xmlEval.evaluate(charme.crossref.constants.XPATH_DOI, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
-	if (doiNode == null){
+	if (doiNode === null){
 		throw "The provided DOI did not match any records";
 	}
 	this.doi=$.trim(doiNode.textContent);
 	this.title=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_TITLE, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
-	this.journal=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_JOURNAL, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
-	this.volume=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_VOLUME, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
-	this.issue=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_ISSUE, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
+	var subTitle = xmlEval.evaluate(charme.crossref.constants.XPATH_SUBTITLE, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
+	if (subTitle!==null){
+		subTitle=$.trim(subTitle.textContent.replace(/\s\s*/, ' '));
+		if (subTitle.length > 0){
+			this.title+=': ' + subTitle;
+		}
+	}
+	
 	this.year=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_YEAR, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
 
+	/*
+	 * Journal-specific fields 
+	 */
+	var journal = xmlEval.evaluate(charme.crossref.constants.XPATH_JOURNAL, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
+	if (journal!==null){
+		this.journal=$.trim(journal.textContent.replace(/\s\s*/, ' '));
+		this.volume=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_VOLUME, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
+		this.issue=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_ISSUE, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
+	} else {
+		var publisher = xmlEval.evaluate(charme.crossref.constants.XPATH_PUBLISHER, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
+		if (publisher!=null){
+			this.publisher = $.trim(publisher.textContent.replace(/\s\s*/, ' '));
+		}
+	}
+	
 	this.pages='';
 	var startPage = xmlEval.evaluate(charme.crossref.constants.XPATH_PAGE_FIRST, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
-	if (startPage!=null){
+	if (startPage!==null){
 		this.pages+=startPage.textContent.replace(/\s\s*/, ' ');
 	}
 
 	var endPage = xmlEval.evaluate(charme.crossref.constants.XPATH_PAGE_LAST, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
-	if (endPage!=null){
+	if (endPage!==null){
 		this.pages+= '-' + endPage.textContent.replace(/\s\s*/, ' ');
 	}
 
@@ -93,7 +123,7 @@ charme.crossref.chicagoStyle = function(metaData){
 
 	fmtText+= charme.crossref.format(metaData, charme.crossref.constants.CITE_CHICAGO_FMT);
 	return fmtText;
-}
+};
 
 //'${authors[${surname}, ${name}]}'
 /*
@@ -104,7 +134,7 @@ charme.crossref.chicagoStyle = function(metaData){
  * that will be substituted after each array element EXCEPT the last one. Using {propertyName[]}(substitution)
  * eg.
  * var fmt = '{field1}, {field2}, {arrField[{prop1}, {prop2}](; )}, {field2} {field3}';
- * 	var obj = {
+ * var obj = {
 		field1: 'Value of field 1',
 		field2: 'Value of field 2',
 		field3: 'Value of field 3',
@@ -118,13 +148,14 @@ charme.crossref.chicagoStyle = function(metaData){
  */
 charme.crossref.format = function(metaData, style){
 	var text=style;
+	var regex, regexArr;
 	$.each(metaData, function(key, val){
 		if ($.isArray(val)){
-			var regex = new RegExp('\\{' + key + '\\[([^\\[\\]]*)\\](\\(([^\\(\\)]*)\\))?\\}');
+			regex = new RegExp('\\{' + key + '\\[([^\\[\\]]*)\\](\\(([^\\(\\)]*)\\))?\\}');
 			if (!regex.test(style)){
 				return;
 			}
-			var regexArr = regex.exec(style);
+			regexArr = regex.exec(style);
 			var elTerm = typeof regexArr[3] === 'undefined' ? '' : regexArr[3];
 			var subStyle = regexArr[1]; // If this matches multiple times, it doesn't matter. Just take the first one, .replace will apply it to all matches anyway
 			text = text.replace(regex, (function(){
@@ -135,13 +166,13 @@ charme.crossref.format = function(metaData, style){
 					if (ix < (val.length-1)){
 						res+=elTerm;
 					}
-				})
+				});
 				return res;
 			})());
 		} else {
-			var regex = new RegExp('\\{(\\(([^\\(\\)]*)\\))?' + key + '\\}');
-			var regexArr = regex.exec(style);
-			var condTerm = regexArr == null || typeof regexArr[2] === 'undefined' ? '' : regexArr[2];
+			regex = new RegExp('\\{(\\(([^\\(\\)]*)\\))?' + key + '\\}');
+			regexArr = regex.exec(style);
+			var condTerm = (val.length ==0 || regexArr === null || typeof regexArr[2] === 'undefined') ? '' : regexArr[2];
 			text = text.replace(regex, condTerm + val);
 		}
 	});
