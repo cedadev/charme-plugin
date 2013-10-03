@@ -409,6 +409,11 @@ charme.web.behaviour = function(){
 			charme.web.closeCallback();
 		}
 	});
+		
+	$('#newAnnotation-CloseCross').on('click', function(){
+		$('#newAnnotation').addClass('hide');
+		$('#dialogHolder').show();
+	});
 	
 	$('#SaveButton').on('click', charme.web.saveAnnotation);
 	
