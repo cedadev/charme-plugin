@@ -93,7 +93,7 @@ charme.web.fetchAdditionalData = function(annotation){
 	 * This is intended to fetch DOI annotation metadata. This will not be necessary once this data is stored in the triplestore
 	 * 
 	 */
-	if (annotation.body.getId().indexOf(charme.logic.constants.DOI_PREFIX)===0){
+	if (annotation.body && annotation.body.length > 0 && annotation.body.getId().indexOf(charme.logic.constants.DOI_PREFIX)===0){
 		var doiTxt = annotation.body.getId().substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.getId().length);
 		var criteria = {};
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
@@ -124,10 +124,11 @@ charme.web.fetchAdditionalData = function(annotation){
 				//Hoisted variables
 				var htmlStr='';
 				var htmlObj = {};
-				
 				var fetchedAnno = graph.annotations[0];
-				
-				if (fetchedAnno.body.text){
+				if (!annotation.body || !annotation.body.getId){
+					//No body object present
+				}
+				else if (fetchedAnno.body.text){
 					htmlStr = 
 						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
 						'	' + fetchedAnno.body.text + '                                                    ' +
@@ -156,7 +157,6 @@ charme.web.fetchAdditionalData = function(annotation){
 					$('#link-loading').hide();
 				}
 
-
 				charme.web.fetched();
 			},
 			/*
@@ -184,7 +184,6 @@ charme.web.showAnnotations=function(state, targetId){
 	$('#ref-loading').show();
 	$('#no-link-annos').hide();
 	$('#link-loading').show();
-	
 	//Make a call to the lower-level charme.logic function that makes the ajax call to fetch the annotations
 	charme.logic.fetchAnnotations(state,
 		function(graph){
@@ -356,13 +355,15 @@ charme.web.doiSearch=function(e){
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] = doi;
 		charme.logic.fetchCrossRefMetaData(criteria).then(
 			function(data){
-				var fmtText = charme.crossref.chicagoStyle(data);
+				//var fmtText = charme.crossref.chicagoStyle(data);
+				//Disabling this for now. Instead, going to use the crossref citation formatter for wider support. If metadata is needed in XML format in the future, then this can be restored.
+				var fmtText = data;
 				$('#BibTextHolder').html(fmtText);
 				$('#AnnoBodyBib').removeClass('hide');
 				annoBodyCito.addClass('success');
-			}, function(e){
+			}, function(){
 				annoBodyCito.addClass('error');
-				doiElement.attr('data-content', e.toString());
+				doiElement.attr('data-content', 'Error retrieving publication metadata');
 				doiElement.popover('show');
 			});
 	}

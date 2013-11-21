@@ -229,8 +229,9 @@ var OA = {
 			return new Promise(function(resolver) {
 				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
 			    var processor = new jsonld.JsonLdProcessor();
-			    // set base IRI
+			    // set base URI
 			    var options = {base: document.baseURI};
+
 			    processor.expand(data, options).then(function(graph){
 
 					var oag = new OA.OAGraph();
@@ -256,12 +257,13 @@ var OA = {
 						if ($.inArray(OA.constants.TYPE_ANNO, type) >= 0 ){
 							node = new OA.OAnnotation();
 							node.setId(n[OA.constants.ATTR_ID]);
-							
 							//Add a placeholder body and target. In some cases these will point to a another node, in other cases to an external resource. 
 							// In the case of other nodes, the internal links will be resolved in a second pass
-							var body = new OA.OABody();
-							body.setId(n[OA.constants.ATTR_BODY][0][OA.constants.ATTR_ID]);
-							node.body = body;
+							if (n[OA.constants.ATTR_BODY]){
+								var body = new OA.OABody();
+								body.setId(n[OA.constants.ATTR_BODY][0][OA.constants.ATTR_ID]);
+								node.body = body;
+							}
 							
 							var target = new OA.OATarget();
 							target.setId(n[OA.constants.ATTR_TARGET][0][OA.constants.ATTR_ID]);
@@ -305,15 +307,13 @@ var OA = {
 					 */
 					for (var i=0; i < oag.annotations.length; i++){
 						a = oag.annotations[i];
-						if (a.body){
+						if (a.body && a.body.getId){
 							var body = nodeMap[a.body.getId()];
 							if (body){
 								a.body = body;
 							}
-						} else {
-							resolver.reject(new Error('Badly Formed JSON-LD graph. Annotation ' + a.getId() + ' has no associated body'));
 						}
-						if (a.target){
+						if (a.target && a.target.getId){
 							var target = nodeMap[a.target.getId()];
 							if (target){
 								a.target=target;
@@ -321,7 +321,7 @@ var OA = {
 						}
 					}
 					resolver.resolve(oag);
-			}, resolver.reject);
+			})["catch"](resolver.reject);
 		});
 		},
 		/*
