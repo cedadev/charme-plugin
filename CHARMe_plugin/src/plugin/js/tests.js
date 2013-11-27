@@ -6,36 +6,36 @@ module(' Non-network Tests');
 	
 	asyncTest( "UT-003: Parse JSON-LD response for listing all nodes", function () {
 		var graphSrc = 
-			'{                                                                                     ' +
-			'	  "@graph": [                                                                      ' +
-			'	              {                                                                    ' +
-			'	               "@id": "http://localhost/bodyID",                                   ' +
-			'	               "@type": [                                                          ' +
-			'	                        "http://www.w3.org/2011/content#ContentAsText",            ' +
-			'	                        "http://purl.org/dc/dcmitype/Text"                         ' +
-			'	                        ],                                                         ' +
-			'	                "http://purl.org/dc/elements/1.1/format": "text/plain",            ' +
-			'	                "http://www.w3.org/2011/content#chars": "hello there!"             ' +
-			'	               },                                                                  ' +
-			'	               {                                                                   ' +
-			'	                "@id": "http://localhost/annoID",                                  ' +
-			'	                "@type": "http://www.w3.org/ns/oa#Annotation",                     ' +
-			'	                "http://www.w3.org/ns/oa#hasBody": {                               ' +
-			'	                   "@id": "http://localhost/bodyID"                                ' +
-			'	                 },                                                                ' +
-			'	                 "http://www.w3.org/ns/oa#hasTarget": {                            ' +
-			'	                   "@id": "http://one.remote.host.io/ca960608.dm3"                 ' +
-			'	                 },                                                                ' +
-			'      	             "http://www.openannotation.org/spec/core/motivatedBy": {          ' +
-			'                      "@id": "http://www.openannotation.org/spec/core/linking"        ' +
-			'					 }                                                                 ' +
-			'	                },                                                                 ' +
-			'	                {                                                                  ' +
-			'	                 "@id": "http://one.remote.host.io/ca960608.dm3",                  ' +
-			'	                 "http://purl.org/dc/elements/1.1/format": "html/text"             ' +
-			'	                }                                                                  ' +
-			'	              ]                                                                    ' +
-			'}                                                                                     ';
+			'{																			' +
+			'	"@graph": [																' +
+			'		{																	' +
+			'			"@id": "http://localhost/bodyID",								' +
+			'			"@type": [														' +
+			'				"http://www.w3.org/2011/content#ContentAsText",				' +
+			'				"http://purl.org/dc/dcmitype/Text"							' +
+			'			],																' +
+			'			"http://purl.org/dc/elements/1.1/format": "text/plain",			' +
+			'			"http://www.w3.org/2011/content#chars": "hello there!"			' +
+			'		},																	' +
+			'		{																	' +
+			'			"@id": "http://localhost/annoID",								' +
+			'			"@type": "http://www.w3.org/ns/oa#Annotation",					' +
+			'			"http://www.w3.org/ns/oa#hasBody": {							' +
+			'				"@id": "http://localhost/bodyID"							' +
+			'			},																' +
+			'			"http://www.w3.org/ns/oa#hasTarget": {							' +
+			'				"@id": "http://one.remote.host.io/ca960608.dm3"				' +
+			'			},																' +
+			'			"http://www.openannotation.org/spec/core/motivatedBy": {		' +
+			'				"@id": "http://www.openannotation.org/spec/core/linking"	' +
+			'			}																' +
+			'		},																	' +
+			'		{																	' +
+			'			"@id": "http://one.remote.host.io/ca960608.dm3",				' +
+			'			"http://purl.org/dc/elements/1.1/format": "html/text"			' +
+			'		}																	' +
+			'	]																		' +
+			'}																			';
 		var graphObj = $.parseJSON(graphSrc);
 		
 		OA.deserialize(graphObj).then(function(annoGraph){
@@ -386,15 +386,65 @@ module(' Non-network Tests');
 		    '</doi_record>                                                                   ' +
 		    '</doi_records>                                                                  ';
 
-		var metaData = {authors:[{surname: 'Hawke', givenName:'John P.'}, {surname: 'Thune', givenName:'Ronald L.'}, {surname: 'Cooper', givenName:'Richard K.'},{surname: 'Judice', givenName:'Erika'},{surname: 'Kelly-Smith', givenName:'Maria'}], doi: '10.1577/H02-043', title: 'Molecular and Phenotypic Characterization of Strains of Photobacterium damselae subsp. piscicida Isolated from Hybrid Striped Bass Cultured in Louisiana, USA'}
+		var metaData = {authors:[{surname: 'Hawke', givenName:'John P.'}, {surname: 'Thune', givenName:'Ronald L.'}, {surname: 'Cooper', givenName:'Richard K.'},{surname: 'Judice', givenName:'Erika'},{surname: 'Kelly-Smith', givenName:'Maria'}], doi: '10.1577/H02-043', title: 'Molecular and Phenotypic Characterization of Strains of Photobacterium damselae subsp. piscicida Isolated from Hybrid Striped Bass Cultured in Louisiana, USA'};
 		var cmp = 'Hawke, John P.; Thune, Ronald L.; Cooper, Richard K.; Judice, Erika; Kelly-Smith, Maria. <em>Molecular and Phenotypic Characterization of Strains of Photobacterium damselae subsp. piscicida Isolated from Hybrid Striped Bass Cultured in Louisiana, USA</em>. doi: 10.1577/H02-043';
 		var style = '{authors[{surname}, {givenName}](; )}. <em>{title}</em>. doi: {doi}';
 		var fmtText = charme.crossref.format(metaData, style);
 		deepEqual(fmtText, cmp);
 	});
-
+	asyncTest( "UT-026: Parse atom feed", function(){
+		expect(6);
+		var reqUrl = 'testData/charmetest.atom';
+		$.ajax({
+			url: reqUrl
+		}).then(
+			function(xmlResp){
+				var result = new charme.atom.result(xmlResp);
+				deepEqual(result.id, 'http://charme-dev.cems.rl.ac.uk:8027/searchatom');
+				deepEqual(result.first.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
+				deepEqual(result.next.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=11&status=submitted');
+				deepEqual(result.previous.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
+				deepEqual(result.last.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=181&status=submitted');
+				equal(result.entries.length, 10);
+				start();
+			}, function(e){
+				ok( false, e );
+				start();
+		});
+	});
+	asyncTest( "UT-027: Parse annotation from atom feed", function(){
+		expect(11);
+		var reqUrl = 'testData/charmetest.atom';
+		$.ajax({
+			url: reqUrl
+		}).then(
+			function(xmlResp){
+				var result = new charme.atom.result(xmlResp);
+				deepEqual(result.id, 'http://charme-dev.cems.rl.ac.uk:8027/searchatom');
+				deepEqual(result.first.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
+				deepEqual(result.next.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=11&status=submitted');
+				deepEqual(result.previous.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
+				deepEqual(result.last.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=181&status=submitted');
+				equal(result.entries.length, 10);
+				var firstEntry = result.entries[0]; // Read first annotation
+				var content = firstEntry.content;
+				graphObj = $.parseJSON(content);
+				OA.deserialize(graphObj).then(function(annoGraph){
+					equal(annoGraph.annotations.length, 1);
+					deepEqual(annoGraph.annotations[0].getId(), 'http://charme-dev.cems.rl.ac.uk/resource/5e5d38442a7945f889f3afe1ed0ce7b1');
+					deepEqual(annoGraph.annotations[0].body.getId(), 'http://charme-dev.cems.rl.ac.uk/resource/8e9b7123b0234dfe806c108db08792c9');
+					deepEqual(annoGraph.annotations[0].target.getId(), 'http://localhost:8090/DAV/NASA/Chlorophyl/2002/MY1DMM_CHLORA_2002-10.JPEG');
+					deepEqual(annoGraph.annotations[0].types, ['http://www.w3.org/ns/oa#Annotation']);					
+					start();
+				});
+				
+			}, function(e){
+				ok( false, e );
+				start();
+		});
+	});	
 //Tests that require a remote site
-module('Network Tests');
+//module('Network Tests');
 /*	asyncTest( 'UT-002: Generate request for presence of annotations, and receive non-error response', function () {
 		var successCB = function(){
 			ok(true, 'Success');

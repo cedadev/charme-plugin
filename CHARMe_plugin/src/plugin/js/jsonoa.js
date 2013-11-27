@@ -151,7 +151,7 @@ var OA = {
 			 * The serialize function will  generate a JSON-LD object that is normalized and ready for immediate serialization into an AJAX request. NOT A STRING
 			 */
 			this.serialize = function(){
-				if (this.getId().length == 0){
+				if (this.getId().length === 0){
 					throw new Error('No body ID provided');
 				}
 				//Processing for plain text bodies
@@ -180,20 +180,20 @@ var OA = {
 			OA.OABody.call(this);
 			this.prototype=new OA.OABody();
 			this.citingEntity='';
-			this.citedEntity='',
+			this.citedEntity='';
 
 			this.serialize = function(){
-				if (this.types.length == 0){
+				if (this.types.length === 0){
 					this.types = [OA.constants.TYPE_CITE];
 				}
 				var thisJSON = this.prototype.serialize.call(this);
-				thisJSON[OA.constants.ATTR_CITE_EVENT]={}
+				thisJSON[OA.constants.ATTR_CITE_EVENT]={};
 				thisJSON[OA.constants.ATTR_CITE_EVENT][OA.constants.ATTR_ID]=OA.constants.CITE_EVENT_DS;
 				
 				thisJSON[OA.constants.ATTR_CITED_ENT]={};
 				thisJSON[OA.constants.ATTR_CITED_ENT][OA.constants.ATTR_ID]=this.citedEntity;
 
-				thisJSON[OA.constants.ATTR_CITING_ENT]={}
+				thisJSON[OA.constants.ATTR_CITING_ENT]={};
 				thisJSON[OA.constants.ATTR_CITING_ENT][OA.constants.ATTR_ID]=this.citingEntity;
 				
 				return thisJSON;
@@ -228,29 +228,28 @@ var OA = {
 		deserialize: function(data){
 			return new Promise(function(resolver) {
 				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
-			    var processor = new jsonld.JsonLdProcessor();
-			    // set base URI
-			    var options = {base: document.baseURI};
+				var processor = new jsonld.JsonLdProcessor();
+				// set base URI
+				var options = {base: document.baseURI};
 
-			    processor.expand(data, options).then(function(graph){
+				processor.expand(data, options).then(function(graph){
 
 					var oag = new OA.OAGraph();
 					var nodeMap = {};
 					/*
 					 * First, iterate through all of the nodes in the graph, and deserialize them
 					 */
-					var i=0;
 					//for (i=0; i < graph[OA.constants.ATTR_GRAPH].length; i++){
-					for (i=0; i < graph.length; i++){
+					for (var i=0; i < graph.length; i++){
 						var n = graph[i];
 						var type=n[OA.constants.ATTR_TYPE];
 						var node = null;
 						
 						//Some json-ld nodes in the open annotations tree have a type, and in *some* cases it's an array. In other cases it is a string.
 						//Put all types in an array, to avoid having two types of handling
-						if (type != undefined && !(type instanceof Array)){
+						if (type !== undefined && !(type instanceof Array)){
 								var tmp = type;
-								(type = new Array()).push(tmp);
+								(type = []).push(tmp);
 						}
 						
 						//Check if this is an annotation node
@@ -286,7 +285,7 @@ var OA = {
 							node.citingEntity=n[OA.constants.ATTR_CITING_ENT][0][OA.constants.ATTR_ID];
 							nodeMap[node.getId()]=node;
 						}
-						else if ((type == undefined) || type.length == 0){
+						else if ((type === undefined) || type.length === 0){
 							node = new OA.OATarget();
 							node.setId(n[OA.constants.ATTR_ID]);
 							nodeMap[node.getId()]=node; // Targets seem to be identifiable only by their lack of type? Not sure what to do with these right now...
@@ -296,7 +295,7 @@ var OA = {
 						if (type instanceof Array){
 							for (var j=0; j < type.length; j++){
 								node.types.push(type[j]);
-							};
+							}
 						} else {
 							node.types.push(type);
 						}
@@ -305,27 +304,27 @@ var OA = {
 					/*
 					 * Iterate over the deserialized annotations, and recreate the relationships between them and their bodies and targets
 					 */
-					for (var i=0; i < oag.annotations.length; i++){
-						a = oag.annotations[i];
+					for (var k=0; k < oag.annotations.length; k++){
+						a = oag.annotations[k];
 						if (a.body && a.body.getId){
-							var body = nodeMap[a.body.getId()];
-							if (body){
-								a.body = body;
+							var annoBody = nodeMap[a.body.getId()];
+							if (annoBody){
+								a.body = annoBody;
 							}
 						}
 						if (a.target && a.target.getId){
-							var target = nodeMap[a.target.getId()];
-							if (target){
-								a.target=target;
+							var annoTarget = nodeMap[a.target.getId()];
+							if (annoTarget){
+								a.target=annoTarget;
 							}
 						}
 					}
 					resolver.resolve(oag);
 			})["catch"](resolver.reject);
 		});
-		},
-		/*
+		}/*,
+
 		serialize: function (OAGraph){
 			return OAGraph.serialize();
 		}*/
-}
+};

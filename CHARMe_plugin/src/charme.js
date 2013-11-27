@@ -1,7 +1,8 @@
 var charme = {};
 charme.plugin = {};
 charme.settings = {
-	path: null
+	path: null,
+	loggedInEmail: ''
 };
 
 /**
@@ -66,13 +67,13 @@ charme.plugin.setScriptPath = function(){
 charme.plugin.markupTags = function(){
 	//preload charme icon
 	var bgImage = new Image();
-	bgImage.src = charme.settings.path + '/charme-logo.png';
+	bgImage.src = charme.settings.path + '/activebuttonsmall.png';
 	
 	var els = charme.plugin.getByClass('charme-dataset');
 	for (var i=0; i < els.length; i++){
 		els[i].style.display='inline-block';
-		els[i].style.width='22px';
-		els[i].style.height='23px';
+		els[i].style.width='36px';
+		els[i].style.height='26px';
 		els[i].title='CHARMe metadata available';
 		els[i].style.background = 'url("' + bgImage.src + '") no-repeat left top';
 		charme.plugin.addEvent(els[i], 'click', charme.plugin.showPlugin);
@@ -96,7 +97,7 @@ charme.plugin.loadPlugin = function(){
 	plugin.style.bottom='0';
 	plugin.style.top='0';
 	plugin.allowTransparency=true;
-	plugin.style.height='480px';
+	plugin.style.height='500px';
 	plugin.setAttribute('scrolling','no');
 	
 };
@@ -105,6 +106,9 @@ charme.plugin.loadFunc = function(){
 	var plugin = this;
 	this.contentWindow.charme.web.setCloseCallback(function() {
 		plugin.style.display='none';
+	});
+	this.contentWindow.charme.web.setAfterLoginSuccess(function(email){
+		charme.settings.loggedInEmail = email;
 	});
 	this.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
 };
@@ -136,6 +140,9 @@ charme.plugin.showPlugin = function(e){
 	}
 	
 	var url = charme.settings.path + '/plugin/plugin.html?targetId=' + encodeURIComponent(target.href);
+	if (charme.settings.loggedInEmail!==''){
+		url+='&loggedInEmail=' + encodeURIComponent(charme.settings.loggedInEmail);
+	}
 	
 	plugin.src = url;
 };

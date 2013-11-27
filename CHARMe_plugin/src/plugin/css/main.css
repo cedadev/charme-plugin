@@ -91,6 +91,22 @@ body {
 #anno-cats ul li{
 	margin-bottom: 10px;
 }
+
+.FacetBoxHolder, .select2-results{
+	font-size: 14px;
+}
+
+.FacetBox {
+	width: 100%;
+}
+
+.AccountButton{
+	text-align: left;
+}
+
+.author{
+	font-size: smaller;
+}
 /* ==========================================================================
    Media Queries
    ========================================================================== */

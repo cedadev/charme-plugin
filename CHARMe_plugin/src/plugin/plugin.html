@@ -11,7 +11,9 @@
         <meta name="viewport" content="width=device-width">
         <!-- ### BEGIN CSS -->
 		<link rel="stylesheet" href="css/normalize.min.css">
-		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<link rel="stylesheet" href="js/vendor/select2/select2.css"/>
+		<link rel="stylesheet" href="css/bootstrap.min.css">	
+    	<link rel="stylesheet" href="js/vendor/select2/select2-bootstrap.css">			
 		<link rel="stylesheet" href="css/main.css">
         <!-- ### END CSS -->
     </head>
@@ -19,9 +21,11 @@
     	<div id="dialogHolder" data-show="true" class="modal" role="dialog" aria-hidden="true">
 			<div class="modal-header">
 			    <button id="CloseCross" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-			    <h3>CHARMe Annotations</h3>
+			    <h3>CHARMe Annotations<br/>
+			    <small id="DatasetName"></small>
+			    </h3>			    
 			</div>
-			<div class="modal-body" style="max-height: 300px; overflow-y: auto;">    	
+			<div class="modal-body" style="max-height: 270px; overflow-y: auto;">    	
 		    	<div id="annotations">
 			    	<div id="annotations-error" class="alert alert-error">
 			    		<button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -32,7 +36,7 @@
 			    		<button type="button" class="close" data-dismiss="alert">&times;</button>
 			    		<h4>Error</h4>
 			    		<p>Could not change state.</p>
-					</div>
+					</div>			
 					<div class="accordion" id="anno-cats">
 						<div class="accordion-group">
 							<div class="accordion-heading">
@@ -83,10 +87,51 @@
 		    	</div>
 		    </div>
 			<div class="modal-footer">
-				<button id="newAnnotationButton" type="button" class="btn btn-primary">New Annotation</button>
+				<div id="SignIn" class="btn-group pull-left hide">
+					<button class="btn btn-primary">Sign In</button>
+				</div>
+				<div id="AccountDetails" class="btn-group pull-left hide">
+					<button id="AccountDropDown" class="btn">a.henry@cgi.co</button>
+					<button class="btn dropdown-toggle" data-toggle="dropdown">
+						<span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu AccountButton">
+						<li><a href="#">My Annotations</a></li>
+						<li class="divider"></li>
+						<li><a href="#">Logout</a></li>
+					</ul>
+				</div>
+				<button id="newAnnotationButton" type="button" class="btn" disabled="disabled" title="Please sign in to create annotations">New Annotation</button>
 				<button id="DoneButton" type="button" class="btn">Done</button>			
   			</div>
 	    </div>
+	    <div id="loginDialog" class="modal hide" role="dialog" aria-hidden="true">
+					<form action="#" class="form-horizontal" id="login-form">
+							<div class="modal-header">
+							    <button id="login-CloseCross"type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+							    <h3>Login to CHARMe</h3>
+							</div>
+							<div class="modal-body">
+								<div class="control-group">										
+									<label for="EmailAddress" class="control-label">Email Address</label>
+									<div class="controls">
+										<input type="text" name="emailAddress" id="EmailAddress" placeholder="Enter a registered email address" data-placement="left" data-trigger="manual"></input>
+									</div>
+								</div>
+								<div class="control-group">										
+									<label for="Password" class="control-label">Password</label>
+									<div class="controls">
+										<input type="password" name="password" id="Password" data-placement="left" data-trigger="manual"></input>
+									</div>
+								</div>								
+							</div>
+							<div class="modal-footer">
+				  				<button id="LoginCancel" type="button" class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+								<button id="LoginBtn" type="button" class="btn btn-primary">Login</button>			
+				  			</div>
+				  	</form>
+		</div>
+
 	    <div id="newAnnotation" class="modal hide" role="dialog" aria-hidden="true">
 						<form action="#" class="form-horizontal" id="annotation-form">
 							<div class="modal-header">
@@ -103,35 +148,83 @@
 									<div class="control-group">
 										<label for="AnnoType" class="control-label">Type</label>
 										<div class="controls"> 
-											<select name="targetType" id="AnnoType">
+											<select name="targetType" id="AnnoType" placeholder="Click to select categories">
 												<option value="cito">Publication</option>
 												<option value="text">Text</option>
 												<option value="url">Link</option>								
 											</select>
 										</div>
-									</div>							
-									<div id="AnnoBodyCito" class="control-group">
-										<label for="AnnoBodyCitoInput" class="control-label">DOI</label>
-										<div class="controls">
-											<input type="text" name="bodyContentDOI" id="AnnoBodyCitoInput" placeholder="Enter a DOI" data-placement="left" data-trigger="manual"></input>
-											<a id="DOISearchButton" class="btn btn-small"><i class="icon-search"></i></a>
+									</div>					
+									<div id="AnnoBodyCito">
+										<div class="control-group">
+											<label for="CitoFacets" class="control-label">Categories</label>
+											<div class="controls FacetBoxHolder"> 
+												<select multiple="multiple" name="facets" id="CitoFacets" class="FacetBox" placeholder="Click to select categories">
+													<option></option>
+													<option value="journal">Journal article</option>
+													<option value="conference">Conference presentation/poster/proceedings</option>
+													<option value="technical">Technical reports eg ATBD</option>
+													<option value="grey">Other grey literature</option>
+												</select>
+											</div>
+										</div>
+										<div class="control-group">								
+											<label for="AnnoBodyCitoInput" class="control-label">DOI</label>
+											<div class="controls">
+												<input type="text" name="bodyContentDOI" id="AnnoBodyCitoInput" placeholder="Enter a DOI" data-placement="left" data-trigger="manual"></input>
+												<a id="DOISearchButton" class="btn btn-small"><i class="icon-search"></i></a>
+											</div>
 										</div>
 									</div>
 									<div id="AnnoBodyBib" class="control-group hide success">
 										<label for="AnnoBodyCitoInput" class="control-label">Citation</label>
 										<div class="controls"><small><span id="BibTextHolder" class="text-success"></span></small></div>
 									</div>
-									<div id="AnnoBodyURL" class="input-prepend">
-										<label for="AnnoBodyURLInput" class="control-label"></label>
-										<div class="controls">
-											<span class="add-on">http://</span>
-											<input type="text" name="bodyContentURL" id="AnnoBodyURLInput" placeholder="Enter a URL"></input>
+									<div id="AnnoBodyURL">
+										<div class="control-group">
+											<label for="URLFacets" class="control-label">Categories</label>
+											<div class="controls"> 
+												<select multiple="multiple" name="facets" class="FacetBox" id="URLFacets" data-placeholder="Click to select categories">
+													<option></option>
+													<optgroup label="Publications">
+														<option value="journal">Journal article</option>
+														<option value="conference">Conference presentation/poster/proceedings</option>
+														<option value="technical">Technical reports eg ATBD</option>
+														<option value="grey">Other grey literature</option>
+													</optgroup>
+													<optgroup label="Significant Events">
+														<option value="climate">Climate events</option>
+														<option value="software">Software events</option>
+														<option value="operational">Operational events</option>
+														<option value="data">Data/Observing system events</option>
+													</optgroup>													
+												</select>
+											</div>
+										</div>
+										<div class="control-group input-prepend">									
+											<label for="AnnoBodyURLInput" class="control-label">Link</label>
+											<div class="controls">
+												<span class="add-on">http://</span>
+												<input type="text" name="bodyContentURL" id="AnnoBodyURLInput" placeholder="Enter a URL"></input>
+											</div>
 										</div>
 									</div>					
-									<div id="AnnoBodyText" class="control-group">
-										<label for="AnnoBodyTextInput" class="control-label">Text</label>
-										<div class="controls">
-											<textarea name="bodyContentText" id="AnnoBodyTextInput" rows="3"></textarea>
+									<div id="AnnoBodyText">
+										<div class="control-group">
+											<label for="TextFacets" class="control-label">Categories</label>											
+											<div class="controls"> 
+												<select multiple="multiple" name="facets" class="FacetBox" id="TextFacets">
+														<option value="freetext">Free text comments</option>
+														<option value="ratings">Ratings</option>
+														<option value="usage">Data Usage</option>											
+												</select>
+											</div>
+										</div>
+										<div class="control-group">										
+											<label for="AnnoBodyTextInput" class="control-label">Text</label>
+											<div class="controls">
+												<textarea name="bodyContentText" id="AnnoBodyTextInput" rows="3"></textarea>
+											</div>
 										</div>
 									</div>
 								</fieldset>
@@ -148,6 +241,7 @@
 		<!-- ## BEGIN SCRIPTS -->
 		<script src="js/vendor/bootstrap.min.js"></script>
 		<script src="js/vendor/Promise.js"></script>
+		<script src="js/vendor/select2/select2.min.js"></script>		
 		<script src="js/vendor/jsonld.js"></script>
 		<script src="js/jsonoa.js"></script>
 		<script src="js/vendor/wgxpath.install.js"></script>

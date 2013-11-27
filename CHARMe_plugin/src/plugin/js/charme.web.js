@@ -34,8 +34,30 @@ charme.web.setCloseCallback = function(closeCallback){
 	charme.web.closeCallback = closeCallback;
 };
 
+charme.web.afterLoginSuccess = {};
+charme.web.setAfterLoginSuccess = function(callback){
+	charme.web.afterLoginSuccess = callback;
+};
+
 charme.web.setResizeFunction = function(func){
 	//$('#dialogHolder').on('resize', func);
+};
+
+/**
+ * Takes a given targetURI and converts it into a form suitable for display in the plugin title. This will probably depend somewhat upon the type 
+ * @param uri
+ */
+charme.web.titleFromURI = function(uri){
+	var parser = document.createElement('a');
+	parser.href = uri;
+	return parser.pathname + parser.search;
+};
+
+/**
+ * A function 
+ */
+charme.web.pluginTitleFromTarget = function(){
+	return charme.web.titleFromURI(charme.web.params.targetId);
 };
 
 charme.web.truncateURI=function(uri, length){
@@ -50,6 +72,7 @@ charme.web.truncateURI=function(uri, length){
  * TODO: This 'fetch' stuff sucks and has to go. Replace with promises model
  */
 charme.web.fetchCount= 0;
+charme.web.loggedIn=false;
 
 charme.web.fetching = function(){
 	charme.web.fetchCount++;
@@ -132,6 +155,7 @@ charme.web.fetchAdditionalData = function(annotation){
 					htmlStr = 
 						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
 						'	' + fetchedAnno.body.text + '                                                    ' +
+						'<span class="muted pull-right author">22/11/2013 16:16pm | <a href="#">Andrew Henry</a></span>            ' +
 						'</li>                                                                               ';
 					htmlObj = $(htmlStr);
 					$('#text-list:last').append(htmlObj);
@@ -150,6 +174,7 @@ charme.web.fetchAdditionalData = function(annotation){
 					htmlStr = 
 						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
 						'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+						'   <span class="muted pull-right author">17/11/2013 13:04pm | <a href="#">Andrew Henry</a></span>            ' +
 						'</li>                                                                                                        ';
 					htmlObj = $(htmlStr);
 					$('#link-list:last').append(htmlObj);
@@ -273,7 +298,7 @@ charme.web.saveAnnotation=function(){
 			function(){
 				//Success callback
 				$('#newAnnotation').addClass('hide');
-				$('#dialogHolder').show();
+				$('#dialogHolder').removeClass('hide');
 				charme.web.clearAnnotations();
 				charme.web.showAnnotations('submitted', annotation.target.getId());
 			}, 
@@ -369,29 +394,36 @@ charme.web.doiSearch=function(e){
 	}
 };
 
+charme.web.clearSelect2 = function (){
+	$('.select2-search-choice').remove();
+	$('.FacetBox').val('');
+};
+
 /**
  * Define behaviour of html elements through progressive enhancement
  */
 charme.web.behaviour = function(){
+	$('#DatasetName').html(charme.web.pluginTitleFromTarget());
 	$('#newAnnotationButton').click(
 			function(){
 				$('#create-error').hide();
 				$('#annotation-form')[0].reset();
-				$('#dialogHolder').hide();
+				$('#dialogHolder').addClass('hide');
 				$('#BibTextHolder').html('');
 				$('#AnnoBodyBib').addClass('hide');
 				var annoBodyCito = $('#AnnoBodyCito');
 				annoBodyCito.removeClass('success');
 				annoBodyCito.removeClass('error');
 				$('#AnnoType').change();
-				$('#newAnnotation').removeClass('hide'); 
+				$('#newAnnotation').removeClass('hide');
+				charme.web.clearSelect2();
 			}
 	);
 	
 	$('#CancelButton').click(
 			function(){
 				$('#newAnnotation').addClass('hide');
-				$('#dialogHolder').show();
+				$('#dialogHolder').removeClass('hide');
 			}
 	); 
 	
@@ -413,7 +445,12 @@ charme.web.behaviour = function(){
 		
 	$('#newAnnotation-CloseCross').on('click', function(){
 		$('#newAnnotation').addClass('hide');
-		$('#dialogHolder').show();
+		$('#dialogHolder').removeClass('hide');
+	});
+
+	$('#login-CloseCross').on('click', function(){
+		$('#loginDialog').addClass('hide');
+		$('#dialogHolder').removeClass('hide');
 	});
 	
 	$('#SaveButton').on('click', charme.web.saveAnnotation);
@@ -429,14 +466,55 @@ charme.web.behaviour = function(){
 				annoBodyCito.removeClass('success');
 				annoBodyCito.removeClass('error');
 	});
-};
+	$(".FacetBox").select2({placeholder: 'Click to select categories'});
+	
+	if (charme.web.loggedIn){
+		$("#SignIn").addClass('hide');
+		$('#dialogHolder').removeClass('hide');
+		$('#loginDialog').addClass('hide');
+		$('#AccountDetails').removeClass('hide');
+		$('#newAnnotationButton').removeAttr('disabled');
+		$('#newAnnotationButton').addClass('btn-primary');
+		$('#AccountDropDown').html(charme.web.params.loggedInEmail);
+	} else {
+		$("#SignIn").removeClass("hide");
+	}
+	
+	$("#SignIn").on('click', function() {
+		$('#dialogHolder').addClass('hide');
+		$('#loginDialog').removeClass('hide');
+		
+	});
+	
+	$("#LoginBtn").on('click', function() {
+		$('#SignIn').addClass('hide');
+		$('#dialogHolder').removeClass('hide');
+		$('#loginDialog').addClass('hide');
+		$('#AccountDetails').removeClass('hide');
+		var email = $('#EmailAddress').val();
+		$('#AccountDropDown').html(email);
+		$('#newAnnotationButton').removeAttr('disabled');
+		$('#newAnnotationButton').addClass('btn-primary');
+		if (typeof charme.web.afterLoginSuccess === 'function'){
+			charme.web.afterLoginSuccess(email);
+		}
+	});
+	
+	$('#LoginCancel').click(
+			function(){
+				$('#dialogHolder').removeClass('hide');
+				$('#loginDialog').addClass('hide');
+			}
+	); 
+}; 
 
 /**
  * An initialization function that is called when the DOM document is rendered, and ready.
  */
-charme.web.init=function(){ 
-	
-	var targetId = charme.web.params.targetId; 
+charme.web.init=function(){
+	charme.web.loggedIn = charme.web.params.loggedInEmail && (charme.web.params.loggedInEmail !== '');
+	var targetId = charme.web.params.targetId;
+	$("#dialogHolder").show();
 	if (targetId){
 		charme.web.showAnnotations('submitted', targetId);
 	}

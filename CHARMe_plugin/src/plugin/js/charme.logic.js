@@ -121,8 +121,8 @@ charme.logic.exists=function(state, successCB, errorCB){
  * Persist a populated annotation to the triplestore
  * 
  * Parameters:
- * 		successCB: a callback to be invoked on successful completion
- * 		errorCB: a callback to be invoked on error
+ *		successCB: a callback to be invoked on successful completion
+ *		errorCB: a callback to be invoked on error
  */
 charme.logic.createAnnotation=function(annotation, successCB, errorCB){
 	var reqUrl = charme.logic.createRequest();
@@ -145,22 +145,22 @@ charme.logic.fetchAnnotation = function(annoId, successCB, errorCB){
 	var reqUrl = charme.logic.fetchRequest(annoId);
 	$.ajax(reqUrl, {
 		dataType: 'json',
-	    accepts: {
-	        json: "application/ld+json"
-	    },
+		accepts: {
+			json: "application/ld+json"
+		},
 		type: 'GET',
 		success: 
 			function(data){
 				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
-			    var processor = new jsonld.JsonLdProcessor();
-			    // set base IRI
-			    var options = {base: document.baseURI};
-			    //DO NOT bubble ANY Promise.js promises above this level.
-			    processor.expand(data, options).then(function(expData){
+				var processor = new jsonld.JsonLdProcessor();
+				// set base IRI
+				var options = {base: document.baseURI};
+				//DO NOT bubble ANY Promise.js promises above this level.
+				processor.expand(data, options).then(function(expData){
 					OA.deserialize(expData).then(function(graph){
 						successCB(graph);
 					});
-			    })['catch'](errorCB); // 'catch' - worst, function name, ever. Thanks W3C.
+				})['catch'](errorCB); // 'catch' - worst, function name, ever. Thanks W3C.
 			},
 		error:
 			function(jqXHR, textStatus, errorThrown){
@@ -173,8 +173,8 @@ charme.logic.fetchAnnotation = function(annoId, successCB, errorCB){
  * Retrieve all annotations for the specified state
  * 
  * Parameters:
- * 		successCB: a callback to be invoked on successful completion. The returned JSON-LD graph will be passed into this function
- * 		errorCB: a callback to be invoked on error
+ *		successCB: a callback to be invoked on successful completion. The returned JSON-LD graph will be passed into this function
+ *		errorCB: a callback to be invoked on error
  */
 charme.logic.fetchAnnotations=function(state, successCB, errorCB){
 	var reqUrl = charme.logic.existRequest(state);
@@ -185,14 +185,14 @@ charme.logic.fetchAnnotations=function(state, successCB, errorCB){
 		success: 
 			function(data){
 				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
-			    var processor = new jsonld.JsonLdProcessor();
-			    // set base IRI
-			    var options = {base: document.baseURI};
-			    processor.expand(data, options).then(function(expData){
+				var processor = new jsonld.JsonLdProcessor();
+				// set base IRI
+				var options = {base: document.baseURI};
+				processor.expand(data, options).then(function(expData){
 					OA.deserialize(expData).then(function(graph){
 						successCB(graph);
 					})['catch'](errorCB);
-			    })['catch'](errorCB); // 'catch' - worst, function name, ever. Thanks W3C.
+				})['catch'](errorCB); // 'catch' - worst, function name, ever. Thanks W3C.
 			},
 		error:
 			function(jqXHR, textStatus, errorThrown){
@@ -205,10 +205,10 @@ charme.logic.fetchAnnotations=function(state, successCB, errorCB){
  * Change the status of the given annotation. All transitions between states are allowed.
  * 
  * Parameters:
- * 		annotationId: The annotation to modify
- * 		newState: The state to advance to
- * 		successCB: a callback to be invoked on successful completion.
- * 		errorCB: a callback to be invoked on error
+ *		annotationId: The annotation to modify
+ *		newState: The state to advance to
+ *		successCB: a callback to be invoked on successful completion.
+ *		errorCB: a callback to be invoked on error
  */
 charme.logic.advanceState=function(annotationId, newState, successCB, errorCB){
 	var url = charme.logic.stateRequest(newState);
