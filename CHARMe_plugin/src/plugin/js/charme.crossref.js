@@ -77,7 +77,7 @@ charme.crossref.MetaData = function(xmlDoc) {
 		this.issue=$.trim(xmlEval.evaluate(charme.crossref.constants.XPATH_ISSUE, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext().textContent.replace(/\s\s*/, ' '));
 	} else {
 		var publisher = xmlEval.evaluate(charme.crossref.constants.XPATH_PUBLISHER, xmlDoc, null, XPathResult.ANY_TYPE, null).iterateNext();
-		if (publisher!=null){
+		if (publisher!==null){
 			this.publisher = $.trim(publisher.textContent.replace(/\s\s*/, ' '));
 		}
 	}
@@ -172,7 +172,7 @@ charme.crossref.format = function(metaData, style){
 		} else {
 			regex = new RegExp('\\{(\\(([^\\(\\)]*)\\))?' + key + '\\}');
 			regexArr = regex.exec(style);
-			var condTerm = (val.length ==0 || regexArr === null || typeof regexArr[2] === 'undefined') ? '' : regexArr[2];
+			var condTerm = (val.length === 0 || regexArr === null || typeof regexArr[2] === 'undefined') ? '' : regexArr[2];
 			text = text.replace(regex, condTerm + val);
 		}
 	});
