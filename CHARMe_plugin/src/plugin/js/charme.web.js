@@ -307,7 +307,6 @@ charme.web.saveAnnotation=function(){
 	}
 	charme.logic.createAnnotation(annotation, 
 			function(){
-				debugger;
 				//Success callback
 				$('#newAnnotation').addClass('hide');
 				$('#dialogHolder').removeClass('hide');
