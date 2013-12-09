@@ -24,8 +24,7 @@ charme.logic.constants={
 		CROSSREF_PARAM_EMAIL: 'akhenry@gmail.com',
 		CROSSREF_PARAM_FORMAT: 'unixref',
 		CROSSREF_PARAM_NOREDIRECT: 'true',
-		CROSSREF_CRITERIA_DOI:'id',
-		
+		CROSSREF_CRITERIA_DOI:'id'		
 };
 
 /**
@@ -53,54 +52,43 @@ charme.logic.createRequest=function(){
 charme.logic.stateRequest=function(newState){
 	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'advance_status';
 };
+charme.logic.fetchForTarget=function (targetId){
+	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' + encodeURIComponent(targetId) + '&status=submitted';
+};
 charme.logic.fetchRequest=function (id){
 	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'data/' + id;
 };
 
 charme.logic.crossRefRequest=function(criteria){
-	//var url=charme.logic.constants.CROSSREF_URL + '?';
-
-	//Append default params associated with all requests
-	//url+='pid=' + charme.logic.constants.CROSSREF_PARAM_EMAIL;
-	//url+='&format=' + charme.logic.constants.CROSSREF_PARAM_FORMAT;
-	//url+='&noredirect=' + charme.logic.constants.CROSSREF_PARAM_NOREDIRECT;
-	
-	//Append search criteria
-//	for (c in criteria){
-//		if (c===charme.logic.constants.CROSSREF_CRITERIA_DOI){
-//			if (criteria[c].indexOf('doi:') != 0){
-//				criteria[c]='doi:' + criteria[c];
-//			}
-//		}
-//		if (url.lastIndexOf('?')!==(url.length-1))
-//			url+='&';
-//		url+= c + '=' + criteria[c];
-//	}
 	var url=null;
-	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]){
+	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] && criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI].length > 0){
 		url=charme.logic.constants.CROSSREF_URL + criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI];
 	}
 	return url;
 };
 
+charme.logic.generateGUID = function(){
+	return 'xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		return v.toString(16);
+	});
+};
+
 charme.logic.fetchCrossRefMetaData=function(criteria){
 	var dfr = new $.Deferred();
 	var reqUrl = charme.logic.crossRefRequest(criteria);
+	if (reqUrl === null || reqUrl.length ===0){
+		dfr.reject();
+	}
 	$.ajax(reqUrl, {
 		headers:{
 			accept: 'text/bibliography; style=apa; locale=en-US'
 		}
 	}).then(
 		function(xmlResp){
-//			try {
-//				var metaData = new charme.crossref.MetaData(xmlResp);
-//				dfr.resolve(metaData);
-//			} catch(err){
-//				dfr.reject();
-//			}
 			dfr.resolve(xmlResp);
 		}, function(e){
-		dfr.reject();
+		dfr.reject(e);
 	});
 	return dfr.promise();
 };
@@ -176,22 +164,32 @@ charme.logic.fetchAnnotation = function(annoId, successCB, errorCB){
  *		successCB: a callback to be invoked on successful completion. The returned JSON-LD graph will be passed into this function
  *		errorCB: a callback to be invoked on error
  */
-charme.logic.fetchAnnotations=function(state, successCB, errorCB){
-	var reqUrl = charme.logic.existRequest(state);
+charme.logic.fetchAnnotationsForTarget=function(targetId, successCB, errorCB){
+	var reqUrl = charme.logic.fetchForTarget(targetId);
 	$.ajax(reqUrl, {
-		dataType: 'json',
 		type: 'GET',
-		contentType: 'application/ld+json',
 		success: 
 			function(data){
+				//Data is returned as ATOM wrapped json-ld
+				var result = new charme.atom.result(data);
+				//Extract json-ld from the multiple 'content' payloads returned
+				//TODO: THIS IS A HACK. NEED TO REFACTOR TO HANDLE EACH ANNOTATION IN A SEPARATE GRAPH
+				var resultArr = [];
+				$.each(result.entries, function(index, value){
+					var shortGraph = $.parseJSON(value.content);
+					resultArr.push(shortGraph['@graph']);
+					
+				});
+				var graph = {'@graph': resultArr};
+
 				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
 				var processor = new jsonld.JsonLdProcessor();
 				// set base IRI
 				var options = {base: document.baseURI};
-				processor.expand(data, options).then(function(expData){
-					OA.deserialize(expData).then(function(graph){
+				processor.expand(graph, options).then(function(expData){
+					return OA.deserialize(expData);
+				}).then(function(graph){
 						successCB(graph);
-					})['catch'](errorCB);
 				})['catch'](errorCB); // 'catch' - worst, function name, ever. Thanks W3C.
 			},
 		error:

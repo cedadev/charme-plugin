@@ -5,6 +5,21 @@ charme.settings = {
 	loggedInEmail: ''
 };
 
+charme.plugin.constants = function(){
+		this.REMOTE_BASE_URL		= '@@triplestore.url@@';
+		this.XPATH_BASE				= '//atm:feed';
+		this.XPATH_TOTAL_RESULTS	= this.XPATH_BASE + '/os:totalResults';
+};
+
+charme.plugin.nsResolver = function(prefix){
+	var ns = {
+			'atm' : 'http://www.w3.org/2005/Atom',
+			'os': 'http://a9.com/-/spec/opensearch/1.1/'
+	};
+	return ns[prefix] || null;
+};
+
+
 /**
  * Cross-browser event handling
  */
@@ -28,6 +43,83 @@ charme.plugin.removeEvent = function(el, ev, fn){
 	}
 };
 
+charme.plugin.xpathQuery = function(xpath, xmlDoc, type){
+	var xmlEval = xmlDoc;
+	if (typeof xmlEval.evaluate === 'undefined'){
+		xmlEval = document;
+	}
+	if (typeof xmlEval.selectNodes !== 'undefined'){
+		//Internet explorer
+		throw 'Not yet implemented';
+	} else if (typeof xmlEval.evaluate !== 'undefined'){
+		//Other browsers
+		return xmlEval.evaluate(xpath, xmlDoc, charme.plugin.nsResolver, type ? type : XPathResult.ANY_TYPE, null);
+	} else {
+		throw 'Unsupported browser';
+	}
+};
+charme.plugin.request = {};
+
+charme.plugin.request.fetchForTarget=function (targetId){
+	var constants = new charme.plugin.constants()
+	return (constants.REMOTE_BASE_URL.match(/\/$/) ? constants.REMOTE_BASE_URL : constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' + encodeURIComponent(targetId) + '&status=submitted';
+};
+
+charme.plugin.parseXML=function(xmlString){
+	if (window.DOMParser){
+		parser=new DOMParser();
+		xmlDoc=parser.parseFromString(xmlString,"text/xml");
+	}
+	else{ // Internet Explorer
+		xmlDoc=new ActiveXObject("Microsoft.XMLDOM");
+		xmlDoc.async=false;
+		xmlDoc.loadXML(xmlString);
+	}
+	return xmlDoc;
+};
+
+charme.plugin.ajax = function(url, successCB, errorCB){
+	var oReq = new XMLHttpRequest();
+	oReq.addEventListener("load", function(evt){
+		if (oReq.status===200){
+			try {
+				var xmlDoc = oReq.responseXML;
+				if (!xmlDoc){
+					xmlDoc = charme.plugin.parseXML(oReq.responseText);
+				}
+				successCB.call(oReq, xmlDoc);
+			} catch (err){
+				errorCB.call(oReq);
+			}
+		}
+	}, false);
+	oReq.addEventListener("error", function(){errorCB.call(oReq);}, false);
+	oReq.open('GET', url, true);
+	oReq.setRequestHeader("Accept", "application/atom+xml,application/xml");
+	oReq.send();
+};
+
+charme.plugin.getAnnotationCountForTarget = function(el, activeImgSrc, inactiveImgSrc){
+	
+	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href),
+		function(xmlDoc){
+			// Success callback
+			var constants = new charme.plugin.constants();
+			var annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc, XPathResult.NUMBER_TYPE).numberValue;
+			if (annoCount > 0){
+				el.title='CHARMe annotations exist.';
+				el.style.background = 'url("' + activeImgSrc + '") no-repeat left top';
+			} else {
+				el.title='No CHARMe annotations.';
+				el.style.background = 'url("' + inactiveImgSrc + '") no-repeat left top';
+			}
+		}, 
+		function(){
+			//fail callback
+			throw 'Unable to fetch annotation data';
+	});
+};
+
 /**
  * Cross browser class selector
  */
@@ -36,7 +128,7 @@ charme.plugin.getByClass = function(className){
 	if (document.getElementsByClassName){
 		return document.getElementsByClassName(className);
 	} else {
-		//Else, go huntin'
+		//Else, search exhaustively
         var elArray = [];
         var tmp = document.getElementsByTagName("*");
         var regex = new RegExp("(^|\\s)" + className + "(\\s|$)");
@@ -66,16 +158,19 @@ charme.plugin.setScriptPath = function(){
  */
 charme.plugin.markupTags = function(){
 	//preload charme icon
-	var bgImage = new Image();
-	bgImage.src = charme.settings.path + '/activebuttonsmall.png';
+	var activeImage = new Image();
+	activeImage.src = charme.settings.path + '/activebuttonsmall.png';
+	var inactiveImage = new Image();
+	inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
 	
 	var els = charme.plugin.getByClass('charme-dataset');
 	for (var i=0; i < els.length; i++){
+		if (els[i].href){
+			charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src);
+		}
 		els[i].style.display='inline-block';
 		els[i].style.width='36px';
 		els[i].style.height='26px';
-		els[i].title='CHARMe metadata available';
-		els[i].style.background = 'url("' + bgImage.src + '") no-repeat left top';
 		charme.plugin.addEvent(els[i], 'click', charme.plugin.showPlugin);
 	}
 };
@@ -107,9 +202,13 @@ charme.plugin.loadFunc = function(){
 	this.contentWindow.charme.web.setCloseCallback(function() {
 		plugin.style.display='none';
 	});
-	this.contentWindow.charme.web.setAfterLoginSuccess(function(email){
+	this.contentWindow.charme.web.setAfterLoginSuccess(function(email, name){
 		charme.settings.loggedInEmail = email;
+		charme.settings.loggedInName = name;
 	});
+	this.contentWindow.charme.web.setAfterLogout(function(){
+		document.location.reload();
+	});	
 	this.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
 };
 
@@ -141,7 +240,7 @@ charme.plugin.showPlugin = function(e){
 	
 	var url = charme.settings.path + '/plugin/plugin.html?targetId=' + encodeURIComponent(target.href);
 	if (charme.settings.loggedInEmail!==''){
-		url+='&loggedInEmail=' + encodeURIComponent(charme.settings.loggedInEmail);
+		url+='&loggedInEmail=' + encodeURIComponent(charme.settings.loggedInEmail) + '&loggedInName=' + encodeURIComponent(charme.settings.loggedInName);
 	}
 	
 	plugin.src = url;

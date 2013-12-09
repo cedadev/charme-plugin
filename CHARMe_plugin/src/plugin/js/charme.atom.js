@@ -26,10 +26,10 @@ charme.atom.xpath = function(){
 		//Entries
 		this.XPATH_ENTRY_BASE		= '//atm:entry';
 		this.XPATH_ENTRIES			= this.XPATH_BASE + this.XPATH_ENTRY_BASE;
-		this.XPATH_ENTRY_ID			= this.XPATH_ENTRY_BASE + '/atm:id';
-		this.XPATH_ENTRY_TITLE		= this.XPATH_BASE + '//atm:title';
-		this.XPATH_ENTRY_UPDATED	= this.XPATH_BASE + '//atm:updated';
-		this.XPATH_ENTRY_CONTENT	= this.XPATH_BASE + '//atm:content';		
+		this.XPATH_ENTRY_ID			= 'atm:id';
+		this.XPATH_ENTRY_TITLE		= 'atm:title';
+		this.XPATH_ENTRY_UPDATED	= 'atm:updated';
+		this.XPATH_ENTRY_CONTENT	= 'atm:content';		
 };
 
 charme.atom.nsResolver = function(prefix){

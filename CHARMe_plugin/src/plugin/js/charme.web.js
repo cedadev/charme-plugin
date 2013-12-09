@@ -39,6 +39,11 @@ charme.web.setAfterLoginSuccess = function(callback){
 	charme.web.afterLoginSuccess = callback;
 };
 
+charme.web.afterLogout = {};
+charme.web.setAfterLogout = function(callback){
+	charme.web.afterLogout = callback;
+};
+
 charme.web.setResizeFunction = function(func){
 	//$('#dialogHolder').on('resize', func);
 };
@@ -109,89 +114,93 @@ charme.web.fetched = function(){
 	charme.web.fetchCheck();
 };
 
-charme.web.fetchAdditionalData = function(annotation){
-	charme.web.fetching();
+charme.web.printAuthor = function(annotation){
+	var html = '';
+	if (annotation.annotatedBy){
+		if (annotation.annotatedBy.email){
+			html+=' | <a href="mailto:' + annotation.annotatedBy.email + '">' + (annotation.annotatedBy.name.length > 0 ? annotation.annotatedBy.name : annotation.annotatedBy.email)  + '</a>';
+		}
+		else if (annotation.annotatedBy.name) {
+			html+=' | ' + annotation.annotatedBy.name;
+		}
+	}
+	return html;
+};
+
+charme.web.processAnnotation = function(annotation){
 	/**
 	 * DIRTY HACK.
 	 * This is intended to fetch DOI annotation metadata. This will not be necessary once this data is stored in the triplestore
 	 * 
 	 */
-	if (annotation.body && annotation.body.length > 0 && annotation.body.getId().indexOf(charme.logic.constants.DOI_PREFIX)===0){
-		var doiTxt = annotation.body.getId().substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.getId().length);
+	if (annotation.body && annotation.body.citingEntity){
+		var doiTxt = annotation.body.citingEntity.substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.citingEntity.length);
 		var criteria = {};
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
-
 		charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
+			var url = annotation.body.citingEntity ? annotation.body.citingEntity : annotation.body.getId();
+			var shortUrl = charme.web.truncateURI(url, 40);
 			var html = 
 				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-				'   ' + charme.crossref.chicagoStyle(metaData) + '                                                            ' +
-				'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+				'   ' + metaData + '                                                                                          ' +
+				'	<a href="' + url + '">' + shortUrl + '</a>                                                                ' +
+				'<span class="muted pull-right author">22/11/2013 16:16pm ' + charme.web.printAuthor(annotation) + '</span>   ' +
 				'</li>                                                                                                        ';
 			var htmlObj = $(html);
 			$('#ref-list:last').append(htmlObj);
 			$('#no-ref-annos').hide();
 			$('#ref-loading').hide();
 			charme.web.fetched();
-		}, function(){
-				$('#annotations-error').show();
-				charme.web.fetched();
+		}, function(resp){
+			var url = annotation.body.citingEntity ? annotation.body.citingEntity : annotation.body.getId();
+			var shortUrl = charme.web.truncateURI(url, 40);
+			var html = 
+				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
+				'   <span class="text-warning">Unable to retrieve metadata</span>                                            ' +
+				'	<a href="' + url + '">' + shortUrl + '</a>                                                                ' +
+				'<span class="muted pull-right author">22/11/2013 16:16pm ' + charme.web.printAuthor(annotation) + '</span>   ' +
+				'</li>                                                                                                        ';
+			var htmlObj = $(html);
+			$('#ref-list:last').append(htmlObj);
+			$('#no-ref-annos').hide();
+			$('#ref-loading').hide();
+			charme.web.fetched();
 		});
 		return;
-	}
-	charme.logic.fetchAnnotation(
-			annotation.getInternalId(),
-			/*
-			 * Success callback
-			 */
-			function(graph){
-				//Hoisted variables
-				var htmlStr='';
-				var htmlObj = {};
-				var fetchedAnno = graph.annotations[0];
-				if (!annotation.body || !annotation.body.getId){
-					//No body object present
-				}
-				else if (fetchedAnno.body.text){
+	} 
+	else if (annotation.body.text){
 					htmlStr = 
 						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
-						'	' + fetchedAnno.body.text + '                                                    ' +
-						'<span class="muted pull-right author">22/11/2013 16:16pm | <a href="#">Andrew Henry</a></span>            ' +
+						'	' + annotation.body.text + '                                                    ' +
+						'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
 						'</li>                                                                               ';
 					htmlObj = $(htmlStr);
 					$('#text-list:last').append(htmlObj);
 					$('#no-text-annos').hide();
 					$('#text-loading').hide();
-				} else if (fetchedAnno.body instanceof OA.OARefBody){
+	} 
+	else if (annotation.body instanceof OA.OARefBody){
 					htmlStr = 
 						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
 						'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+						'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
 						'</li>                                                                                                        ';
 					htmlObj = $(htmlStr);
 					$('#ref-list:last').append(htmlObj);
 					$('#no-ref-annos').hide();
 					$('#ref-loading').hide();
-				} else {
+	} 
+	else {
 					htmlStr = 
 						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
 						'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
-						'   <span class="muted pull-right author">17/11/2013 13:04pm | <a href="#">Andrew Henry</a></span>            ' +
+						'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
 						'</li>                                                                                                        ';
 					htmlObj = $(htmlStr);
 					$('#link-list:last').append(htmlObj);
 					$('#no-link-annos').hide();
 					$('#link-loading').hide();
-				}
-
-				charme.web.fetched();
-			},
-			/*
-			 * Error callback
-			 */
-			function() {
-				$('#annotations-error').show();
-				charme.web.fetched();
-			}
-	);
+	}
 };
 
 /*
@@ -210,15 +219,10 @@ charme.web.showAnnotations=function(state, targetId){
 	$('#no-link-annos').hide();
 	$('#link-loading').show();
 	//Make a call to the lower-level charme.logic function that makes the ajax call to fetch the annotations
-	charme.logic.fetchAnnotations(state,
+	charme.logic.fetchAnnotationsForTarget(targetId,
 		function(graph){
-			
 			$.each(graph.annotations, function(i, annotation){
-				//Temporary hack in order to allow filtering by target
-				if (!targetId || annotation.target.getId()==targetId){
-					//For each annotation, go and fetch additional associated data.
-					charme.web.fetchAdditionalData(annotation);
-				}
+				charme.web.processAnnotation(annotation);
 			});
 			charme.web.fetchCheck();
 		},
@@ -266,6 +270,13 @@ charme.web.saveAnnotation=function(){
 	target.setId(charme.web.params.targetId);
 	annotation.target = target;
 	
+	if (charme.web.params.loggedInEmail && charme.web.params.loggedInEmail.length > 0){
+		annotation.annotatedBy = new OA.OAPerson();
+		annotation.annotatedBy.setId(charme.logic.constants.BODY_ID_PREFIX + charme.logic.generateGUID());
+		annotation.annotatedBy.email=charme.web.params.loggedInEmail;
+		annotation.annotatedBy.name=charme.web.params.loggedInName;
+	}
+		
 	//The JSON-LD graph created will depend somewhat upon the type of annotation being created. This is abstracted in the js code by providing different types of
 	//Annotation Body objects, depending on the type required.
 	var typeSelect = $('#AnnoType');
@@ -296,6 +307,7 @@ charme.web.saveAnnotation=function(){
 	}
 	charme.logic.createAnnotation(annotation, 
 			function(){
+				debugger;
 				//Success callback
 				$('#newAnnotation').addClass('hide');
 				$('#dialogHolder').removeClass('hide');
@@ -399,6 +411,60 @@ charme.web.clearSelect2 = function (){
 	$('.FacetBox').val('');
 };
 
+charme.web.doLogin = function() {
+	var emailEl = $('#emailAddress');
+	emailEl.popover('destroy');
+	var userEl = $('#userName');
+	userEl.popover('destroy');
+	var email = emailEl.val();
+	var name = userEl.val();
+	
+	if (!$.trim(email)){
+		$('#emailAddressGroup').addClass('error');
+		emailEl.attr('data-content', 'Please enter an email address');
+		emailEl.popover('show');
+		emailEl.on('click', function(){
+			$('#emailAddressGroup').removeClass('error');
+			emailEl.popover('destroy');
+		});
+		return;
+	}
+
+	if (!$.trim(name)){
+		$('#userNameGroup').addClass('error');
+		userEl.attr('data-content', 'Please enter your name');
+		userEl.popover('show');
+		userEl.on('click', function(){
+			$('#userNameGroup').removeClass('error');
+			userEl.popover('destroy');
+		});
+		return;
+	}
+	
+	
+	$('#SignIn').addClass('hide');
+	$('#dialogHolder').removeClass('hide');
+	$('#loginDialog').addClass('hide');
+	$('#AccountDetails').removeClass('hide');
+	charme.web.params.loggedInEmail = email;
+	charme.web.params.loggedInName = name;
+	$('#AccountDropDown').html(email);
+	$('#newAnnotationButton').removeAttr('disabled');
+	$('#newAnnotationButton').addClass('btn-primary');
+	if (typeof charme.web.afterLoginSuccess === 'function'){
+		charme.web.afterLoginSuccess(email, name);
+	}
+	
+	$('#emailAddressGroup').removeClass('error');
+	$('#userNameGroup').removeClass('error');
+};
+
+charme.web.doLogout = function(){
+	document.location.href = location.href.split('?')[0];
+	charme.web.afterLogout();
+	document.location.reload();
+};
+
 /**
  * Define behaviour of html elements through progressive enhancement
  */
@@ -486,26 +552,16 @@ charme.web.behaviour = function(){
 		
 	});
 	
-	$("#LoginBtn").on('click', function() {
-		$('#SignIn').addClass('hide');
-		$('#dialogHolder').removeClass('hide');
-		$('#loginDialog').addClass('hide');
-		$('#AccountDetails').removeClass('hide');
-		var email = $('#EmailAddress').val();
-		$('#AccountDropDown').html(email);
-		$('#newAnnotationButton').removeAttr('disabled');
-		$('#newAnnotationButton').addClass('btn-primary');
-		if (typeof charme.web.afterLoginSuccess === 'function'){
-			charme.web.afterLoginSuccess(email);
-		}
-	});
+	$("#LoginBtn").on('click', charme.web.doLogin);
 	
-	$('#LoginCancel').click(
+	$('#LoginCancel').on('click',
 			function(){
 				$('#dialogHolder').removeClass('hide');
 				$('#loginDialog').addClass('hide');
 			}
-	); 
+	);
+	
+	$('#LogoutButton').on('click', charme.web.doLogout);
 }; 
 
 /**
