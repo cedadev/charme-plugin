@@ -20,7 +20,7 @@ charme.xml.wrapDoc = function(xmlDoc, xmlEval, nsResolver){
 	};
 	/**
 	 * This function will return a list of complex objects. The second parameter defines the type of 
-	 * objects returned in the list. This will be a user defined type that knows how to populate itself given an XML node.
+	 * objects returned in the list. A coercible type is simple any user defined type that knows how to populate itself if passed an XML node.
 	 */
 	this.asComplexList = function(xpath, coercibleType){
 		var resultList = [];

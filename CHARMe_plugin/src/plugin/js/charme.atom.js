@@ -41,7 +41,7 @@ charme.atom.nsResolver = function(prefix){
 };
 
 /**
- * A 'coercible type'. This function will take an XML node as an input, and populate itself.
+ * A 'coercible' type. This function will take an XML node as an input, and populate itself. This is used by charme.xml.wrapDoc
  */
 charme.atom.entry = function(atomDoc){
 	var xpathConst = new charme.atom.xpath();

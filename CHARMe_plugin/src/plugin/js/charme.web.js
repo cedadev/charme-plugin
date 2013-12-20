@@ -10,6 +10,10 @@ if (!charme)
 	var charme= {};
 charme.web = {};
 
+/**
+ * Parses parameters that are passed to this page as URL query string. Is executed automatically on page load, 
+ * and will return parameters in associative array with structure ["paramName":"paramValue"]
+ */
 charme.web.params = 
 	(function(a) {
 		if (a === "") return {};
@@ -35,10 +39,18 @@ charme.web.setCloseCallback = function(closeCallback){
 };
 
 charme.web.afterLoginSuccess = {};
+/**
+ * Allows the including page to attach a callback on successful user login
+ * @param callback
+ */
 charme.web.setAfterLoginSuccess = function(callback){
 	charme.web.afterLoginSuccess = callback;
 };
 
+/**
+ * Allows the including page to attach a callback on user logout
+ * @param callback
+ */
 charme.web.afterLogout = {};
 charme.web.setAfterLogout = function(callback){
 	charme.web.afterLogout = callback;
@@ -59,12 +71,18 @@ charme.web.titleFromURI = function(uri){
 };
 
 /**
- * A function 
+ * Returns a plugin title for the current target. eg. The dataset name, that is displayed in the plugin title bar
  */
 charme.web.pluginTitleFromTarget = function(){
 	return charme.web.titleFromURI(charme.web.params.targetId);
 };
 
+/**
+ * Shortens a string to a maximum of the given length. If it is longer than this length, it is suffixed with an ellipses.
+ * @param uri
+ * @param length
+ * @returns
+ */
 charme.web.truncateURI=function(uri, length){
 	uri = $.trim(uri);
 	if (uri.length <= length)
@@ -74,7 +92,9 @@ charme.web.truncateURI=function(uri, length){
 };
 
 /**
- * TODO: This 'fetch' stuff sucks and has to go. Replace with promises model
+ * Anything to do with 'fetching' here is a temporary measure so that code can keep track of whether all ajax callouts have returned.
+ * Should be replaced at some point with a promises model.
+ * TODO: Replace with promises model
  */
 charme.web.fetchCount= 0;
 charme.web.loggedIn=false;
@@ -114,6 +134,11 @@ charme.web.fetched = function(){
 	charme.web.fetchCheck();
 };
 
+/**
+ * Generate some HTML with the annotators name and email address.
+ * @param annotation
+ * @returns {String}
+ */
 charme.web.printAuthor = function(annotation){
 	var html = '';
 	if (annotation.annotatedBy){
@@ -126,7 +151,10 @@ charme.web.printAuthor = function(annotation){
 	}
 	return html;
 };
-
+/**
+ * Called for each annotation returned from the CHARMe node. Populates the on screen HTML elements with the data from the returned annotations.
+ * @param annotation
+ */
 charme.web.processAnnotation = function(annotation){
 	/**
 	 * DIRTY HACK.
@@ -137,6 +165,9 @@ charme.web.processAnnotation = function(annotation){
 		var doiTxt = annotation.body.citingEntity.substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.citingEntity.length);
 		var criteria = {};
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
+		/**
+		 * Performs a callout to fetch publications metadata based on DOI
+		 */
 		charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
 			var url = annotation.body.citingEntity ? annotation.body.citingEntity : annotation.body.getId();
 			var shortUrl = charme.web.truncateURI(url, 40);
@@ -167,7 +198,10 @@ charme.web.processAnnotation = function(annotation){
 			charme.web.fetched();
 		});
 		return;
-	} 
+	}
+	/**
+	 * Specific behaviour based on the returned type of the annotation (Text, Publication, URL, etc.) 
+	 */
 	else if (annotation.body.text){
 					htmlStr = 
 						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
@@ -203,7 +237,7 @@ charme.web.processAnnotation = function(annotation){
 	}
 };
 
-/*
+/**
  * Retrieve and show all annotations with a given state (eg. submitted, retired, etc.)
  * Parameters:
  *		state: Return all annotations that match this state
@@ -305,6 +339,7 @@ charme.web.saveAnnotation=function(){
 		bodyObj.setId(doiVal);
 		annotation.body = bodyObj;
 	}
+	//Call to the charme.logic library to make the AJAX callout to the web service.
 	charme.logic.createAnnotation(annotation, 
 			function(){
 				//Success callback
@@ -372,6 +407,11 @@ charme.web.changeType=function(e){
 	}
 };
 
+/**
+ * This function will perform an asynchronous lookup of metadata based on provided DOI, and display it on screen.
+ * @param e
+ * @returns {Boolean}
+ */
 charme.web.doiSearch=function(e){
 	var doiElement = $('#AnnoBodyCitoInput');
 	var doi = $.trim(doiElement.val());
@@ -389,6 +429,7 @@ charme.web.doiSearch=function(e){
 	} else {
 		var criteria = {};
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] = doi;
+		//Call to the charme.logic library function for fetching metadata
 		charme.logic.fetchCrossRefMetaData(criteria).then(
 			function(data){
 				//var fmtText = charme.crossref.chicagoStyle(data);
@@ -405,11 +446,17 @@ charme.web.doiSearch=function(e){
 	}
 };
 
+/**
+ * Clears the select2 multi-select box. Select2 is 3rd party component that allows for powerful combo boxes with multi-select that are in keeping with the Bootstrap look and feel.
+ */
 charme.web.clearSelect2 = function (){
 	$('.select2-search-choice').remove();
 	$('.FacetBox').val('');
 };
 
+/**
+ * Called when the user logs in. Of course currently there is no authentication taking place, so this just changes some on screen elements.
+ */
 charme.web.doLogin = function() {
 	var emailEl = $('#emailAddress');
 	emailEl.popover('destroy');
@@ -465,7 +512,8 @@ charme.web.doLogout = function(){
 };
 
 /**
- * Define behaviour of html elements through progressive enhancement
+ * Define behaviour of html elements through progressive enhancement.
+ * TODO: This function is way too long. The application is getting too complex for all behaviour to be defined in a single function. Suggest migrating to an extablished framework like angular.js
  */
 charme.web.behaviour = function(){
 	$('#DatasetName').html(charme.web.pluginTitleFromTarget());
@@ -531,7 +579,10 @@ charme.web.behaviour = function(){
 				annoBodyCito.removeClass('success');
 				annoBodyCito.removeClass('error');
 	});
-	$(".FacetBox").select2({placeholder: 'Click to select categories'});
+	var facetBoxen = $(".FacetBox");
+	if (facetBoxen.select2){
+		facetBoxen.select2({placeholder: 'Click to select categories'});
+	}
 	
 	if (charme.web.loggedIn){
 		$("#SignIn").addClass('hide');
