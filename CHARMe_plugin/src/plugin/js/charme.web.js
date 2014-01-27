@@ -99,41 +99,6 @@ charme.web.truncateURI=function(uri, length){
 charme.web.fetchCount= 0;
 charme.web.loggedIn=false;
 
-charme.web.fetching = function(){
-	charme.web.fetchCount++;
-};
-
-/**
- * TODO: FIX THIS. Use classes etc.
- */
-charme.web.fetchCheck = function(){
-	if (charme.web.fetchCount === 0){
-		var txtLoading = $('#text-loading');
-		var refLoading = $('#ref-loading');
-		var linkLoading = $('#link-loading');
-		
-		if (txtLoading.is(":visible") ){
-			txtLoading.hide();
-			$('#no-text-annos').show();
-		}
-		if (refLoading.is(":visible") ){
-			refLoading.hide();
-			$('#no-ref-annos').show();
-		}
-		if (linkLoading.is(":visible") ){
-			linkLoading.hide();
-			$('#no-link-annos').show();
-		}		
-	}
-};
-
-charme.web.fetched = function(){
-	if (charme.web.fetchCount > 0){
-		charme.web.fetchCount--;
-	}
-	charme.web.fetchCheck();
-};
-
 /**
  * Generate some HTML with the annotators name and email address.
  * @param annotation
@@ -156,85 +121,90 @@ charme.web.printAuthor = function(annotation){
  * @param annotation
  */
 charme.web.processAnnotation = function(annotation){
-	/**
-	 * DIRTY HACK.
-	 * This is intended to fetch DOI annotation metadata. This will not be necessary once this data is stored in the triplestore
-	 * 
-	 */
-	if (annotation.body && annotation.body.citingEntity){
-		var doiTxt = annotation.body.citingEntity.substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.citingEntity.length);
-		var criteria = {};
-		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
+	var promise = new Promise( function(resolver){
 		/**
-		 * Performs a callout to fetch publications metadata based on DOI
+		 * DIRTY HACK.
+		 * This is intended to fetch DOI annotation metadata. This will not be necessary once this data is stored in the triplestore
+		 * 
 		 */
-		charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
-			var url = annotation.body.citingEntity ? annotation.body.citingEntity : annotation.body.getId();
-			var shortUrl = charme.web.truncateURI(url, 40);
-			var html = 
+		if (annotation.body && annotation.body.citingEntity){
+			var doiTxt = annotation.body.citingEntity.substring(charme.logic.constants.DOI_PREFIX.length, annotation.body.citingEntity.length);
+			var criteria = {};
+			criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
+			/**
+			 * Performs a callout to fetch publications metadata based on DOI
+			 */
+			charme.logic.fetchCrossRefMetaData(criteria).then(function(metaData){
+				var url = annotation.body.citingEntity ? annotation.body.citingEntity : annotation.body.getId();
+				var shortUrl = charme.web.truncateURI(url, 40);
+				var html = 
+					'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
+					'   ' + metaData + '                                                                                          ' +
+					'	<a href="' + url + '">' + shortUrl + '</a>                                                                ' +
+					'<span class="muted pull-right author">22/11/2013 16:16pm ' + charme.web.printAuthor(annotation) + '</span>   ' +
+					'</li>                                                                                                        ';
+				var htmlObj = $(html);
+				$('#ref-list:last').append(htmlObj);
+				$('#no-ref-annos').hide();
+				$('#ref-loading').hide();
+				resolver.fulfilled();
+			}, function(resp){
+				var url = annotation.body.citingEntity ? annotation.body.citingEntity : annotation.body.getId();
+				var shortUrl = charme.web.truncateURI(url, 40);
+				var html = 
+					'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
+					'   <span class="text-warning">Unable to retrieve metadata</span>                                            ' +
+					'	<a href="' + url + '">' + shortUrl + '</a>                                                                ' +
+					'<span class="muted pull-right author">22/11/2013 16:16pm ' + charme.web.printAuthor(annotation) + '</span>   ' +
+					'</li>                                                                                                        ';
+				var htmlObj = $(html);
+				$('#ref-list:last').append(htmlObj);
+				$('#no-ref-annos').hide();
+				$('#ref-loading').hide();
+				resolver.reject();
+			});
+		}
+		/**
+		 * Specific behaviour based on the returned type of the annotation (Text, Publication, URL, etc.) 
+		 */
+		else if (annotation.body.text){
+			htmlStr = 
+				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
+				'	' + annotation.body.text + '                                                    ' +
+				'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
+				'</li>                                                                               ';
+			htmlObj = $(htmlStr);
+			$('#text-list:last').append(htmlObj);
+			$('#no-text-annos').hide();
+			$('#text-loading').hide();
+			resolver.fulfilled();
+		} 
+		else if (annotation.body instanceof OA.OARefBody){
+			htmlStr = 
 				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-				'   ' + metaData + '                                                                                          ' +
-				'	<a href="' + url + '">' + shortUrl + '</a>                                                                ' +
-				'<span class="muted pull-right author">22/11/2013 16:16pm ' + charme.web.printAuthor(annotation) + '</span>   ' +
+				'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+				'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
 				'</li>                                                                                                        ';
-			var htmlObj = $(html);
+			htmlObj = $(htmlStr);
 			$('#ref-list:last').append(htmlObj);
 			$('#no-ref-annos').hide();
 			$('#ref-loading').hide();
-			charme.web.fetched();
-		}, function(resp){
-			var url = annotation.body.citingEntity ? annotation.body.citingEntity : annotation.body.getId();
-			var shortUrl = charme.web.truncateURI(url, 40);
-			var html = 
+			resolver.fulfilled();
+		} 
+		else {
+			htmlStr = 
 				'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-				'   <span class="text-warning">Unable to retrieve metadata</span>                                            ' +
-				'	<a href="' + url + '">' + shortUrl + '</a>                                                                ' +
-				'<span class="muted pull-right author">22/11/2013 16:16pm ' + charme.web.printAuthor(annotation) + '</span>   ' +
+				'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
+				'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
 				'</li>                                                                                                        ';
-			var htmlObj = $(html);
-			$('#ref-list:last').append(htmlObj);
-			$('#no-ref-annos').hide();
-			$('#ref-loading').hide();
-			charme.web.fetched();
-		});
-		return;
-	}
-	/**
-	 * Specific behaviour based on the returned type of the annotation (Text, Publication, URL, etc.) 
-	 */
-	else if (annotation.body.text){
-					htmlStr = 
-						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">  ' +
-						'	' + annotation.body.text + '                                                    ' +
-						'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
-						'</li>                                                                               ';
-					htmlObj = $(htmlStr);
-					$('#text-list:last').append(htmlObj);
-					$('#no-text-annos').hide();
-					$('#text-loading').hide();
-	} 
-	else if (annotation.body instanceof OA.OARefBody){
-					htmlStr = 
-						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-						'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
-						'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
-						'</li>                                                                                                        ';
-					htmlObj = $(htmlStr);
-					$('#ref-list:last').append(htmlObj);
-					$('#no-ref-annos').hide();
-					$('#ref-loading').hide();
-	} 
-	else {
-					htmlStr = 
-						'<li class="annotation-row" id="annotation-row-' + annotation.getInternalId() + '">                           ' +
-						'	<a href="' + annotation.body.getId() + '">' + charme.web.truncateURI(annotation.body.getId(), 40) + '</a> ' +
-						'<span class="muted pull-right author">22/11/2013 16:16pm  ' + charme.web.printAuthor(annotation) + '</span> ' +
-						'</li>                                                                                                        ';
-					htmlObj = $(htmlStr);
-					$('#link-list:last').append(htmlObj);
-					$('#no-link-annos').hide();
-					$('#link-loading').hide();
-	}
+			htmlObj = $(htmlStr);
+			$('#link-list:last').append(htmlObj);
+			$('#no-link-annos').hide();
+			$('#link-loading').hide();
+			resolver.fulfilled();
+		}
+	});
+	return promise;
 };
 
 /**
@@ -253,12 +223,32 @@ charme.web.showAnnotations=function(state, targetId){
 	$('#no-link-annos').hide();
 	$('#link-loading').show();
 	//Make a call to the lower-level charme.logic function that makes the ajax call to fetch the annotations
-	charme.logic.fetchAnnotationsForTarget(targetId,
+	charme.logic.fetchAnnotationsForTarget(targetId).then(
 		function(graph){
+			var promises = [];
 			$.each(graph.annotations, function(i, annotation){
-				charme.web.processAnnotation(annotation);
+				promises.push(charme.web.processAnnotation(annotation));
 			});
-			charme.web.fetchCheck();
+			var clearMessages = function(){
+				var txtLoading = $('#text-loading');
+				var refLoading = $('#ref-loading');
+				var linkLoading = $('#link-loading');
+				
+				if (txtLoading.is(":visible") ){
+					txtLoading.hide();
+					$('#no-text-annos').show();
+				}
+				if (refLoading.is(":visible") ){
+					refLoading.hide();
+					$('#no-ref-annos').show();
+				}
+				if (linkLoading.is(":visible") ){
+					linkLoading.hide();
+					$('#no-link-annos').show();
+				}
+			};
+			
+			Promise.every.apply(null, promises).then(clearMessages);
 		},
 		function(){
 			$('#annotations-error').show();

@@ -215,6 +215,7 @@ module(' Non-network Tests');
 		anno.setValue(anno.BODY, body);
 		var person = graph.createNode(jsonoa.types.Person, 'http://localhost/804eaa65d370');
 		person.setValue(person.MBOX, graph.createStub('mailto:akhenry@gmail.com'));
+		person.setValue(person.NAME, 'Andrew Henry');
 		anno.setValue(anno.ANNOTATED_BY, person);
 		var target = graph.createNode(jsonoa.types.DatasetTarget, 'http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG');
 		anno.setValue(anno.TARGET, target);
@@ -241,8 +242,8 @@ module(' Non-network Tests');
 			'{																							' +
 			'	"@id": "http://charme-dev.cems.rl.ac.uk/resource/03e8f39d7e2648729cb0cab6e032c3ce",		' +
 			'	"@type": [																				' +
-			'		"http://purl.org/dc/dcmitype/Text",													' +
-			'		"http://www.w3.org/2011/content#ContentAsText"										' +
+			'		"http://www.w3.org/2011/content#ContentAsText",										' +			
+			'		"http://purl.org/dc/dcmitype/Text"													' +
 			'	],																						' +
 			'	"http://purl.org/dc/elements/1.1/format": "text/plain",									' +
 			'	"http://www.w3.org/2011/content#chars": "This is based on Envisat data"					' +
@@ -256,11 +257,15 @@ module(' Non-network Tests');
 		var anno = graph.createNode(jsonoa.types.Annotation, 'http://charme-dev.cems.rl.ac.uk/resource/5b3496263a454e1db06fc5088bb43cf4');
 		var body = graph.createNode(jsonoa.types.TextBody, 'http://charme-dev.cems.rl.ac.uk/resource/03e8f39d7e2648729cb0cab6e032c3ce'); 
 		body.setValue(body.CONTENT_CHARS, 'This is based on Envisat data');
-		anno.setValue(anno.BODY, body);
+		anno.setValue(anno.BODY, body);		
 		var target = graph.createNode(jsonoa.types.DatasetTarget, 'http://badc.nerc.ac.uk/view/badc.nerc.ac.uk__ATOM__dataent_namblex');
 		anno.setValue(anno.TARGET, target);
-		var graphJSON = graph.toJSON();
-		deepEqual(graphJSON.replace(/\s/g,''), jsonSrc.replace(/\s/g,''));
+		try {
+			var graphJSON = graph.toJSON();
+			deepEqual(graphJSON.replace(/\s/g,''), jsonSrc.replace(/\s/g,''));
+		} catch (e){
+			ok(e==='Required field http://www.w3.org/ns/oa#annotatedBy missing', 'Required Field Missing Error');
+		}
 	});	
 	
 	test( "UT-024: Parse crossref metadata", function(){
@@ -356,6 +361,7 @@ module(' Non-network Tests');
 	});
 	asyncTest( "UT-026: Parse atom feed", function(){
 		expect(6);
+		
 		var reqUrl = 'testData/charmetest.atom';
 		$.ajax({
 			url: reqUrl

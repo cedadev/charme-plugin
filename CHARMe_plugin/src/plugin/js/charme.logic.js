@@ -21,9 +21,6 @@ charme.logic.constants={
 		
 		//CROSSREF_URL: 'http://www.crossref.org/openurl/',
 		CROSSREF_URL: 'http://data.crossref.org/',
-		CROSSREF_PARAM_EMAIL: 'akhenry@gmail.com',
-		CROSSREF_PARAM_FORMAT: 'unixref',
-		CROSSREF_PARAM_NOREDIRECT: 'true',
 		CROSSREF_CRITERIA_DOI:'id'		
 };
 
@@ -75,22 +72,23 @@ charme.logic.generateGUID = function(){
 };
 
 charme.logic.fetchCrossRefMetaData=function(criteria){
-	var dfr = new $.Deferred();
-	var reqUrl = charme.logic.crossRefRequest(criteria);
-	if (reqUrl === null || reqUrl.length ===0){
-		dfr.reject();
-	}
-	$.ajax(reqUrl, {
-		headers:{
-			accept: 'text/bibliography; style=apa; locale=en-US'
+	var promise = new Promise(function(resolver){
+		var reqUrl = charme.logic.crossRefRequest(criteria);
+		if (reqUrl === null || reqUrl.length ===0){
+			resolver.reject();
 		}
-	}).then(
-		function(xmlResp){
-			dfr.resolve(xmlResp);
-		}, function(e){
-		dfr.reject(e);
+		$.ajax(reqUrl, {
+			headers:{
+				accept: 'text/bibliography; style=apa; locale=en-US'
+			}
+		}).then(
+			function(xmlResp){
+				resolver.fulfill(xmlResp);
+			}, function(e){
+			resolver.reject(e);
+		});
 	});
-	return dfr.promise();
+	return promise;
 };
 
 /*
@@ -126,37 +124,6 @@ charme.logic.createAnnotation=function(annotation, successCB, errorCB){
 	});
 };
 
-/**
- * IMPORTANT: DO NOT propagate Promise.js beyond this point. Everything else uses the jquery promise model.
- */
-charme.logic.fetchAnnotation = function(annoId, successCB, errorCB){
-	var reqUrl = charme.logic.fetchRequest(annoId);
-	$.ajax(reqUrl, {
-		dataType: 'json',
-		accepts: {
-			json: "application/ld+json"
-		},
-		type: 'GET',
-		success: 
-			function(data){
-				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
-				var processor = new jsonld.JsonLdProcessor();
-				// set base IRI
-				var options = {base: document.baseURI};
-				//DO NOT bubble ANY Promise.js promises above this level.
-				processor.expand(data, options).then(function(expData){
-					OA.deserialize(expData).then(function(graph){
-						successCB(graph);
-					});
-				})['catch'](errorCB); // 'catch' - worst, function name, ever. Thanks W3C.
-			},
-		error:
-			function(jqXHR, textStatus, errorThrown){
-				errorCB();
-			},
-	});
-};
-
 /*
  * Retrieve all annotations for the specified state
  * 
@@ -164,39 +131,37 @@ charme.logic.fetchAnnotation = function(annoId, successCB, errorCB){
  *		successCB: a callback to be invoked on successful completion. The returned JSON-LD graph will be passed into this function
  *		errorCB: a callback to be invoked on error
  */
-charme.logic.fetchAnnotationsForTarget=function(targetId, successCB, errorCB){
-	var reqUrl = charme.logic.fetchForTarget(targetId);
-	$.ajax(reqUrl, {
-		type: 'GET',
-		success: 
-			function(data){
-				//Data is returned as ATOM wrapped json-ld
-				var result = new charme.atom.result(data);
-				//Extract json-ld from the multiple 'content' payloads returned
-				//TODO: THIS IS A HACK. NEED TO REFACTOR TO HANDLE EACH ANNOTATION IN A SEPARATE GRAPH
-				var resultArr = [];
-				$.each(result.entries, function(index, value){
-					var shortGraph = $.parseJSON(value.content);
-					resultArr.push(shortGraph['@graph']);
-					
-				});
-				var graph = {'@graph': resultArr};
-
-				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
-				var processor = new jsonld.JsonLdProcessor();
-				// set base IRI
-				var options = {base: document.baseURI};
-				processor.expand(graph, options).then(function(expData){
-					return OA.deserialize(expData);
-				}).then(function(graph){
-						successCB(graph);
-				})['catch'](errorCB); // 'catch' - worst, function name, ever. Thanks W3C.
-			},
-		error:
-			function(jqXHR, textStatus, errorThrown){
-				errorCB();
-			},
+charme.logic.fetchAnnotationsForTarget=function(targetId){
+	var promise = new Promise(function(resolver){
+		var reqUrl = charme.logic.fetchForTarget(targetId);
+		$.ajax(reqUrl, {type: 'GET'}).then(
+				function(data){
+					//Data is returned as ATOM wrapped json-ld
+					var result = new charme.atom.result(data);
+					//Extract json-ld from the multiple 'content' payloads returned
+					var resultArr = [];
+					$.each(result.entries, function(index, value){
+						var shortGraph = $.parseJSON(value.content);
+						resultArr.push(shortGraph['@graph']);
+						
+					});
+					var graph = {'@graph': resultArr};
+	
+					//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
+					var processor = new jsonld.JsonLdProcessor();
+					var options = {base: document.baseURI};
+					processor.expand(graph, options).then(OA.deserialize).then(function(graph){
+							resolver.fulfill(graph);
+					}, function(e){
+						resolver.reject(e);
+						});
+				},
+				function(jqXHR, textStatus, errorThrown){
+					resolver.reject();
+				}
+		);
 	});
+	return promise;
 };
 
 /*

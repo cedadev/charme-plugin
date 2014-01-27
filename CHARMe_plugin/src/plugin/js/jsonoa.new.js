@@ -10,8 +10,8 @@ jsonoa.util.isWrapped = function(obj){
 	return (obj.node);
 };
 
-jsonoa.util.isComplex = function(test){
-	return (test instanceof jsonoa.types.Stub || test['@id']);
+jsonoa.util.isNode = function(test){
+	return (test['@id']);
 };
 
 jsonoa.types.registry = [];
@@ -26,18 +26,27 @@ jsonoa.types.register = function(typeDesc){
 	var nodeObj = JSON.parse(typeDesc.template);
 	
 	/**
-	 * An object is returned that wraps the underlying mode, providing accessor and mutator methods for modifying the underlying node.
-	 * ALL node objects returned by this library are wrapped with the object structure below. Each node returned with by an instance object that
-	 * adhered to this structure, but has a runtime type defined by its jsono.types type. (eg. jsonoa.types.Annotation). This means that operations such as
-	 * (node instanceof jsonoa.types.Annotation) will evaluate as true.
+	 * An object is returned that wraps the underlying node, providing accessor and mutator methods for modification.
+	 * ALL node objects returned by this library are wrapped with the object structure below. Returned object has a runtime type defined by its jsono.types type. (eg. jsonoa.types.Annotation). 
+	 * This means that operations such as (node instanceof jsonoa.types.Annotation) will evaluate to true.
 	 */
 	var typeDef = function(){
 		//Fields
 		this.ID='@id';
 		this.TYPE='@type';
-		this.node = nodeObj;
+		this.node = undefined;
 		this.template = typeTemplate;
 		this.graph = [];
+		
+		this._init = function(){
+			this.node = JSON.parse(typeDesc.template);
+		};
+		
+		this._isInit = function(){
+			if (!this.node){
+				throw 'Registered node type not initialised.(' + typeDesc.template + ')';
+			}
+		};
 		
 		//Constructor - Copy all constants across
 		for (var key in typeDesc.constants){
@@ -46,11 +55,13 @@ jsonoa.types.register = function(typeDesc){
 		
 		//Accessor Methods
 		this.getValue=function(attr){
+			this._isInit();
+			
 			var attrVal = this.node[attr];
 			if (attrVal instanceof Array){
 				attrVal = attrVal[0];
 			}
-			if (jsonoa.util.isComplex(attrVal)){
+			if (jsonoa.util.isNode(attrVal)){
 				var linkedNode = this.graph.getNode(attrVal['@id']);
 				if (!linkedNode){
 					//Basically, node is unknown, but return the node wrapped in a stub object to allow for get/set functionality
@@ -64,6 +75,7 @@ jsonoa.types.register = function(typeDesc){
 				
 		};
 		this.getValues=function(attr){
+			this._isInit();
 			var attrVal = this.node[attr];
 			if (typeof attrVal === 'Array'){
 				return attrVal;
@@ -72,11 +84,12 @@ jsonoa.types.register = function(typeDesc){
 			}
 		};
 		this.setValue=function(attr,value){
+			this._isInit();
 			if (typeof this.node[attr] !== 'object' && this.template[attr]!=='?'){
 				throw 'Field (' + attr + ') is defined as constant in type template';
 			}
 			//If the provided value is a complex type, then just insert a pointer or 'stub'. The actual object is assumed to reside elsewhere in the graph.
-			if (jsonoa.util.isWrapped(value) && jsonoa.util.isComplex(this.node[attr])){
+			if (jsonoa.util.isWrapped(value) && jsonoa.util.isNode(this.node[attr])){
 				this.node[attr]=(this.graph.createStub(value.node[value.ID])).node;
 			}
 			else if (this.node[attr] instanceof Array && !(value instanceof Array)){
@@ -92,8 +105,24 @@ jsonoa.types.register = function(typeDesc){
 				}
 			}
 		};
+		
+		this._checkRequiredFields = function(){
+			for (var prop in this.node){
+				var val = this.node[prop];
+				if (jsonoa.util.isNode(val)){
+					if (val['@id']==='?'){
+						throw 'Required field ' + prop + ' missing';
+					}
+				}else if (val==='?'){
+					throw 'Required field ' + prop + ' missing';
+				}
+			}
+		};
+		
 		this.toJSON=function(){
-			return JSON.stringify(this.node).replace(/\"\?\"/, '""');
+			this._isInit();
+			this._checkRequiredFields();
+			return JSON.stringify(this.node);
 		};
 	};
 	
@@ -111,9 +140,13 @@ jsonoa.types.register = function(typeDesc){
 	return typeDef;
 };
 
+jsonoa.types._createBasicNode = function(){
+	return {'@id': '?'};
+};
+
 /**
- * Defines a basic node type for graphs, and some functions for accessing the graph. A graph is first instanciated via
- * var graph = new jsonoa.types.Graph(). It can then be built programattically by adding nodes to it, via createNode, or a node
+ * Defines a basic node type for graphs, and some functions for accessing the graph. A graph is first instantiated via
+ * var graph = new jsonoa.types.Graph(). It can then be built programatically by adding nodes to it, via createNode, or a node
  * structure can be loaded from a string or json object source via Graph.load()
  */
 jsonoa.types.Graph = function(){
@@ -126,14 +159,19 @@ jsonoa.types.Graph = function(){
 	 */
 	this.createNode = function(nodeType, id, wrappedData, graphLess){
 		var node = new nodeType();
-		node.setValue(node.ID, id);
+		node._init();
+		
 		if (wrappedData){
 			node.node = wrappedData;
 		}
+		
+		node.node['@id']=id;
+		
 		node.graph = this;
-		if (!graphLess)
+		if (!graphLess){
 			this.nodes.push(node);
-		this.idMap[id]=node;
+			this.idMap[id]=node;
+		}
 		return node;
 	};
 	
