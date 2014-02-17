@@ -11,6 +11,7 @@ if (!charme){
 }
 charme.logic = {};
 
+charme.logic.authToken = '';
 
 charme.logic.constants={
 		ATN_ID_PREFIX:'http://localhost/',
@@ -21,7 +22,18 @@ charme.logic.constants={
 		
 		//CROSSREF_URL: 'http://www.crossref.org/openurl/',
 		CROSSREF_URL: 'http://data.crossref.org/',
-		CROSSREF_CRITERIA_DOI:'id'		
+		CROSSREF_CRITERIA_DOI:'id',
+		NERC_SPARQL_EP: 'http://vocab.nerc.ac.uk/sparql/sparql',
+		
+		SPARQL_GCMD:	'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>						' +
+						'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>							' +
+						'SELECT ?p ?l WHERE																' +
+						'{																				' +
+						'	<http://vocab.nerc.ac.uk/collection/P64/current/> rdf:type skos:Collection.	' +
+						'	<http://vocab.nerc.ac.uk/collection/P64/current/> ?o ?p.					' +
+						'	?p skos:prefLabel ?l														' +
+						'}																				' +
+						'ORDER BY ?l																	'
 };
 
 /**
@@ -53,7 +65,14 @@ charme.logic.fetchForTarget=function (targetId){
 	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' + encodeURIComponent(targetId) + '&status=submitted';
 };
 charme.logic.fetchRequest=function (id){
-	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'data/' + id;
+	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'data/' + id + '?format=json-ld';
+};
+
+charme.logic.gcmdVocabRequest=function (sparqlQry){
+	var url = charme.logic.constants.NERC_SPARQL_EP;
+	url+='?query=' + encodeURIComponent(charme.logic.constants.SPARQL_GCMD);
+	url+='&output=json';
+	return url;
 };
 
 charme.logic.crossRefRequest=function(criteria){
@@ -69,6 +88,36 @@ charme.logic.generateGUID = function(){
 		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 		return v.toString(16);
 	});
+};
+
+/**
+ * Fetches and processes the GCMD keywords used for specifying the domain of interest
+ * @returns {Promise}
+ */
+charme.logic.fetchGCMDVocab=function(){
+	var promise = new Promise(function(resolver){
+		var reqUrl = charme.logic.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
+		if (reqUrl === null || reqUrl.length ===0){
+			resolver.reject();
+		}
+		$.ajax(reqUrl, {
+			headers:{
+				accept: 'application/sparql-results+json; charset=utf-8'
+			}
+		}).then(
+			function(jsonResp){
+				var keywords = [];
+				$(jsonResp.results.bindings).each(function(index, binding){
+					var word = binding.l.value;
+					word = word.substring(word.lastIndexOf('>') + 1);
+					keywords.push({uri: binding.p.value, desc: word});
+				});
+				resolver.fulfill(keywords);
+			}, function(e){
+			resolver.reject(e);
+		});
+	});
+	return promise;
 };
 
 charme.logic.fetchCrossRefMetaData=function(criteria){
@@ -116,12 +165,72 @@ charme.logic.createAnnotation=function(annotation, successCB, errorCB){
 	var stringified = JSON.stringify(jsonObj);
 	$.ajax(reqUrl, {
 		dataType: 'json',
+		headers: {'Authorization':'Bearer ' + charme.logic.authToken},
 		type: 'POST',
 		contentType: 'application/ld+json',
 		success: successCB,
 		error: errorCB,
 		data: stringified,
 	});
+};
+
+/*
+ * Persist a populated annotation to the triplestore
+ * 
+ * Parameters:
+ *		successCB: a callback to be invoked on successful completion
+ *		errorCB: a callback to be invoked on error
+ */
+charme.logic.saveGraph=function(graph){
+	var promise = new Promise(function(resolver){
+		var reqUrl = charme.logic.createRequest();
+		var jsonSrc = graph.toJSON();
+		$.ajax(reqUrl, {
+			dataType: 'json',
+			type: 'POST',
+			headers: {'Authorization':'Bearer ' + charme.logic.constants.OAUTH_TOKEN},
+			contentType: 'application/ld+json',
+			data: jsonSrc,
+		}).then( 
+		function(){
+			resolver.fulfill();
+		}, function(e){
+			resolver.reject(e);
+		}	
+		);
+	});
+	return promise;
+};
+
+/*
+ * Retrieve a specific annotation
+ * 
+ */
+charme.logic.fetchAnnotation=function(annotationId){
+	//Isolate the annotation ID from a full URI
+	var matches = annotationId.match(/([^\/]+)\/?$/g);
+	var shortId = annotationId;
+	if (matches)
+		shortId = matches[0];
+	
+	var promise = new Promise(function(resolver){
+		var reqUrl = charme.logic.fetchRequest(shortId);
+		$.ajax(reqUrl, {type: 'GET', headers: {'Authorization':'Bearer ' + charme.logic.constants.OAUTH_TOKEN},}).then(
+				function(data){
+					var graph = new jsonoa.types.Graph();
+					graph.load(data).
+						then(function(graph){
+							resolver.fulfill(graph);
+						}, function(e){
+							resolver.reject(e);
+						});
+				},
+				function(jqXHR, textStatus, errorThrown){
+					resolver.reject();
+				}
+		);
+	});
+	return promise;
 };
 
 /*
@@ -134,27 +243,35 @@ charme.logic.createAnnotation=function(annotation, successCB, errorCB){
 charme.logic.fetchAnnotationsForTarget=function(targetId){
 	var promise = new Promise(function(resolver){
 		var reqUrl = charme.logic.fetchForTarget(targetId);
-		$.ajax(reqUrl, {type: 'GET'}).then(
+		$.ajax(reqUrl, {type: 'GET', headers: {'Authorization':'Bearer ' + charme.logic.constants.OAUTH_TOKEN},}).then(
 				function(data){
 					//Data is returned as ATOM wrapped json-ld
 					var result = new charme.atom.result(data);
 					//Extract json-ld from the multiple 'content' payloads returned
 					var resultArr = [];
+					/*
+					 * Collect all entries so that they can be processed at the same time
+					 */
 					$.each(result.entries, function(index, value){
 						var shortGraph = $.parseJSON(value.content);
 						resultArr.push(shortGraph['@graph']);
 						
 					});
-					var graph = {'@graph': resultArr};
-	
-					//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
-					var processor = new jsonld.JsonLdProcessor();
-					var options = {base: document.baseURI};
-					processor.expand(graph, options).then(OA.deserialize).then(function(graph){
-							resolver.fulfill(graph);
-					}, function(e){
-						resolver.reject(e);
+					var graphSrc = {'@graph': resultArr};
+					
+					var graph = new jsonoa.types.Graph();
+					graph.load(graphSrc).
+						then(function(graph){
+							$.each(result.entries, function(index, value){
+								var graphAnno = graph.getNode(value.id);
+								if (graphAnno)
+									value.annotation=graphAnno;
+							});
+							resolver.fulfill(result);
+						}, function(e){
+							resolver.reject(e);
 						});
+					
 				},
 				function(jqXHR, textStatus, errorThrown){
 					resolver.reject();

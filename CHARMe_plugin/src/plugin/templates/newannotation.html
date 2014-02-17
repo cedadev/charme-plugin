@@ -1,0 +1,44 @@
+<div class="modal">
+	<div class="modal-header">
+	    <button type="button" class="close" data-ng-click="cancel()">&times;</button>
+	    <h3>New Annotation<br/>
+	    <small>{{targetId}}</small>
+	    </h3>
+	</div>
+	<div class="modal-body modal-body-new">
+		<div data-ng-show="showModal" class="ajaxModal">
+			<div class="modalProgress">
+				<img src="img/ajaxspinner.gif"></img>
+			</div>
+		</div>
+		<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+		<form name="newAnnoForm">
+			<h4>Comments</h4>
+			<textarea data-ng-model="anno.comment" rows="3"></textarea>
+			<h4>Domain Classification</h4>
+			<select data-ng-model="anno.domain" data-selectize="{}" multiple placeholder="Select tags...">
+				<option></option>
+				<optgroup data-ng-repeat="cat in categories" label="{{cat.name}}">
+					<option data-ng-repeat="kword in cat.keywords" value="{{kword.uri}}">{{kword.desc}}</option>
+				</optgroup>
+			</select>
+			<h4>Link</h4>
+			<div class="row-fluid">
+				<div class="span3">				
+					<select name="annoType" data-ng-model="anno.type" placeholder="Select Type...">
+						<option></option>
+						<option value="jsonoa.types.Publication">Publication</option>
+						<option value="jsonoa.types.Link">Web page</option>
+					</select>				
+				</div>
+				<div class="span9">
+					<input name="annoURI" data-ng-model="anno.uri" type="text" class="input-block-level" placeholder="Annotation URI"></input>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<div class="btn btn-primary" data-ng-click="save(anno)">Save</div>
+		<div class="btn" data-ng-click="cancel()">Cancel</div>
+	</div>
+</div>

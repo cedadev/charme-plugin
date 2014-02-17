@@ -11,7 +11,7 @@ textarea {
 }
 
 body {
-    font-size: 1em;
+    /*font-size: 1em;*/
     line-height: 1.4;
 }
 
@@ -63,49 +63,77 @@ textarea {
 	margin-left: 0;
 	left: 5px;
 	top: 5px;
+	min-width: 95%;
 }
-#annotations-error, #no-annotations, #create-error, #state-error {
-	display: none;
+.modal-body{
+	max-height: 270px;
+}
+.modal-body-new{
+	overflow-y: visible;
+}
+
+.modal-body-list{
+	overflow-y: auto;
+}
+
+.popover-visible{
+	display: block;
+	position: relative;
+	width: 100%;
+	max-width: 95%;
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	box-shadow: none;	
 }
 
 .modal form{
 	margin-bottom: 0;
 }
 
-#dialogHolder{
-	min-width: 630px;
-}
-
 body {
 	background: none transparent;
 }
 
-#newAnnotation .popover {
-	max-width: 150px;
-	font-size: smaller;
+.modal-body-new textarea{
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+          width: 100%;
 }
-
-#BibTextHolder{
-	font-size: small;
+.selectize-input{
+	padding: 4px 4px 4px 4px !important;
 }
-#anno-cats ul li{
-	margin-bottom: 10px;
+.selectize-input .item{
+	height: 20px;
 }
-
-.FacetBoxHolder, .select2-results{
-	font-size: 14px;
-}
-
-.FacetBox {
+.ajaxModal{
 	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 2;
+	
+	/* Fallback for web browsers that doesn't support RGBa */
+    background: rgb(255, 255, 255) transparent;
+    /* RGBa with 0.6 opacity */
+    background: rgba(255, 255, 255, 0.8);
+    /* For IE 8*/
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#DDFFFFFF, endColorstr=#DDFFFFFF)";
 }
-
-.AccountButton{
-	text-align: left;
+.ajaxModal .modalProgress {
+	position: absolute;
+	height: 100px;
+	width: 50%;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	margin: auto;
+	text-align: center;
 }
-
-.author{
-	font-size: smaller;
+.annoListSearch{
+	width: 95%;
 }
 /* ==========================================================================
    Media Queries

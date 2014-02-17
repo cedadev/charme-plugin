@@ -1,401 +1,276 @@
+var jsonoa = {};
+jsonoa.types = {};
+jsonoa.graph = {};
+jsonoa.util = {};
+
+jsonoa.util.arraysEqual = function(arr1, arr2){
+	return !(arr2 < arr1 || arr1 < arr2);
+};
+jsonoa.util.isWrapped = function(obj){
+	return (obj.node);
+};
+
+jsonoa.util.isNode = function(test){
+	return (test['@id']);
+};
+
+jsonoa.types.registry = [];
+
 /**
- * A javascript library for creating and ingesting JSON-LD based Open Annotations
- * 
- * Depends upon Promise.js for implementing promises model. This is unavoidable due to a dependency from the json-ld framework.
+ * Registers a new node type with the library. This should not be called from anywhere other than jsonoa.types.js where node types are defined.
+ * @param The description object of the new node type.
+ * @returns {typeDef}
  */
-var OA = {
-		/*
-		 * Constants
-		 */
-		constants: {
-			TYPE_ANNO: 'http://www.w3.org/ns/oa#Annotation',
-			TYPE_CONT_AS_TEXT: 'http://www.w3.org/2011/content#ContentAsText',
-			TYPE_TEXT: 'http://purl.org/dc/dcmitype/Text',
-			TYPE_CITE: 'http://purl.org/spar/cito/CitationAct',
-			TYPE_FOAF_PERSON: 'http://xmlns.com/foaf/0.1/Person',
-			TYPE_IGNORE: ['http://purl.org/spar/fabio/MetadataDocument','http://purl.org/spar/fabio/Article'],
-			
-			ATTR_GRAPH:'@graph',
-			ATTR_TYPE: '@type',
-			ATTR_ID:'@id',
-			ATTR_VALUE: '@value',
-			ATTR_BODY:'http://www.w3.org/ns/oa#hasBody',
-			ATTR_TARGET:'http://www.w3.org/ns/oa#hasTarget',
-			ATTR_ANNOTATED_BY: 'http://www.w3.org/ns/oa#annotatedBy',
-			ATTR_FORMAT:'http://purl.org/dc/elements/1.1/format',
-			ATTR_CHARS:'http://www.w3.org/2011/content#chars',
-			ATTR_CITE_EVENT:'http://purl.org/spar/cito/hasCitationEvent',
-			ATTR_CITED_ENT:'http://purl.org/spar/cito/hasCitedEntity',
-			ATTR_CITING_ENT:'http://purl.org/spar/cito/hasCitingEntity',
-			ATTR_MOTIVATED_BY:'http://www.openannotation.org/spec/core/motivatedBy',
-			ATTR_FOAF_MAILBOX:'http://xmlns.com/foaf/0.1/mbox',
-			ATTR_FOAF_NAME:'http://xmlns.com/foaf/0.1/name',
-			
-			CITE_EVENT_DS:'http://purl.org/spar/cito/citesAsDataSource',
-			MOTIVE_LINKING:'http://www.openannotation.org/spec/core/linking',
-			FORMAT_TEXT: 'text/plain',
-			FORMAT_HTML: 'text/html'
-		},
-		/*
-		 * Objects
-		 */
+jsonoa.types.register = function(typeDesc){
+	var typeTemplate = JSON.parse(typeDesc.template);
+	var nodeObj = JSON.parse(typeDesc.template);
+	
+	/**
+	 * An object is returned that wraps the underlying node, providing accessor and mutator methods for modification.
+	 * ALL node objects returned by this library are wrapped with the object structure below. Returned object has a runtime type defined by its jsono.types type. (eg. jsonoa.types.Annotation). 
+	 * This means that operations such as (node instanceof jsonoa.types.Annotation) will evaluate to true.
+	 */
+	var typeDef = function(){
+		//Fields
+		this.ID='@id';
+		this.TYPE='@type';
+		this.node = undefined;
+		this.template = typeTemplate;
+		this.graph = [];
 		
-		/*
-		 * The OAGraph object is a holder for potentially multiple annotations. This element does not exist in expanded form
-		 */
-		OAGraph: function OAGraph (){
-			this.annotations = [];
-			
-			/**
-			 * Note: DOES NOT RETURN A STRING. The serialize function will generate a JSON-LD object that is normalized and ready for immediate serialization into an AJAX request. 
-			 */
-			this.serialize = function (){
-				var jsonObj = {};
-				jsonObj[OA.constants.ATTR_GRAPH]=[];
-				for (var i=0; i < this.annotations.length; i++){
-					jsonObj[OA.constants.ATTR_GRAPH] = jsonObj[OA.constants.ATTR_GRAPH].concat(this.annotations[i].serialize());
-				}
-				return jsonObj;
-			};
-		},
-		/**
-		 * A parent class for all nodes in a JSON-LD graph (Annotations, Bodies, Targets, etc.)
-		 * @returns
-		 */
-		OANode: function OANode(){
-			/*
-			 * Private members
-			 */
-			var _id=''; //Make id a private member with accessors. Use prescribed getters and setters in order to provide hook for id changes.
-			var _internalId=''; // The internal id is the id used by the CHARMe data model for identifying annotations. It makes up part of the annotation's URI: http://localhost/resource/<INTERNAL_ID>
-			
-			/*
-			 * Public members
-			 */
-			this.types=[];
-			
-			/**
-			 * A getter and setter for IDs. This is in order to ensure the ID, and internal ID are kept in synch.
-			 */
-			this.getId = function(){
-				return _id;
-			};
-			this.setId = function(id){
-				_id = id;
-				_internalId = id.substring(id.lastIndexOf('/') + 1);
-			};
-			
-			this.getInternalId = function(){
-				return _internalId;
-			};
-			
-			return this;
-		},
+		this._init = function(){
+			this.node = JSON.parse(typeDesc.template);
+		};
 		
-		/**
-		 * An annotation is composed of a body and a target.
-		 * @returns
-		 */
-		OAnnotation: function OAnnotation (){
-			
-			this.prototype=new OA.OANode();
-			OA.OANode.call(this);
-			this.body={};
-			this.target={};
-			this.annotatedBy={};
-			
-			this.serialize = function() {
-				/**
-				 * The result will be 3 'nodes'
-				 * 1) The annotation itself
-				 * 2) The target
-				 * 3) The body
-				 */
-				var annoNodes = [];
-				
-				var annoJSON = {};
-				annoJSON[OA.constants.ATTR_ID] = this.getId();
-				annoJSON[OA.constants.ATTR_TYPE] =[OA.constants.TYPE_ANNO];
-				annoJSON[OA.constants.ATTR_BODY] = {}; 
-				annoJSON[OA.constants.ATTR_BODY][OA.constants.ATTR_ID] = this.body.getId();
-				
-				annoJSON[OA.constants.ATTR_TARGET] = {};
-				annoJSON[OA.constants.ATTR_TARGET][OA.constants.ATTR_ID] = this.target.getId();
-				
-				annoJSON[OA.constants.ATTR_MOTIVATED_BY] = {};
-				annoJSON[OA.constants.ATTR_MOTIVATED_BY][OA.constants.ATTR_ID] = OA.constants.MOTIVE_LINKING;
-				
-				var annotatedByNode = null;
-				if (this.annotatedBy && this.annotatedBy.email){
-					annoJSON[OA.constants.ATTR_ANNOTATED_BY] = {};
-					annoJSON[OA.constants.ATTR_ANNOTATED_BY][OA.constants.ATTR_ID] = this.annotatedBy.getId();
-					
-					annotatedByNode = this.annotatedBy.serialize();
-				}
-
-				annoNodes.push(annoJSON);
-				
-				var bodyNode = this.body.serialize();
-				if (bodyNode){
-					annoNodes.push(bodyNode);
-				}
-				
-				var targetNode = this.target.serialize();
-				if (targetNode){
-					annoNodes.push(targetNode);
-				}
-
-				if (annotatedByNode){
-					annoNodes.push(annotatedByNode);
-				}
-				
-				return annoNodes;
-			};
-		},
+		this._isInit = function(){
+			if (!this.node){
+				throw 'Registered node type not initialised.(' + typeDesc.template + ')';
+			}
+		};
 		
-		/**
-		 * A body represents the annotation being applied to an entity. This can be absolutely anything that can be represented with a URI. Beyond annotations using an external URI,
-		 * annotations can also be created with a text body. In this case, the URI points to another node within the same triplestore. Within the jsonoa library however, this
-		 * relationship is abstracted and the association between an annotation and a text body is automatically applied.
-		 * @returns
-		 */
-		OABody: function OABody(){
-			this.prototype=new OA.OANode();
-			OA.OANode.call(this);
+		//Constructor - Copy all constants across
+		for (var key in typeDesc.constants){
+			this[key]=typeDesc.constants[key];
+		}
+		
+		//Accessor Methods
+		this.getValue=function(attr){
+			this._isInit();
 			
-			this.format='';
-			this.text='';
-			
-			/**
-			 * The serialize function will  generate a JSON-LD object that is normalized and ready for immediate serialization into an AJAX request. NOT A STRING
-			 */
-			this.serialize = function(){
-				if (this.getId().length === 0){
-					throw new Error('No body ID provided');
+			var attrVal = this.node[attr];
+			if (attrVal instanceof Array){
+				attrVal = attrVal[0];
+			}
+			if (jsonoa.util.isNode(attrVal)){
+				var linkedNode = this.graph.getNode(attrVal['@id']);
+				if (!linkedNode){
+					//Basically, node is unknown, but return the node wrapped in a stub object to allow for get/set functionality
+					var stub = this.graph.createNode(jsonoa.types.Stub, attrVal['@id'], attrVal, true);
+					return stub;
 				}
-				//Processing for plain text bodies
-				if (this.types.length > 0 || this.format.length > 0 || this.text.length > 0){
-					var thisJSON = {};
-					//Attributes identifying this as a textual annotation
-					thisJSON[OA.constants.ATTR_ID] = this.getId();
-					thisJSON[OA.constants.ATTR_TYPE] = this.types;
-					if (this.format.length > 0){
-						thisJSON[OA.constants.ATTR_FORMAT] = this.format;
-					}
-					if (this.text.length > 0){
-						thisJSON[OA.constants.ATTR_CHARS] = this.text;
-					}
-					return thisJSON;
+				return linkedNode ? linkedNode : attrVal;
+			} else {
+				return attrVal;
+			}
+				
+		};
+		this.getValues=function(attr){
+			this._isInit();
+			var attrVal = this.node[attr];
+			if (typeof attrVal === 'Array'){
+				return attrVal;
+			} else {
+				return [attrVal];
+			}
+		};
+		this.setValue=function(attr,value){
+			this._isInit();
+			if (typeof this.node[attr] !== 'object' && this.template[attr]!=='?'){
+				throw 'Field (' + attr + ') is defined as constant in type template';
+			}
+			//If the provided value is a complex type, then just insert a pointer or 'stub'. The actual object is assumed to reside elsewhere in the graph.
+			if (jsonoa.util.isWrapped(value) && jsonoa.util.isNode(this.node[attr])){
+				this.node[attr]=(this.graph.createStub(value.node[value.ID])).node;
+			}
+			else if (this.node[attr] instanceof Array && !(value instanceof Array)){
+				this.node[attr] = [value];
+			}
+			else{
+				//Basically just checks that you're not trying to set a primitive field to an object, and vice-versa.
+				//Also enforces template, and prevents 
+				if (typeof value === typeof this.node[attr]){
+					this.node[attr]=value;
 				} else {
-					return null;
+					throw 'Type exception, cannot set field (' + attr + ') with type ' + (typeof this.node[attr]) + ' to value of type ' + (typeof value);
 				}
-			};
-		},
-		
-		/**
-		 * Represents the body of a reference (citation) type annotation
-		 */
-		OARefBody: function OARefBody(){
-			OA.OABody.call(this);
-			this.prototype=new OA.OABody();
-			this.citingEntity='';
-			this.citedEntity='';
-
-			this.serialize = function(){
-				if (this.types.length === 0){
-					this.types = [OA.constants.TYPE_CITE];
-				}
-				var thisJSON = this.prototype.serialize.call(this);
-				thisJSON[OA.constants.ATTR_CITE_EVENT]={};
-				thisJSON[OA.constants.ATTR_CITE_EVENT][OA.constants.ATTR_ID]=OA.constants.CITE_EVENT_DS;
-				
-				thisJSON[OA.constants.ATTR_CITED_ENT]={};
-				thisJSON[OA.constants.ATTR_CITED_ENT][OA.constants.ATTR_ID]=this.citedEntity;
-
-				thisJSON[OA.constants.ATTR_CITING_ENT]={};
-				thisJSON[OA.constants.ATTR_CITING_ENT][OA.constants.ATTR_ID]=this.citingEntity;
-				
-				return thisJSON;
-			};
-		},
-
-		OATarget: function OATarget(){
-			this.prototype=new OA.OANode();
-			OA.OANode.call(this);
-			
-			this.serialize = function() {
-				return null; // do nothing for now
-			};
-		},
-		
-		OAPerson: function OAPerson(){
-			this.prototype=new OA.OANode();
-			OA.OANode.call(this);
-			
-			this.name='';
-			this.email='';
-			
-			this.serialize = function() {
-				if (this.types.length === 0){
-					this.types = [OA.constants.TYPE_FOAF_PERSON];
-				}
-				var thisJSON = {};
-				//Attributes identifying this as a textual annotation
-				thisJSON[OA.constants.ATTR_ID] = this.getId();
-				thisJSON[OA.constants.ATTR_TYPE] = this.types;
-				thisJSON[OA.constants.ATTR_FOAF_MAILBOX] = {};
-				thisJSON[OA.constants.ATTR_FOAF_MAILBOX][OA.constants.ATTR_ID]='mailto:' + this.email;
-				thisJSON[OA.constants.ATTR_FOAF_NAME]=this.name;
-				
-				return thisJSON;
-			};			
-		},
-		
-		/**
-		 * A helper function for creating a new 'text' type annotation body object.
-		 * @returns {___body0}
-		 */
-		createTextBody: function(){
-			var body = new OA.OABody();
-			body.types = [OA.constants.TYPE_CONT_AS_TEXT, OA.constants.TYPE_TEXT];
-			body.format=OA.constants.FORMAT_TEXT;
-			return body;
-		},		
-		
-		/**
-		 * Given some JSON-LD data, generate a new Annotation object
-		 * @param data The JSON-LD formated data
-		 * @returns {Promise} A promise object that can be used for chaining multiple asynchronous processes. For more on Promises, see http://12devs.co.uk/articles/promises-an-alternative-way-to-approach-asynchronous-javascript/
-		 */
-		deserialize: function(data){
-			return new Promise(function(resolver) {
-				//first, expand the data. Expanding the data standardises it and simplifies the process of parsing it.
-				var processor = new jsonld.JsonLdProcessor();
-				// set base URI
-				var options = {base: document.baseURI};
-
-				processor.expand(data, options).then(function(graph){
-
-					var oag = new OA.OAGraph();
-					var nodeMap = {};
-					/*
-					 * First, iterate through all of the nodes in the graph, and deserialize them
-					 */
-					//for (i=0; i < graph[OA.constants.ATTR_GRAPH].length; i++){
-					for (var i=0; i < graph.length; i++){
-						var n = graph[i];
-						var type=n[OA.constants.ATTR_TYPE];
-						var node = null;
-						
-						//Some json-ld nodes in the open annotations tree have a type, and in *some* cases it's an array. In other cases it is a string.
-						//Put all types in an array, to avoid having two types of handling
-						if (type !== undefined && !(type instanceof Array)){
-								var tmp = type;
-								(type = []).push(tmp);
-						}
-						
-						//Check if this is an annotation node
-						if ($.inArray(OA.constants.TYPE_ANNO, type) >= 0 ){
-							node = new OA.OAnnotation();
-							node.setId(n[OA.constants.ATTR_ID]);
-							//Add a placeholder body and target. In some cases these will point to a another node, in other cases to an external resource. 
-							// In the case of other nodes, the internal links will be resolved in a second pass
-							if (n[OA.constants.ATTR_BODY]){
-								var body = new OA.OABody();
-								body.setId(n[OA.constants.ATTR_BODY][0][OA.constants.ATTR_ID]);
-								node.body = body;
-							}
-							
-							var target = new OA.OATarget();
-							target.setId(n[OA.constants.ATTR_TARGET][0][OA.constants.ATTR_ID]);
-							node.target=target;
-							if (n[OA.constants.ATTR_MOTIVATED_BY]){
-								node.motivatedBy = n[OA.constants.ATTR_MOTIVATED_BY][0][OA.constants.ATTR_ID];
-							}
-							
-							if (n[OA.constants.ATTR_ANNOTATED_BY]){
-								var annotatedBy = new OA.OAPerson();
-								annotatedBy.setId(n[OA.constants.ATTR_ANNOTATED_BY][0][OA.constants.ATTR_ID]);
-								node.annotatedBy = annotatedBy;
-							}
-							
-							oag.annotations.push(node); // As this is an annotation, push it into annotations collection
-						} else if ($.inArray(OA.constants.TYPE_CONT_AS_TEXT, type) >= 0 || $.inArray(OA.constants.TYPE_TEXT, type) >=0 ){
-							node = new OA.OABody();
-							node.setId(n[OA.constants.ATTR_ID]);
-							node.format=n[OA.constants.ATTR_FORMAT];
-							node.text=n[OA.constants.ATTR_CHARS][0][OA.constants.ATTR_VALUE];
-							nodeMap[node.getId()]=node; // This node is a segment of an annotation, push it into a map for retrieval later
-						} else if ($.inArray(OA.constants.TYPE_CITE, type) >= 0){
-							node = new OA.OARefBody();
-							node.setId(n[OA.constants.ATTR_ID]);
-							node.citedEntity=n[OA.constants.ATTR_CITED_ENT][0][OA.constants.ATTR_ID];
-							node.citingEntity=n[OA.constants.ATTR_CITING_ENT][0][OA.constants.ATTR_ID];
-							nodeMap[node.getId()]=node;
-						} else if ($.inArray(OA.constants.TYPE_FOAF_PERSON, type) >= 0){
-							node = new OA.OAPerson();
-							node.setId(n[OA.constants.ATTR_ID]);
-							node.email=n[OA.constants.ATTR_FOAF_MAILBOX][0][OA.constants.ATTR_ID];
-							if (node.email.indexOf('mailto:') === 0){
-								node.email=node.email.substring('mailto:'.length);
-							}
-							node.name= n[OA.constants.ATTR_FOAF_NAME] ? n[OA.constants.ATTR_FOAF_NAME][0][OA.constants.ATTR_VALUE] : '';
-							nodeMap[node.getId()]=node;
-						}
-						else if($(type).filter(OA.constants.TYPE_IGNORE).length >=0){
-							//DO NOTHING;
-							continue;
-						}
-						else if ((type === undefined) || type.length === 0){
-							node = new OA.OATarget();
-							node.setId(n[OA.constants.ATTR_ID]);
-							nodeMap[node.getId()]=node; // Targets seem to be identifiable only by their lack of type? Not sure what to do with these right now...
-						} else {
-							//DO NOTHING - this is just temporary, as the node graphs are changing rapidly;
-							if (window.console && window.console.warn) 
-								console.warn('Unknown JSON-LD graph node type ' + type);
-							continue;
-							//resolver.reject(new Error('Unknown JSON-LD graph node type ' + type));
-							//return;
-						}
-						if (type instanceof Array){
-							for (var j=0; j < type.length; j++){
-								node.types.push(type[j]);
-							}
-						} else {
-							node.types.push(type);
-						}
+			}
+		};
+		this._checkRequiredFields = function(){
+			for (var prop in this.node){
+				var val = this.node[prop];
+				if (jsonoa.util.isNode(val)){
+					if (val['@id']==='?'){
+						throw 'Required field ' + prop + ' missing';
 					}
-					/*
-					 * Iterate over the deserialized annotations, and recreate the relationships between them and their bodies and targets
-					 */
-					for (var k=0; k < oag.annotations.length; k++){
-						a = oag.annotations[k];
-						if (a.body && a.body.getId){
-							var annoBody = nodeMap[a.body.getId()];
-							if (annoBody){
-								a.body = annoBody;
-							}
-						}
-						if (a.target && a.target.getId){
-							var annoTarget = nodeMap[a.target.getId()];
-							if (annoTarget){
-								a.target=annoTarget;
-							}
-						}
-						if (a.annotatedBy && a.annotatedBy.getId){
-							var annoAnnotatedBy = nodeMap[a.annotatedBy.getId()];
-							if (annoAnnotatedBy){
-								a.annotatedBy = annoAnnotatedBy;
-							}							
-						}
+				}else if (val==='?'){
+					throw 'Required field ' + prop + ' missing';
+				}
+			}
+		};
+		
+		this.toJSON=function(){
+			this._isInit();
+			this._checkRequiredFields();
+			return JSON.stringify(this.node);
+		};
+	};
+	
+	var types = nodeObj['@type'];
+	if (!types){
+		if (jsonoa.types.Stub)
+			throw 'Registered node type must specify an @type attribute';
+		types = [];
+	}
+	if (!(types instanceof Array)){
+		types = [types];
+	}
+	jsonoa.types.registry.push({'matchTypes': types.sort(), 'typeDef': typeDef});
+	
+	return typeDef;
+};
+
+jsonoa.types._createBasicNode = function(){
+	return {'@id': '?'};
+};
+
+/**
+ * Defines a basic node type for graphs, and some functions for accessing the graph. A graph is first instantiated via
+ * var graph = new jsonoa.types.Graph(). It can then be built programatically by adding nodes to it, via createNode, or a node
+ * structure can be loaded from a string or json object source via Graph.load()
+ */
+jsonoa.types.Graph = function(){
+	this.nodes = [];
+	this.idMap = [];
+	
+	/**
+	 * Creates a new node of the requested type. The wrapped node will be returned, and also saved into the graph. The 'wrappedData' is the basic json-ld node underlying it (not required for new nodes)
+	 * 
+	 */
+	this.createNode = function(nodeType, id, wrappedData, graphLess){
+		var node = new nodeType();
+		node._init();
+		
+		if (wrappedData){
+			node.node = wrappedData;
+		}
+		
+		node.node['@id']=id;
+		
+		node.graph = this;
+		if (!graphLess){
+			this.nodes.push(node);
+			this.idMap[id]=node;
+		}
+		return node;
+	};
+	
+	this.createStub = function(id){
+		return this.createNode(jsonoa.types.Stub, id, undefined, true);
+	};
+	
+	/**
+	 * Returns a node with the given ID
+	 */
+	this.getNode = function(id){
+		return this.idMap[id];
+	};
+	
+	/**
+	 * Returns all nodes of the requested type
+	 */
+	this.getNodesOfType = function(type){
+		var wrappedNodes = [];
+		for (var i=0; i<this.nodes.length; i++){
+			var thisNode = this.nodes[i];
+			if (thisNode instanceof type){
+				wrappedNodes.push(thisNode);
+			}
+		}
+		return wrappedNodes;
+	};
+	
+	this.getAnnotations = function(){
+		return this.getNodesOfType(jsonoa.types.Annotation);
+	};
+	
+	//Traverse the graph, decorate nodes with utility functions and identifiers, then stitch them together.
+	this.load = function(graphSrc){
+		var parentGraph = this;
+		return new Promise(function(resolver) {
+			var graph;
+			if (typeof graphSrc === 'string'){
+				//JSON-ify
+				graph = JSON.parse(graphSrc);
+			} else if (typeof graphSrc === 'object'){
+				graph = graphSrc;
+			} else {
+				throw 'Unknown graph type';
+			}
+			(new jsonld.JsonLdProcessor()).flatten(graph, {}).then(function(data){
+				var graphArr = [];
+				if (data['@graph']){
+					graphArr = data['@graph'];
+				} else {
+					graphArr = data;
+				}
+				for (var i=0; i < graphArr.length;i++){
+					var node = graphArr[i];
+					if (jsonoa.types.hasType(node)){
+						var nodeType = jsonoa.types.identify(node); 
+						parentGraph.createNode(nodeType, node['@id'], node);
 					}
-					resolver.resolve(oag);
-			})["catch"](resolver.reject);
+					
+				}
+				resolver.resolve(parentGraph);
+			});
 		});
-		}/*,
+	};
+	
+	this.toJSON = function(){
+		var graphString = '{"@graph": [';
+		var nodeStringArr=[];
+		for (var i=0; i < this.nodes.length; i++){
+			nodeStringArr.push(this.nodes[i].toJSON());
+		}
+		graphString+=nodeStringArr.join(',');
+		graphString+=']}';
+		return graphString;
+	};
+};
 
-		serialize: function (OAGraph){
-			return OAGraph.serialize();
-		}*/
+jsonoa.types.Stub = jsonoa.types.register({
+	template:
+		'{																							' + 
+		'	"@id": "?"																				' +
+		'}																							',
+	constants: {
+	}
+});
+
+jsonoa.types.identify = function(node){
+	var typeArr = node['@type'];
+	if (!(typeArr instanceof Array)){
+		typeArr = [typeArr];
+	}
+	typeArr = typeArr.sort();
+	for (var i=0; i < jsonoa.types.registry.length; i++){
+		var registeredTypes = jsonoa.types.registry[i].matchTypes;
+		if (jsonoa.util.arraysEqual(registeredTypes, typeArr)){
+			return jsonoa.types.registry[i].typeDef;
+		}
+	}
+};
+
+jsonoa.types.hasType = function(node){
+	return node['@type'] ? true : false;
 };

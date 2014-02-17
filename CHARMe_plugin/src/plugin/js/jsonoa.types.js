@@ -2,7 +2,7 @@
  * JSON-LD node type definitions
  */
 
-//These annotation type MUST exist, and cannot be deleted.
+//These annotation types MUST exist, and cannot be deleted.
 jsonoa.types.Annotation = jsonoa.types.register({
 	template:
 		'{																							' + 

@@ -1,0 +1,27 @@
+<div class="modal">
+	<div class="modal-header">
+	    <button type="button" class="close" data-ng-click="cancel()">&times;</button>
+	    <h3>CHARMe Annotations<br/>
+	    <small>{{targetId}}</small>
+	    </h3>
+	</div>
+	<div class="modal-body">
+		<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+		<div data-ng-show="comment">
+			<h4>Comment</h4>
+			<div class="popover right popover-visible">
+	            <h3 class="popover-title"><a href="{{email}}">{{author}}</a></h3>
+	            <div class="popover-content">
+	              <p>{{comment}}</p>
+				</div>
+	        </div>
+	    </div>
+        <div data-ng-show="link">
+	        <h4>Link</h4>
+	        <a href="{{link}}">{{link}}</a>
+        </div>
+	</div>
+	<div class="modal-footer">
+		<div class="btn" data-ng-click="cancel()">Cancel</div>
+	</div>
+</div>

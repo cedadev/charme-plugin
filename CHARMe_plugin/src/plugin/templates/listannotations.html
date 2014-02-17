@@ -1,0 +1,28 @@
+<div class="modal">
+	<div class="modal-header">
+	    <button type="button" class="close">&times;</button>
+	    <h3>CHARMe Annotations<br/>
+	    <small>{{targetId}}</small>
+	    </h3>
+	</div>
+	<div class="modal-body modal-body-list">
+		<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+		<form class="form-search">
+			<input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">	
+		</form>
+		<table class="table">
+			<thead><tr><td>Title</td><td>Annotated By</td><td>Date</td></tr></thead>
+			<tbody>
+				<tr data-ng-repeat="entry in entries | filter:searchText">
+					<td><a data-ng-click="viewAnnotation(entry.id)">{{entry.title | truncate:50}}</a></td>
+					<td><a href="{{entry.email}}">{{entry.author}}</a></td>
+					<td>{{entry.updated | date:'d/M/yyyy'}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="modal-footer">
+		<div class="btn btn-primary" data-ng-click="newAnnotation()">New Annotation</div>
+		<div class="btn">Cancel</div>
+	</div>
+</div>

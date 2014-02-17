@@ -1,9 +1,8 @@
-var charme = {};
+if (!charme)
+	var charme = {};
+
 charme.plugin = {};
-charme.settings = {
-	path: null,
-	loggedInEmail: ''
-};
+charme.authToken = null;
 
 charme.plugin.constants = function(){
 		this.REMOTE_BASE_URL		= '@@triplestore.url@@';
@@ -17,30 +16,6 @@ charme.plugin.nsResolver = function(prefix){
 			'os': 'http://a9.com/-/spec/opensearch/1.1/'
 	};
 	return ns[prefix] || null;
-};
-
-
-/**
- * Cross-browser event handling
- */
-charme.plugin.addEvent = function(el, ev, fn){
-	if (el.addEventListener){
-		el.addEventListener(ev, fn, false);
-	} else if (el.attachEvent){
-		el.attachEvent("on" + ev, fn);
-	} else {
-		//Do nothing.
-	}
-};
-
-charme.plugin.removeEvent = function(el, ev, fn){
-	if (el.removeEventListener){
-		el.removeEventListener(ev, fn, false);
-	} else if (el.detachEvent){
-		el.detachEvent("on" + ev, fn);
-	} else {
-		//Do nothing.
-	}
 };
 
 charme.plugin.xpathQuery = function(xpath, xmlDoc, type){
@@ -95,7 +70,8 @@ charme.plugin.ajax = function(url, successCB, errorCB){
 	}, false);
 	oReq.addEventListener("error", function(){errorCB.call(oReq);}, false);
 	oReq.open('GET', url, true);
-	oReq.setRequestHeader("Accept", "application/atom+xml,application/xml");
+	oReq.setRequestHeader('Accept', "application/atom+xml,application/xml");
+	oReq.setRequestHeader('Authorization', ' Bearer ' + charme.authToken);
 	oReq.send();
 };
 
@@ -115,8 +91,10 @@ charme.plugin.getAnnotationCountForTarget = function(el, activeImgSrc, inactiveI
 			}
 		}, 
 		function(){
-			//fail callback
-			throw 'Unable to fetch annotation data';
+			if (window.console)
+				window.console.error('CHARMe Plugin - Unable to fetch annotation data');
+			else
+				throw 'CHARMe Plugin - Unable to fetch annotation data';
 	});
 };
 
@@ -144,16 +122,6 @@ charme.plugin.getByClass = function(className){
 };
 
 /**
- * Finds the path to the current script (for referencing images etc.)
- */
-charme.plugin.setScriptPath = function(){
-	var scripts = document.getElementsByTagName('script');
-	var scriptPath = scripts[scripts.length-1].src;
-	scriptPath = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-	charme.settings.path=scriptPath;
-};
-
-/**
  * Find CHARMe icon insertion points
  */
 charme.plugin.markupTags = function(){
@@ -171,7 +139,7 @@ charme.plugin.markupTags = function(){
 		els[i].style.display='inline-block';
 		els[i].style.width='36px';
 		els[i].style.height='26px';
-		charme.plugin.addEvent(els[i], 'click', charme.plugin.showPlugin);
+		charme.common.addEvent(els[i], 'click', charme.plugin.showPlugin);
 	}
 };
 
@@ -183,7 +151,7 @@ charme.plugin.loadPlugin = function(){
 	plugin.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
 	document.lastChild.appendChild(plugin);
 	plugin.style.backgroundColor='transparent';
-	plugin.style.minWidth='640px';
+	plugin.style.minWidth='70%';
 	plugin.style.display='none';
 	plugin.style.margin='auto';
 	plugin.style.position='absolute';
@@ -199,23 +167,13 @@ charme.plugin.loadPlugin = function(){
 
 charme.plugin.loadFunc = function(){
 	var plugin = this;
-	this.contentWindow.charme.web.setCloseCallback(function() {
-		plugin.style.display='none';
-	});
-	this.contentWindow.charme.web.setAfterLoginSuccess(function(email, name){
-		charme.settings.loggedInEmail = email;
-		charme.settings.loggedInName = name;
-	});
-	this.contentWindow.charme.web.setAfterLogout(function(){
-		document.location.reload();
-	});	
 	this.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
 };
 
 charme.plugin.showPlugin = function(e){
 	var plugin = document.getElementById('charme-plugin-frame');
-	charme.plugin.removeEvent(plugin, 'load', charme.plugin.loadFunc);
-	charme.plugin.addEvent(plugin, 'load', charme.plugin.loadFunc);
+	charme.common.removeEvent(plugin, 'load', charme.plugin.loadFunc);
+	charme.common.addEvent(plugin, 'load', charme.plugin.loadFunc);
 	
 	/*
 	 * Prevent default behaviour for anchor onclick (ie following the link)
@@ -238,26 +196,47 @@ charme.plugin.showPlugin = function(e){
 		target = e.srcElement;
 	}
 	
-	var url = charme.settings.path + '/plugin/plugin.html?targetId=' + encodeURIComponent(target.href);
-	if (charme.settings.loggedInEmail!==''){
-		url+='&loggedInEmail=' + encodeURIComponent(charme.settings.loggedInEmail) + '&loggedInName=' + encodeURIComponent(charme.settings.loggedInName);
-	}
+	var url = charme.settings.path + '/plugin/plugin.html#/' + encodeURIComponent(encodeURIComponent(target.href)) + '/annotations/';
 	
 	plugin.src = url;
+};
+
+charme.plugin.loginListener = function(evt){
+	if (evt.data){
+		var msg = JSON.parse(evt.data);
+		charme.authToken = msg.authToken;
+		if (msg.authToken){
+			charme.plugin.markupTags();
+			charme.plugin.loadPlugin();
+		}
+		//console.log('Received token: ' + msg.authToken + ' with expiry: ' + msg.authExpiry);
+	}
+};
+
+charme.plugin.login = function(){
+	var host = 'http://charme-dev.cems.rl.ac.uk:8027';
+	var path = '/oauth2/authorize';
+	var clientId = '12345';
+	var responseType = 'token';
+	window.addEventListener('message', charme.plugin.loginListener, false);
+	window.open(host + path + '/?client_id=' + clientId + '&response_type=' + responseType);
+};
+
+charme.plugin.decorateElements = function(){
+	var loginElement = document.getElementById('login');
+	charme.common.addEvent(loginElement, 'click', charme.plugin.login);
 };
 
 /**
  * Will execute on window load (most init code should go in here)
  */
 charme.plugin.init = function(){
-	charme.plugin.markupTags();
-	charme.plugin.loadPlugin();
+	charme.plugin.decorateElements();
 };
 
 /**
  * Will execute immediately (should rarely be used)
  */
 (function(){
-	charme.plugin.setScriptPath();
-	charme.plugin.addEvent(window, "load", charme.plugin.init);
+	charme.common.addEvent(window, 'load', charme.plugin.init);
 })();

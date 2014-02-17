@@ -267,98 +267,6 @@ module(' Non-network Tests');
 			ok(e==='Required field http://www.w3.org/ns/oa#annotatedBy missing', 'Required Field Missing Error');
 		}
 	});	
-	
-	test( "UT-024: Parse crossref metadata", function(){
-		var xmlDoc = 
-			'<?xml version="1.0" encoding="UTF-8"?>												' +
-			'<doi_records>																		' +
-			'	<doi_record owner="10.1080" timestamp="2011-12-08 13:28:43">					' +
-			'	<crossref>																		' +
-			'	<journal>																		' +
-			'	<journal_metadata language="en">												' +
-			'		<full_title>Journal of Aquatic Animal Health</full_title>					' +
-			'		<abbrev_title>Journal of Aquatic Animal Health</abbrev_title>				' +
-			'		<issn media_type="print">0899-7659</issn>									' +
-			'		<issn media_type="electronic">1548-8667</issn>								' +
-			'	</journal_metadata>																' +
-			'	<journal_issue>																	' +
-			'		<publication_date media_type="print">										' +
-			'			<month>09</month>														' +
-			'			<year>2003</year>														' +
-			'		</publication_date>															' +
-			'		<journal_volume>															' +
-			'			<volume>15</volume>														' +
-			'		</journal_volume>															' +
-			'		<issue>3</issue>															' +
-			'	</journal_issue>																' +
-			'	<journal_article publication_type="full_text">									' +
-			'		<titles>																	' +
-			'			<title>																	' +
-			'				Molecular and Phenotypic Characterization of Strains of				' +
-			'				<i>Photobacterium damselae</i>										' +
-			'				subsp.																' +
-			'			<i>piscicida</i>														' +
-			'			Isolated from Hybrid Striped Bass Cultured in Louisiana, USA			' +
-			'			</title>																' +
-			'		</titles>																	' +
-			'		<contributors>																' +
-			'			<person_name sequence="first" contributor_role="author">				' +
-			'				<given_name>John P.</given_name>									' +
-			'				<surname>Hawke</surname>											' +
-			'			</person_name>															' +
-			'			<person_name sequence="additional" contributor_role="author">			' +
-			'				<given_name>Ronald L.</given_name>									' +
-			'				<surname>Thune</surname>											' +
-			'			</person_name>															' +
-			'			<person_name sequence="additional" contributor_role="author">			' +
-			'				<given_name>Richard K.</given_name>									' +
-			'				<surname>Cooper</surname>											' +
-			'			</person_name>															' +
-			'			<person_name sequence="additional" contributor_role="author">			' +
-			'				<given_name>Erika</given_name>										' +
-			'				<surname>Judice</surname>											' +
-			'			</person_name>															' +
-			'			<person_name sequence="additional" contributor_role="author">			' +
-			'				<given_name>Maria</given_name>										' +
-			'				<surname>Kelly-Smith</surname>										' +
-			'			</person_name>															' +
-			'		</contributors>																' +
-			'		<publication_date media_type="print">										' +
-			'			<month>09</month>														' +
-			'			<year>2003</year>														' +
-			'		</publication_date>															' +
-			'		<pages>																		' +
-			'			<first_page>189</first_page>											' +
-			'			<last_page>201</last_page>												' +
-			'		</pages>																	' +
-			'		<publisher_item>															' +
-			'			<item_number item_number_type="sequence-number">1</item_number>			' +
-			'			<identifier id_type="doi">10.1577/H02-043</identifier>					' +
-			'		</publisher_item>															' +
-			'		<doi_data>																	' +
-			'			<doi>10.1577/H02-043</doi>												' +
-			'			<resource>http://www.tandfonline.com/doi/abs/10.1577/H02-043</resource>	' +
-			'		</doi_data>																	' +
-			'	</journal_article>																' +
-			'</journal>																			' +
-			'</crossref>																		' +
-			'</doi_record>																		' +
-			'</doi_records>																		';
-		var p = new DOMParser();
-		//var criteria = {};
-		//criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]='10.1577/H02-043';
-		var metadata = new charme.crossref.MetaData(p.parseFromString(xmlDoc, 'application/xml'));
-		deepEqual(metadata.authors.length, 5);
-		//deepEqual(metadata.title,'Molecular and Phenotypic Characterization of Strains of Photobacterium damselae');
-	});
-	test( "UT-025: Generate Chicago format citation", function(){
-
-		var metaData = {authors:[{surname: 'Hawke', givenName:'John P.'}, {surname: 'Thune', givenName:'Ronald L.'}, {surname: 'Cooper', givenName:'Richard K.'},{surname: 'Judice', givenName:'Erika'},{surname: 'Kelly-Smith', givenName:'Maria'}], doi: '10.1577/H02-043', title: 'Molecular and Phenotypic Characterization of Strains of Photobacterium damselae subsp. piscicida Isolated from Hybrid Striped Bass Cultured in Louisiana, USA'};
-		var cmp = 'Hawke, John P.; Thune, Ronald L.; Cooper, Richard K.; Judice, Erika; Kelly-Smith, Maria. <em>Molecular and Phenotypic Characterization of Strains of Photobacterium damselae subsp. piscicida Isolated from Hybrid Striped Bass Cultured in Louisiana, USA</em>. doi: 10.1577/H02-043';
-		var style = '{authors[{surname}, {givenName}](; )}. <em>{title}</em>. doi: {doi}';
-		var fmtText = charme.crossref.format(metaData, style);
-		deepEqual(fmtText, cmp);
-	});
 	asyncTest( "UT-026: Parse atom feed", function(){
 		expect(6);
 		
@@ -416,7 +324,31 @@ module(' Non-network Tests');
 				ok( false, e );
 				start();
 		});
-	});	
+	});
+	test( "UT-JOA-005: Test template checking", function () {
+		var graph = new jsonoa.types.Graph();
+		var anno = graph.createNode(jsonoa.types.Annotation, 'http://localhost/annoID');
+		try {
+			anno.setValue(anno.TYPE, 'http://www.w3.org/ns/oa#Annotation');
+			ok(false, "Template enforcement failed");
+		} catch(e){
+			ok(true, "Template enforcement succeeded");
+		}
+		
+		var target = graph.createNode(jsonoa.types.DatasetTarget, 'http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG');
+		anno.setValue(anno.TARGET, target);
+		var body = graph.createNode(jsonoa.types.Publication, 'http://localhost/bodyID'); 
+		body.setValue(body.CITED_ENTITY, target);
+		body.setValue(body.CITING_ENTITY, graph.createStub('http://dx.doi.org/10.1890/13-0133.1'));
+		anno.setValue(anno.BODY, body);
+		var person = graph.createNode(jsonoa.types.Person, 'http://localhost/804eaa65d370');
+		try {
+			person.setValue(person.MBOX, 'mailto:akhenry@gmail.com');
+			ok(false, "Type enforcement failed");
+		} catch(e){
+			ok(true, "Type enforcement succeeded");
+		}
+	});
 //Tests that require a remote site
 //module('Network Tests');
 /*	asyncTest( 'UT-002: Generate request for presence of annotations, and receive non-error response', function () {
