@@ -7,7 +7,7 @@ jsonoa.types.Annotation = jsonoa.types.register({
 	template:
 		'{																							' + 
 		'	"@id": "?",																				' +
-		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],											' +
+		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],										' +
 		'	"http://www.openannotation.org/spec/core/motivatedBy": {								' +
 		'		"@id": "http://www.openannotation.org/spec/core/linking"							' +
 		'	},																						' +

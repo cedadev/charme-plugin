@@ -71,7 +71,7 @@ charme.plugin.ajax = function(url, successCB, errorCB){
 	oReq.addEventListener("error", function(){errorCB.call(oReq);}, false);
 	oReq.open('GET', url, true);
 	oReq.setRequestHeader('Accept', "application/atom+xml,application/xml");
-	oReq.setRequestHeader('Authorization', ' Bearer ' + charme.authToken);
+	//oReq.setRequestHeader('Authorization', ' Bearer ' + charme.authToken);
 	oReq.send();
 };
 
@@ -206,8 +206,6 @@ charme.plugin.loginListener = function(evt){
 		var msg = JSON.parse(evt.data);
 		charme.authToken = msg.authToken;
 		if (msg.authToken){
-			charme.plugin.markupTags();
-			charme.plugin.loadPlugin();
 		}
 		//console.log('Received token: ' + msg.authToken + ' with expiry: ' + msg.authExpiry);
 	}
@@ -232,6 +230,8 @@ charme.plugin.decorateElements = function(){
  */
 charme.plugin.init = function(){
 	charme.plugin.decorateElements();
+	charme.plugin.markupTags();
+	charme.plugin.loadPlugin();
 };
 
 /**

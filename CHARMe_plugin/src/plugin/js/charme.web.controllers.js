@@ -123,17 +123,4 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, fe
 				});
 			});
 	};
-	
-	fetchKeywords().then(
-			function(keywords){
-				$scope.$apply(function(){
-					$scope.keywords = keywords;
-				});
-			},
-			function(error){
-				$scope.$apply(function(){
-					$scope.errorMsg='Error: ' + error;
-				});
-			}
-		);
 }]);

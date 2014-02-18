@@ -215,7 +215,7 @@ charme.logic.fetchAnnotation=function(annotationId){
 	
 	var promise = new Promise(function(resolver){
 		var reqUrl = charme.logic.fetchRequest(shortId);
-		$.ajax(reqUrl, {type: 'GET', headers: {'Authorization':'Bearer ' + charme.logic.constants.OAUTH_TOKEN},}).then(
+		$.ajax(reqUrl, {type: 'GET',}).then(
 				function(data){
 					var graph = new jsonoa.types.Graph();
 					graph.load(data).
@@ -243,7 +243,7 @@ charme.logic.fetchAnnotation=function(annotationId){
 charme.logic.fetchAnnotationsForTarget=function(targetId){
 	var promise = new Promise(function(resolver){
 		var reqUrl = charme.logic.fetchForTarget(targetId);
-		$.ajax(reqUrl, {type: 'GET', headers: {'Authorization':'Bearer ' + charme.logic.constants.OAUTH_TOKEN},}).then(
+		$.ajax(reqUrl, {type: 'GET',}).then(
 				function(data){
 					//Data is returned as ATOM wrapped json-ld
 					var result = new charme.atom.result(data);

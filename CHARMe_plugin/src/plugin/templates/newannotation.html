@@ -16,11 +16,7 @@
 			<h4>Comments</h4>
 			<textarea data-ng-model="anno.comment" rows="3"></textarea>
 			<h4>Domain Classification</h4>
-			<select data-ng-model="anno.domain" data-selectize="{}" multiple placeholder="Select tags...">
-				<option></option>
-				<optgroup data-ng-repeat="cat in categories" label="{{cat.name}}">
-					<option data-ng-repeat="kword in cat.keywords" value="{{kword.uri}}">{{kword.desc}}</option>
-				</optgroup>
+			<select data-ng-model="anno.domain" data-domain-keywords multiple placeholder="Select tags...">
 			</select>
 			<h4>Link</h4>
 			<div class="row-fluid">
