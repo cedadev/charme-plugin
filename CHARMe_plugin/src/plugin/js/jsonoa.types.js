@@ -12,7 +12,7 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		'		"@id": "http://www.openannotation.org/spec/core/linking"							' +
 		'	},																						' +
 		'	"http://www.w3.org/ns/oa#annotatedBy": {"@id":"?"},										' +
-		'	"http://www.w3.org/ns/oa#hasBody": {"@id":"?"},											' +
+		'	"http://www.w3.org/ns/oa#hasBody": [],													' +
 		'	"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}										' +
 		'}																							',
 	constants: {
@@ -79,3 +79,21 @@ jsonoa.types.Person = jsonoa.types.register({
 		NAME: 'http://xmlns.com/foaf/0.1/name'
 	}
 });
+
+jsonoa.types.SemanticTag = jsonoa.types.register({
+	template:
+		'{                                                                        ' +
+		'  "@id": "?",                                                            ' +
+		'  "@type": "http://www.openannotation.org/spec/core/SemanticTag",        ' +
+		'  "http://xmlns.com/foaf/0.1/page": {                                    ' +
+		'    "@id": "?"                                                           ' +
+		'	}                                                                     ' +
+		'}                                                                        ',
+	constants: {
+		PAGE: 'http://xmlns.com/foaf/0.1/page'
+	}
+});
+
+jsonoa.types.TechnicalReport = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/TechnicalReport"}'});
+jsonoa.types.ConferencePaper = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/ConferencePaper"}'});
+jsonoa.types.JournalArticle = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/JournalArticle"}'});

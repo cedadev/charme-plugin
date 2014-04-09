@@ -66,14 +66,15 @@ textarea {
 	min-width: 95%;
 }
 .modal-body{
-	max-height: 270px;
+	/*overflow-y: auto;*/
+	max-height: 300px;
 }
 .modal-body-new{
 	overflow-y: visible;
 }
 
 .modal-body-list{
-	overflow-y: auto;
+	/*overflow-y: auto;*/
 }
 
 .popover-visible{
@@ -130,11 +131,36 @@ body {
 	bottom: 0;
 	right: 0;
 	margin: auto;
-	text-align: center;
 }
 .annoListSearch{
 	width: 95%;
 }
+.semanticTag{
+	margin-right: 10px;
+}
+.spinner{
+	text-align: center !important;
+}
+.spinner-small img{
+	width: 24px;
+	height: 24px;
+}
+.userMenu {
+	text-align: left;
+}
+#charmeTitle{
+	vertical-align: bottom;
+	width: 158px;
+	height: 40px;
+	margin-right: 20px;
+}
+#targetTitle{
+	clear: left;
+}
+.pluginVersion{
+	float: left;
+}
+
 /* ==========================================================================
    Media Queries
    ========================================================================== */

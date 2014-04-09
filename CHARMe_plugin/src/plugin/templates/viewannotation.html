@@ -1,27 +1,38 @@
-<div class="modal">
-	<div class="modal-header">
-	    <button type="button" class="close" data-ng-click="cancel()">&times;</button>
-	    <h3>CHARMe Annotations<br/>
-	    <small>{{targetId}}</small>
-	    </h3>
-	</div>
-	<div class="modal-body">
-		<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-		<div data-ng-show="comment">
-			<h4>Comment</h4>
-			<div class="popover right popover-visible">
-	            <h3 class="popover-title"><a href="{{email}}">{{author}}</a></h3>
-	            <div class="popover-content">
-	              <p>{{comment}}</p>
-				</div>
-	        </div>
-	    </div>
-        <div data-ng-show="link">
-	        <h4>Link</h4>
-	        <a href="{{link}}">{{link}}</a>
+<div data-ng-include="'templates/header.html'"></div>
+<div class="modal-body">
+	<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+	<div>
+		<div class="popover popover-visible">
+            <h3 class="popover-title"><a href="{{email}}">{{author}}</a></h3>
+            <div class="popover-content">
+              <p data-ng-show="comment">"{{comment}}"</p>
+              <p data-ng-show="noComment">No comment.</p>
+			</div>
         </div>
-	</div>
-	<div class="modal-footer">
-		<div class="btn" data-ng-click="cancel()">Cancel</div>
-	</div>
+    </div>
+    <div data-ng-show="tags">
+    	<h4>Domain Keywords</h4>
+    	<div>
+    		<span data-ng-repeat="tag in tags" class="badge badge-info semanticTag">{{tag.desc}}</span>
+    	</div>
+    </div>
+	<div data-ng-show="link">
+        <h4>{{link.linkTypeDesc}}</h4>
+        <p><a href="{{link.uri}}" target="_blank">{{link.uri | truncate:100 }}</a></p>
+	</div>    
+	<div data-ng-show="citation">
+        <h4>{{citation.citoTypeDesc}}</h4>
+        <div data-ng-show="citation.loading" class="spinner spinner-small">
+			<img src="img/ajaxspinner.gif"></img>
+		</div>
+        <p>
+        	{{citation.text}}
+        </p>
+        <a href="{{citation.uri}}" target="_blank">{{citation.uri | truncate:100}}</a>
+        <div class="text-warning" data-ng-show="citation.error">{{citation.error}}</div>
+	</div>	
+</div>
+<div class="modal-footer">
+	<div class="pluginVersion">v0.3 BETA</div>
+	<div class="btn" data-ng-click="cancel()">Back</div>
 </div>

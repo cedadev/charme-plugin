@@ -2,66 +2,116 @@ if (!charme)
 	var charme = {};
 
 charme.plugin = {};
-charme.authToken = null;
 
 charme.plugin.constants = function(){
-		this.REMOTE_BASE_URL		= '@@triplestore.url@@';
 		this.XPATH_BASE				= '//atm:feed';
 		this.XPATH_TOTAL_RESULTS	= this.XPATH_BASE + '/os:totalResults';
+		//this.XPATH_TOTAL_RESULTS	= '//os:totalResults';
 };
 
+/**
+ * An XML document namespace resolver. This is required for processing the atom feed
+ * @param prefix
+ * @returns
+ */
 charme.plugin.nsResolver = function(prefix){
 	var ns = {
 			'atm' : 'http://www.w3.org/2005/Atom',
 			'os': 'http://a9.com/-/spec/opensearch/1.1/'
-	};
+	}; 
 	return ns[prefix] || null;
 };
-
+ 
+/**
+ * Execute an xpath query on a given XML document
+ * @param xpath An xpath query
+ * @param xmlDoc An xml document
+ * @param type A type specifier that will attempt to be used to coerce the returned data into the requested format. Types are defined on the builtin XPathResult object. 
+ * @returns A value of the type specified by the type parameter
+ */
 charme.plugin.xpathQuery = function(xpath, xmlDoc, type){
 	var xmlEval = xmlDoc;
+	
+	if (charme.common.isIE11orLess){
+		xmlEval.setProperty('SelectionLanguage', 'XPath');
+		var ns = charme.plugin.nsResolver;
+		xmlEval.setProperty('SelectionNamespaces', 'xmlns:atm="' + ns('atm') + '" xmlns:os="' + ns('os') + '" xmlns="' + ns('atm') + '"');
+		return xmlEval.selectSingleNode(xpath);
+	}
+	/**
+	 * In some non ie browsers, XML is required to be evaluated from the HTML document
+	 */
 	if (typeof xmlEval.evaluate === 'undefined'){
 		xmlEval = document;
 	}
-	if (typeof xmlEval.selectNodes !== 'undefined'){
-		//Internet explorer
-		throw 'Not yet implemented';
-	} else if (typeof xmlEval.evaluate !== 'undefined'){
-		//Other browsers
-		return xmlEval.evaluate(xpath, xmlDoc, charme.plugin.nsResolver, type ? type : XPathResult.ANY_TYPE, null);
-	} else {
-		throw 'Unsupported browser';
+	//Other browsers
+	var resultObj = xmlEval.evaluate(xpath, xmlDoc, charme.plugin.nsResolver, type ? type : XPathResult.ANY_TYPE, null);
+	var resultVal = null;
+	switch(type){
+		case XPathResult.NUMBER_TYPE:
+			resultVal = resultObj.numberValue;
+			break;
+		case XPathResult.STRING_TYPE:
+			resultVal = resultObj.stringValue;
+			break;
+		case XPathResult.BOOLEAN_TYPE:
+			resultVal = resultObj.booleanValue;
+			break;
+		default:
+			resultVal = resultObj;
+			break;
 	}
+	return resultVal;
 };
+
 charme.plugin.request = {};
 
+/**
+ * Generate a request URL to fetch annotations for target
+ * @param targetId
+ * @returns {String}
+ */
 charme.plugin.request.fetchForTarget=function (targetId){
-	var constants = new charme.plugin.constants()
-	return (constants.REMOTE_BASE_URL.match(/\/$/) ? constants.REMOTE_BASE_URL : constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' + encodeURIComponent(targetId) + '&status=submitted';
+	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL : constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' + encodeURIComponent(targetId) + '&status=submitted';
 };
 
+/**
+ * A function that abstracts the browser-specific code necessary to process an XML document. Document is processed synchronously
+ * @param xmlString
+ * @returns {___anonymous_xmlDoc}
+ */
 charme.plugin.parseXML=function(xmlString){
-	if (window.DOMParser){
-		parser=new DOMParser();
-		xmlDoc=parser.parseFromString(xmlString,"text/xml");
-	}
-	else{ // Internet Explorer
+	var xmlDoc;
+	//Unfortunately, Internet explorer support for XPath is difficult. Need to force the response type, but only for IE.
+    //SHOULD use feature detection, but in this case it needs to apply to all IE versions, and does not relate to a specific feature that can be easily detected (the response type needs to be set because the feature in question even exists to be detected)
+    if (charme.common.isIE11orLess){
 		xmlDoc=new ActiveXObject("Microsoft.XMLDOM");
 		xmlDoc.async=false;
-		xmlDoc.loadXML(xmlString);
-	}
-	return xmlDoc;
+		xmlDoc.loadXML(xmlString);    	
+    } else {
+		var parser=new DOMParser();
+		xmlDoc=parser.parseFromString(xmlString,"text/xml");    	
+    }
+
+    return xmlDoc;
 };
 
+/**
+ * Send a new AJAX request.
+ * @param url
+ * @param successCB
+ * @param errorCB
+ */
 charme.plugin.ajax = function(url, successCB, errorCB){
 	var oReq = new XMLHttpRequest();
 	oReq.addEventListener("load", function(evt){
 		if (oReq.status===200){
 			try {
-				var xmlDoc = oReq.responseXML;
-				if (!xmlDoc){
+				//BREAK HERE, see what oReq contains.
+				//var xmlDoc = oReq.responseXML;
+				//if (!xmlDoc){
 					xmlDoc = charme.plugin.parseXML(oReq.responseText);
-				}
+				//}
 				successCB.call(oReq, xmlDoc);
 			} catch (err){
 				errorCB.call(oReq);
@@ -70,18 +120,39 @@ charme.plugin.ajax = function(url, successCB, errorCB){
 	}, false);
 	oReq.addEventListener("error", function(){errorCB.call(oReq);}, false);
 	oReq.open('GET', url, true);
-	oReq.setRequestHeader('Accept', "application/atom+xml,application/xml");
-	//oReq.setRequestHeader('Authorization', ' Bearer ' + charme.authToken);
+
+	//Unfortunately, Internet explorer support for XPath is difficult. Need to force the response type, but only for IE.
+    //SHOULD use feature detection, but in this case it needs to apply to all IE versions, and does not relate to a specific feature that can be easily detected (the response type needs to be set because the feature in question even exists to be detected)
+    if (charme.common.isIE11orLess){
+		//Internet Explorer, so set 'responseType' attribute in order to receive MS XML object. This is an unfortunate hack required to support xPath in a vaguely cross-browser manner
+		oReq.responseType='msxml-document';
+	} else {
+		oReq.setRequestHeader('Accept', "application/atom+xml,application/xml");
+	}
 	oReq.send();
 };
 
+/**
+ * 
+ * @param el
+ * @param activeImgSrc
+ * @param inactiveImgSrc
+ */
 charme.plugin.getAnnotationCountForTarget = function(el, activeImgSrc, inactiveImgSrc){
-	
 	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href),
 		function(xmlDoc){
 			// Success callback
 			var constants = new charme.plugin.constants();
-			var annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc, XPathResult.NUMBER_TYPE).numberValue;
+			var annoCount = 0;
+			if (typeof XPathResult !== 'undefined'){
+				annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc, XPathResult.NUMBER_TYPE);
+			} else {
+				//Internet explorer
+				annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc);
+				if (typeof annoCount === 'object' && annoCount.text){
+					annoCount = parseInt(annoCount.text);
+				}
+			}
 			if (annoCount > 0){
 				el.title='CHARMe annotations exist.';
 				el.style.background = 'url("' + activeImgSrc + '") no-repeat left top';
@@ -148,26 +219,36 @@ charme.plugin.loadPlugin = function(){
 	var plugin = document.createElement('iframe');
 	plugin.frameBorder = "no";
 	plugin.id='charme-plugin-frame';
-	plugin.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
+	//plugin.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms allow-popups');
 	document.lastChild.appendChild(plugin);
 	plugin.style.backgroundColor='transparent';
 	plugin.style.minWidth='70%';
 	plugin.style.display='none';
 	plugin.style.margin='auto';
-	plugin.style.position='absolute';
+	plugin.style.position='fixed';
 	plugin.style.left='0';
 	plugin.style.right='0';
 	plugin.style.bottom='0';
 	plugin.style.top='0';
-	plugin.allowTransparency=true;
 	plugin.style.height='500px';
+	plugin.style.zIndex=1000;
+	plugin.allowTransparency=true;
+	
+	//plugin.style.minHeight='100%';
+	/*plugin.style.maxHeight='100%';*/
 	plugin.setAttribute('scrolling','no');
 	
 };
 
+charme.plugin.closeFunc = function(plugin){
+	var plugin = document.getElementById('charme-plugin-frame');
+	plugin.style.display='none';
+};
+
 charme.plugin.loadFunc = function(){
-	var plugin = this;
-	this.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
+	var plugin = this; //Create variable for closure below so retain pointer to iframe
+	this.contentWindow.charme.web.removeCloseListener(charme.plugin.closeFunc);
+	this.contentWindow.charme.web.addCloseListener(charme.plugin.closeFunc);
 };
 
 charme.plugin.showPlugin = function(e){
@@ -196,47 +277,59 @@ charme.plugin.showPlugin = function(e){
 		target = e.srcElement;
 	}
 	
-	var url = charme.settings.path + '/plugin/plugin.html#/' + encodeURIComponent(encodeURIComponent(target.href)) + '/annotations/';
+	var url = charme.settings.path + '/plugin/plugin.html#/' + encodeURIComponent(encodeURIComponent(target.href)) + '/init'; //+ '/annotations/';
 	
-	plugin.src = url;
+	//plugin.src = url;
+	plugin.contentWindow.location.href=url;
+	plugin.style.display='block'; // Only show the iframe once the content has loaded in order to minimize flicker
 };
 
-charme.plugin.loginListener = function(evt){
-	if (evt.data){
-		var msg = JSON.parse(evt.data);
-		charme.authToken = msg.authToken;
-		if (msg.authToken){
+charme.plugin.preInit = function(){
+	
+	/**
+	 * This is duplicated (unfortunately) from charme.common.js. The code below should not be used anywhere else.
+	 */
+	var scripts = document.getElementsByTagName('script');
+	var scriptPath = scripts[scripts.length-1].src;//The last loaded script will be this one
+	if (!/charme\.js$/.test(scriptPath)){
+		if (console && console.error){
+			console.error('Unable to initialise CHARMe plugin. Error determining script path');
 		}
-		//console.log('Received token: ' + msg.authToken + ' with expiry: ' + msg.authExpiry);
+		return;
 	}
-};
+	scriptPath = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
 
-charme.plugin.login = function(){
-	var host = 'http://charme-dev.cems.rl.ac.uk:8027';
-	var path = '/oauth2/authorize';
-	var clientId = '12345';
-	var responseType = 'token';
-	window.addEventListener('message', charme.plugin.loginListener, false);
-	window.open(host + path + '/?client_id=' + clientId + '&response_type=' + responseType);
-};
-
-charme.plugin.decorateElements = function(){
-	var loginElement = document.getElementById('login');
-	charme.common.addEvent(loginElement, 'click', charme.plugin.login);
+	/**
+	 * Include other required source files
+	 */
+	var loadSettings = function(){
+		var settingsScript = document.createElement('script');
+		settingsScript.type='text/javascript';
+		settingsScript.src=scriptPath + '/charme.settings.js';
+		settingsScript.onreadystatechange = charme.plugin.init;
+		settingsScript.onload = charme.plugin.init;
+		document.getElementsByTagName('body')[0].appendChild(settingsScript);
+	};
+	
+	var loadCommon = function(){
+		var commonScript = document.createElement('script');
+		commonScript.type='text/javascript';
+		commonScript.src=scriptPath + '/charme.common.js';
+		commonScript.onreadystatechange = loadSettings;
+		commonScript.onload = loadSettings;
+		document.getElementsByTagName('body')[0].appendChild(commonScript);
+	};
+	
+	loadCommon();
+	
 };
 
 /**
  * Will execute on window load (most init code should go in here)
  */
 charme.plugin.init = function(){
-	charme.plugin.decorateElements();
 	charme.plugin.markupTags();
 	charme.plugin.loadPlugin();
 };
 
-/**
- * Will execute immediately (should rarely be used)
- */
-(function(){
-	charme.common.addEvent(window, 'load', charme.plugin.init);
-})();
+charme.plugin.preInit();

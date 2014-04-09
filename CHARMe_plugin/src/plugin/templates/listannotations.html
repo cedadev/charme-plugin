@@ -1,28 +1,35 @@
-<div class="modal">
-	<div class="modal-header">
-	    <button type="button" class="close">&times;</button>
-	    <h3>CHARMe Annotations<br/>
-	    <small>{{targetId}}</small>
-	    </h3>
+<div data-ng-include="'templates/header.html'"></div>
+<div class="modal-body modal-body-list">
+	<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+	<!--
+	<form class="form-search">
+		<input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">	
+	</form> -->
+	<table class="table">
+		<thead><tr><td>Title</td><td>Annotated By</td><td>Date</td></tr></thead>
+		<tbody>
+			<tr data-ng-show="loading"><td colspan="3" class="spinner spinner-small"><img src="img/ajaxspinner.gif"></img></td></tr>
+			<tr data-ng-hide="entries || loading"><td colspan="3">No annotations.</tr>
+			<tr data-ng-repeat="entry in entries | filter:searchText">
+				<td><a href="" data-ng-click="viewAnnotation(entry.id)" title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
+				<td><a href="{{entry.email}}">{{entry.author}}</a></td>
+				<td>{{entry.updated | date:'d/M/yyyy'}}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div class="modal-footer">
+	<div class="pluginVersion">v0.3 BETA</div>
+	<div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="newAnnotation()">New Annotation</div>
+	<div data-ng-show="loggedIn" class="btn-group userMenu">
+	  <button class="btn">{{userName}}</button>
+	  <button class="btn dropdown-toggle" data-toggle="dropdown">
+	    <span class="caret"></span>
+	  </button>
+	  <ul class="dropdown-menu">
+	    <li><a href="" data-ng-click="logout()">Logout</a></li>
+	  </ul>	
 	</div>
-	<div class="modal-body modal-body-list">
-		<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-		<form class="form-search">
-			<input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">	
-		</form>
-		<table class="table">
-			<thead><tr><td>Title</td><td>Annotated By</td><td>Date</td></tr></thead>
-			<tbody>
-				<tr data-ng-repeat="entry in entries | filter:searchText">
-					<td><a data-ng-click="viewAnnotation(entry.id)">{{entry.title | truncate:50}}</a></td>
-					<td><a href="{{entry.email}}">{{entry.author}}</a></td>
-					<td>{{entry.updated | date:'d/M/yyyy'}}</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-	<div class="modal-footer">
-		<div class="btn btn-primary" data-ng-click="newAnnotation()">New Annotation</div>
-		<div class="btn">Cancel</div>
-	</div>
+	<div class="btn" data-ng-hide="loggedIn" data-ng-click="login()">Login</div>
+	<div class="btn" data-ng-click="close()">Cancel</div>
 </div>

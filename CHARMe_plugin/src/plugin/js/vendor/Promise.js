@@ -320,6 +320,10 @@ var toPromiseList = function(list) {
   return Array.prototype.slice.call(list).map(Promise.resolve);
 };
 
+/**
+ * Success/failure depends on which promise resolves first.
+ * @returns {Promise}
+ */
 Promise.any = function(/*...futuresOrValues*/) {
   var futures = toPromiseList(arguments);
   return new Promise(function(r) {
@@ -344,6 +348,11 @@ Promise.any = function(/*...futuresOrValues*/) {
   });
 };
 
+/**
+ * If ALL succeed, THEN succeed, ELSE fail
+ * Order of promises IS preserved in resolution
+ * @returns {Promise}
+ */
 Promise.every = function(/*...futuresOrValues*/) {
   var futures = toPromiseList(arguments);
   return new Promise(function(r) {
@@ -365,7 +374,10 @@ Promise.every = function(/*...futuresOrValues*/) {
     }
   });
 };
-
+/**
+ * If ALL fail, THEN fail, ELSE succeed
+ * @returns {Promise}
+ */
 Promise.some = function() {
   var futures = toPromiseList(arguments);
   return new Promise(function(r) {

@@ -3,6 +3,7 @@
  * 
  * Functions for abstracting the lower level functions of the jsonoa.js library
  */
+jQuery.support.cors = true;
 if (!charme){
 	var charme= {};
 	if (typeof wgxpath !== 'undefined'){
@@ -11,19 +12,20 @@ if (!charme){
 }
 charme.logic = {};
 
-charme.logic.authToken = '';
+charme.logic.authToken = {};
 
 charme.logic.constants={
+		ANNO_DEPTH: 99, // A depth specifier for the graph depth that is returned when viewing annotations
 		ATN_ID_PREFIX:'http://localhost/',
 		BODY_ID_PREFIX:'http://localhost/',
-		REMOTE_BASE_URL: '@@triplestore.url@@',
+
 		DOI_PREFIX: 'http://dx.doi.org/',
 		URL_PREFIX: 'http://',
 		
-		//CROSSREF_URL: 'http://www.crossref.org/openurl/',
 		CROSSREF_URL: 'http://data.crossref.org/',
 		CROSSREF_CRITERIA_DOI:'id',
 		NERC_SPARQL_EP: 'http://vocab.nerc.ac.uk/sparql/sparql',
+		FABIO_URL: 'http://eelst.cs.unibo.it/apps/LODE/source?url=http://purl.org/spar/fabio',
 		
 		SPARQL_GCMD:	'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>						' +
 						'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>							' +
@@ -33,7 +35,10 @@ charme.logic.constants={
 						'	<http://vocab.nerc.ac.uk/collection/P64/current/> ?o ?p.					' +
 						'	?p skos:prefLabel ?l														' +
 						'}																				' +
-						'ORDER BY ?l																	'
+						'ORDER BY ?l																	',
+	
+		FABIO_XP_CLASSES: '//owl:Class'
+
 };
 
 /**
@@ -48,24 +53,46 @@ charme.logic.regExpEscape = function(s) {
       replace(/\x08/g, '\\x08');
 };
 
+charme.logic._baseURL = function(uri){
+	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL : charme.settings.REMOTE_BASE_URL + '/');
+};
+
 /*
  * A series of utility functions for constructing REST requests to the various CHARMe web services
  * Main reference source for this is the CHARMe Node ICD
  */
 charme.logic.existRequest=function (uri){
-	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'index/' + uri + '?format=json-ld';
+	return charme.logic._baseURL() + 'index/' + uri + '?format=json-ld';
 };
 charme.logic.createRequest=function(){
-	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'insert/annotation';
+	return charme.logic._baseURL() + 'insert/annotation';
 };
 charme.logic.stateRequest=function(newState){
-	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'advance_status';
+	return charme.logic._baseURL() + 'advance_status';
 };
 charme.logic.fetchForTarget=function (targetId){
-	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' + encodeURIComponent(targetId) + '&status=submitted';
+	return charme.logic._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) + '&status=submitted';
 };
 charme.logic.fetchRequest=function (id){
-	return (charme.logic.constants.REMOTE_BASE_URL.match(/\/$/) ? charme.logic.constants.REMOTE_BASE_URL : charme.logic.constants.REMOTE_BASE_URL + '/') + 'data/' + id + '?format=json-ld';
+	return charme.logic._baseURL() + 'data/' + id + '?format=json-ld' + (charme.logic.constants.ANNO_DEPTH === 0 ? '' : '&depth=' + charme.logic.constants.ANNO_DEPTH);
+};
+charme.logic.userDetailsRequest=function (id){
+	return charme.logic._baseURL() + 'token/userinfo';
+};
+charme.logic.authRequest=function(){
+	return charme.settings.AUTH_BASE_URL + charme.settings.AUTH_PATH + '/?client_id=' + charme.settings.AUTH_CLIENT_ID + '&response_type=' + charme.settings.AUTH_RESPONSE_TYPE;
+};
+
+charme.logic.fabioTypesRequest=function (){
+	return charme.logic.constants.FABIO_URL;
+};
+
+charme.logic.fabioNSResolver = function(prefix){
+	var ns = {
+			'rdfs' : 'http://www.w3.org/2000/01/rdf-schema#',
+			'owl': 'http://www.w3.org/2002/07/owl#'
+	};
+	return ns[prefix] || null;
 };
 
 charme.logic.gcmdVocabRequest=function (sparqlQry){
@@ -75,19 +102,50 @@ charme.logic.gcmdVocabRequest=function (sparqlQry){
 	return url;
 };
 
+charme.logic.findDOI = function(someString){
+	return (/\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'])\S)+)\b/).exec(someString);
+};
+
+charme.logic.fetchUserDetails=function(authToken){
+	var promise = new Promise(function (resolver){
+		var reqUrl = charme.logic.userDetailsRequest();
+		if (reqUrl === null || reqUrl.length ===0){
+			resolver.reject();
+		}
+		$.ajax(reqUrl, {
+			headers:{
+				'Authorization':' Bearer ' + authToken
+			}
+		}).then(function(userDetails){
+			resolver.fulfill(userDetails);
+		}, function(error){
+			resolve.reject(error);
+		});
+	});
+	return promise;
+};
+
 charme.logic.crossRefRequest=function(criteria){
 	var url=null;
 	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] && criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI].length > 0){
-		url=charme.logic.constants.CROSSREF_URL + criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI];
+		var doi = criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI];
+		if (doi.indexOf(charme.logic.constants.CROSSREF_URL)===0){
+			doi = doi.substring(charme.logic.constants.CROSSREF_URL.length+1);
+		}
+		url=charme.logic.constants.CROSSREF_URL + doi;
 	}
 	return url;
 };
 
 charme.logic.generateGUID = function(){
-	return 'xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+	return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 		return v.toString(16);
 	});
+};
+
+charme.logic.generateId = function(){
+	return charme.logic._baseURL() + 'resource/' + charme.logic.generateGUID();
 };
 
 /**
@@ -116,6 +174,40 @@ charme.logic.fetchGCMDVocab=function(){
 			}, function(e){
 			resolver.reject(e);
 		});
+	});
+	return promise;
+};
+
+charme.logic.FabioType=function(xmlDoc){
+	this.label = atomDoc.asString(xpathConst.XPATH_ENTRY_UPDATED);
+	this.resource = atomDoc.asString(xpathConst.XPATH_ENTRY_CONTENT);
+};
+
+/**
+ * Fetches and processes the GCMD keywords used for specifying the domain of interest
+ * @returns {Promise}
+ */
+charme.logic.fetchFabioTypes=function(){
+	var promise = new Promise(function(resolver){
+/*		var reqUrl = charme.logic.fabioTypesRequest();
+		if (reqUrl === null || reqUrl.length ===0){
+			resolver.reject();
+		}
+		$.ajax(reqUrl, {
+		}).then(
+			function(xmlDoc){
+				xmlDoc = charme.xml.evaluate(xmlDoc, charme.logic.fabioNSResolver);
+				var types = xmlDoc.asComplexList(charme.logic.constants.FABIO_XP_CLASSES, charme.logic.FabioType);
+				resolver.fulfill(types);
+			}, function(e){
+			resolver.reject(e);
+		});*/
+		var fabioTypes = [{label:'Technical Report', resource: 'http://purl.org/spar/fabio/TechnicalReport'},
+		                  {label:'Conference Paper', resource: 'http://purl.org/spar/fabio/ConferencePaper'},
+		                  {label:'Journal Article', resource: 'http://purl.org/spar/fabio/JournalArticle'},
+		                  {label:'Dataset', resource: 'http://purl.org/dc/dcmitype/Dataset'}
+		];
+		resolver.fulfill(fabioTypes);
 	});
 	return promise;
 };
@@ -165,7 +257,7 @@ charme.logic.createAnnotation=function(annotation, successCB, errorCB){
 	var stringified = JSON.stringify(jsonObj);
 	$.ajax(reqUrl, {
 		dataType: 'json',
-		headers: {'Authorization':'Bearer ' + charme.logic.authToken},
+		headers: {'Authorization':' Bearer ' + charme.logic.authToken.token},
 		type: 'POST',
 		contentType: 'application/ld+json',
 		success: successCB,
@@ -181,22 +273,23 @@ charme.logic.createAnnotation=function(annotation, successCB, errorCB){
  *		successCB: a callback to be invoked on successful completion
  *		errorCB: a callback to be invoked on error
  */
-charme.logic.saveGraph=function(graph){
+charme.logic.saveGraph=function(graph, token){
 	var promise = new Promise(function(resolver){
 		var reqUrl = charme.logic.createRequest();
 		var jsonSrc = graph.toJSON();
 		$.ajax(reqUrl, {
 			dataType: 'json',
 			type: 'POST',
-			headers: {'Authorization':'Bearer ' + charme.logic.constants.OAUTH_TOKEN},
+			headers: {'Authorization':' Bearer ' + token},
 			contentType: 'application/ld+json',
 			data: jsonSrc,
 		}).then( 
 		function(){
 			resolver.fulfill();
-		}, function(e){
+		}, function(e, msg){
+			console.error('Error saving annotation: ' + msg);
 			resolver.reject(e);
-		}	
+		}
 		);
 	});
 	return promise;
@@ -279,25 +372,4 @@ charme.logic.fetchAnnotationsForTarget=function(targetId){
 		);
 	});
 	return promise;
-};
-
-/*
- * Change the status of the given annotation. All transitions between states are allowed.
- * 
- * Parameters:
- *		annotationId: The annotation to modify
- *		newState: The state to advance to
- *		successCB: a callback to be invoked on successful completion.
- *		errorCB: a callback to be invoked on error
- */
-charme.logic.advanceState=function(annotationId, newState, successCB, errorCB){
-	var url = charme.logic.stateRequest(newState);
-	$.ajax(url, {
-		dataType: 'json',
-		type: 'POST',
-		contentType: 'application/json',
-		data: {annotation: annotationId, toState: newState},
-		success: successCB,
-		error: errorCB
-	});
 };

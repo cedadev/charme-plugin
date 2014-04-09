@@ -6,13 +6,17 @@ charme.settings = {
 };
 
 charme.common = {};
+
+charme.common.isIE11 = navigator.userAgent.indexOf(".NET CLR") > -1;      
+charme.common.isIE11orLess = charme.common.isIE11 || navigator.appVersion.indexOf("MSIE") != -1;
+
 /**
- * Finds the path to the current script (for referencing images etc.) DO NOT INVOKE THIS METHOD DIRECTLY
+ * Finds the path to the current script (for referencing images etc.) DO NOT INVOKE THIS FUNCTION DIRECTLY
  */
 charme.common._scriptPath = function(){
 	var scripts = document.getElementsByTagName('script');
 	var scriptPath = scripts[scripts.length-1].src;
-	if (!/charme\.common\.js$/.test(scriptPath)){
+	if (!/charme\..*\.js$/.test(scriptPath)){
 		//FUNCTION SHOULD ONLY EVER BE INVOKED FROM THIS FILE, OTHERWISE RESULTS UNPREDICTABLE
 		if (console && console.error){
 			console.error('Unable to initialise CHARMe plugin. Error determining script path');
