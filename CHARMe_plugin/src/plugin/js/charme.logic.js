@@ -119,7 +119,7 @@ charme.logic.fetchUserDetails=function(authToken){
 		}).then(function(userDetails){
 			resolver.fulfill(userDetails);
 		}, function(error){
-			resolve.reject(error);
+			resolver.reject(error);
 		});
 	});
 	return promise;
@@ -278,7 +278,7 @@ charme.logic.saveGraph=function(graph, token){
 		var reqUrl = charme.logic.createRequest();
 		var jsonSrc = graph.toJSON();
 		$.ajax(reqUrl, {
-			dataType: 'json',
+			dataType: 'text',
 			type: 'POST',
 			headers: {'Authorization':' Bearer ' + token},
 			contentType: 'application/ld+json',

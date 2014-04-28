@@ -97,3 +97,5 @@ jsonoa.types.SemanticTag = jsonoa.types.register({
 jsonoa.types.TechnicalReport = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/TechnicalReport"}'});
 jsonoa.types.ConferencePaper = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/ConferencePaper"}'});
 jsonoa.types.JournalArticle = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/JournalArticle"}'});
+jsonoa.types.Article = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/Article"}'});
+jsonoa.types.MetaDataDoc = jsonoa.types.register({template:'{"@id": "?", "@type": "http://purl.org/spar/fabio/MetadataDocument"}'});
