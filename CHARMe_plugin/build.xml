@@ -38,5 +38,9 @@
 			</resources>
 		</copy>
 	</target>
+    <target name="dist" depends="build">
+        <mkdir dir="${dist.dir}" />
+        <zip basedir="${build.dir}" destfile="${dist.dir}/charme-plugin.zip" />
+    </target>
 	<target name="main" depends="dev"/>
 </project>
