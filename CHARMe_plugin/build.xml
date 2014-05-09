@@ -21,10 +21,6 @@
 				</fileset>
 			</resources>
 		</copy>
-		<replace dir="${build.dir}" propertyfile="build.properties">
-			<include name="**/*.js" />
-			<replaceFilter token="@@triplestore.url@@" property="triplestore.url"></replaceFilter>
-		</replace>
 	</target>
 	<target name="qunit" depends="build">
 		<echo message="Executing QUnit Javascript Unit Tests..."/>
@@ -33,7 +29,7 @@
 			<arg value="C:/Users/henryad/git/charme_plugin/CHARMe plugin/${build.dir}/plugin/tests.html" />
 		</exec>
 	</target>
-	<target name="dev" depends="build"> 
+	<target name="dev" depends="build">
 		<mkdir dir="${plugin.dir}" />
 		<copy todir="${plugin.dir}" flatten="false" overwrite="true">
 			<resources>
