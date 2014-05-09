@@ -4,7 +4,7 @@
 	<target name="_check_env">
 		<condition property="env.error">
 			<and>
-				<available file="build.properties"/>
+				<available file="build.ci.properties"/>
 			</and>
 		</condition>
 	</target>
