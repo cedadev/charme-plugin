@@ -4,7 +4,7 @@
  * A collection of utility functions that are reused in various charme scripts.
  */
 
-if (!charme) {
+if (typeof charme === 'undefined') {
 	var charme = {};
 }
 

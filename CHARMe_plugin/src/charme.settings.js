@@ -4,6 +4,7 @@
  * Site-specific settings.
  */
 
+
 if (typeof charme==='undefined'){
 	var charme={};
 }
@@ -19,6 +20,7 @@ if (!charme.settings) {
  charme.settings.AUTH_PATH=The path relative to AUTH_BASE_URL where the authorization service is hosted
  charme.settings.AUTH_RESPONSE_TYPE=What the authorization service should do upon successful authorization. Only 'token' is supported for now.
 */
+
 charme.settings.REMOTE_BASE_URL='http://charme-dev.cems.rl.ac.uk/';
 charme.settings.AUTH_BASE_URL=charme.settings.REMOTE_BASE_URL;
 charme.settings.AUTH_CLIENT_ID='12345';
