@@ -217,6 +217,7 @@ charme.plugin.markupTags = function () {
 		els[i].style.display = 'inline-block';
 		els[i].style.width = '36px';
 		els[i].style.height = '26px';
+		els[i].style.title = 'Click to view or create CHARMe metadata annotations';
 		charme.common.addEvent(els[i], 'click', charme.plugin.showPlugin);
 	}
 };
