@@ -22,11 +22,12 @@
 			</resources>
 		</copy>
 	</target>
-	<target name="qunit" depends="build">
+	<target name="test" depends="build">
 		<echo message="Executing QUnit Javascript Unit Tests..."/>
 		<exec dir="${phantom.js.dir}" resolveexecutable="true" executable="${phantom.js.exe}" failonerror="true">
 			<arg value="run-qunit.js" />
-			<arg value="C:/Users/henryad/git/charme_plugin/CHARMe plugin/${build.dir}/plugin/tests.html" />
+			<arg
+                    value="C:/Users/henryad/git/charme_plugin/CHARMe_plugin/${build.dir}/plugin/tests.html" />
 		</exec>
 	</target>
 	<target name="dev" depends="build">
