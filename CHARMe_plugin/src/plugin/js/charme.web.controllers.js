@@ -24,7 +24,6 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 		$scope.userName=auth.user.first_name + ' ' + auth.user.last_name; 
 		$scope.email=auth.user.email; 
 	}
-	
 	/*
 	 * Register a login listener for future login events
 	 */
@@ -68,7 +67,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 	
 	$scope.targetId=targetId;
 	
-	fetchAnnotationsForTarget(targetId).then(
+	charme.logic.fetchAnnotationsForTarget(targetId).then(
 		function(feed){
 			$scope.$apply(function(){
 				$scope.entries=[];

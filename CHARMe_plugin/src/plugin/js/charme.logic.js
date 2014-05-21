@@ -49,7 +49,6 @@ charme.logic._baseURL = function(uri) {
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
 		charme.settings.REMOTE_BASE_URL + '/');
 };
-
 charme.logic.existRequest = function(uri) {
 	return charme.logic._baseURL() + 'index/' + uri + '?format=json-ld';
 };
@@ -59,10 +58,13 @@ charme.logic.createRequest = function() {
 charme.logic.stateRequest = function(newState) {
 	return charme.logic._baseURL() + 'advance_status';
 };
+
 charme.logic.fetchForTarget = function(targetId) {
+	//return 'testData/charmetest.atom';
 	return charme.logic._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) +
 		'&status=submitted';
 };
+
 charme.logic.fetchRequest = function(id) {
 	return charme.logic._baseURL() +
 		'data/' +
@@ -379,7 +381,7 @@ charme.logic.fetchAnnotationsForTarget = function(targetId) {
 			type : 'GET',
 		}).then(function(data) {
 			// Data is returned as ATOM wrapped json-ld
-			var result = new charme.atom.result(data);
+			var result = new charme.atom.Result(data);
 			// Extract json-ld from the multiple 'content' payloads returned
 			var resultArr = [];
 			/*
@@ -388,7 +390,11 @@ charme.logic.fetchAnnotationsForTarget = function(targetId) {
 			 */
 			$.each(result.entries, function(index, value) {
 				var shortGraph = $.parseJSON(value.content);
-				resultArr.push(shortGraph['@graph']);
+				if (typeof shortGraph['@graph']!== 'undefined'){
+					resultArr.push(shortGraph['@graph']);
+				} else {
+				resultArr.push(shortGraph);
+				}
 
 			});
 			var graphSrc = {

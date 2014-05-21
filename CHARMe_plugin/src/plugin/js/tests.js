@@ -1,4 +1,8 @@
 //Tests that do not generate any requests to remote sites
+//This is to make Webstorm happy basically
+if (typeof module === 'undefined'){
+	var module = function(){};
+}
 module(' Non-network Tests');
 	test( "UT-001: Generate web service query for presence of annotations against dataset", function () {
 		deepEqual(charme.logic.existRequest('stable'), 'http://charme-dev.cems.rl.ac.uk/index/stable?format=json-ld');
@@ -324,7 +328,7 @@ module(' Non-network Tests');
 			ok(e==='Required field http://www.w3.org/ns/oa#annotatedBy missing', 'Required Field Missing Error');
 		}
 	});	
-	
+
 	asyncTest( "UT-026: Parse atom feed", function(){
 		expect(6);
 		
@@ -333,7 +337,7 @@ module(' Non-network Tests');
 			url: reqUrl
 		}).then(
 			function(xmlResp){
-				var result = new charme.atom.result(xmlResp);
+				var result = new charme.atom.Result(xmlResp);
 				deepEqual(result.id, 'http://charme-dev.cems.rl.ac.uk:8027/searchatom');
 				deepEqual(result.first.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
 				deepEqual(result.next.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=11&status=submitted');
@@ -353,7 +357,7 @@ module(' Non-network Tests');
 			url: reqUrl
 		}).then(
 			function(xmlResp){
-				var result = new charme.atom.result(xmlResp);
+				var result = new charme.atom.Result(xmlResp);
 				deepEqual(result.id, 'http://charme-dev.cems.rl.ac.uk:8027/searchatom');
 				deepEqual(result.first.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
 				deepEqual(result.next.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=11&status=submitted');

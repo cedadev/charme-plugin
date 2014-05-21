@@ -260,11 +260,11 @@ Test.prototype = {
 				assertion = this.assertions[i];
 
 				li = document.createElement( "li" );
-				li.className = assertion.result ? "pass" : "fail";
-				li.innerHTML = assertion.message || ( assertion.result ? "okay" : "failed" );
+				li.className = assertion.Result ? "pass" : "fail";
+				li.innerHTML = assertion.message || ( assertion.Result ? "okay" : "failed" );
 				ol.appendChild( li );
 
-				if ( assertion.result ) {
+				if ( assertion.Result ) {
 					good++;
 				} else {
 					bad++;
@@ -323,7 +323,7 @@ Test.prototype = {
 
 		} else {
 			for ( i = 0; i < this.assertions.length; i++ ) {
-				if ( !this.assertions[i].result ) {
+				if ( !this.assertions[i].Result ) {
 					bad++;
 					config.stats.bad++;
 					config.moduleStats.bad++;
@@ -524,7 +524,7 @@ assert = {
 			details = {
 				module: config.current.module,
 				name: config.current.testName,
-				result: result,
+				Result: result,
 				message: msg
 			};
 
@@ -539,7 +539,7 @@ assert = {
 		}
 		runLoggingCallbacks( "log", QUnit, details );
 		config.current.assertions.push({
-			result: result,
+			Result: result,
 			message: msg
 		});
 	},
@@ -921,7 +921,7 @@ extend( QUnit, {
 			details = {
 				module: config.current.module,
 				name: config.current.testName,
-				result: result,
+				Result: result,
 				message: message,
 				actual: actual,
 				expected: expected
@@ -954,7 +954,7 @@ extend( QUnit, {
 		runLoggingCallbacks( "log", QUnit, details );
 
 		config.current.assertions.push({
-			result: !!result,
+			Result: !!result,
 			message: output
 		});
 	},
@@ -968,7 +968,7 @@ extend( QUnit, {
 			details = {
 				module: config.current.module,
 				name: config.current.testName,
-				result: false,
+				Result: false,
 				message: message
 			};
 
@@ -992,7 +992,7 @@ extend( QUnit, {
 		runLoggingCallbacks( "log", QUnit, details );
 
 		config.current.assertions.push({
-			result: false,
+			Result: false,
 			message: output
 		});
 	},

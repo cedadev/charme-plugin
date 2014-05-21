@@ -1,5 +1,5 @@
 charme.atom = {};
-charme.atom.xpath = function(){
+charme.atom.XPath = function(){
 		this.NS_OPENSEARCH_URI		= 'http://a9.com/-/spec/opensearch/1.1/';
 
 		/*
@@ -44,7 +44,7 @@ charme.atom.nsResolver = function(prefix){
  * A 'coercible' type. This function will take an XML node as an input, and populate itself. This is used by charme.xml.wrapDoc
  */
 charme.atom.entry = function(atomDoc){
-	var xpathConst = new charme.atom.xpath();
+	var xpathConst = new charme.atom.XPath();
 	
 	this.id = atomDoc.asString(xpathConst.XPATH_ENTRY_ID);
 	this.title = atomDoc.asString(xpathConst.XPATH_ENTRY_TITLE);
@@ -52,11 +52,11 @@ charme.atom.entry = function(atomDoc){
 	this.content = atomDoc.asString(xpathConst.XPATH_ENTRY_CONTENT);
 };
 
-charme.atom.result = function(xmlDoc){
+charme.atom.Result = function(xmlDoc){
 		/*
 		 * Init
 		 */
-		var xpathConst = new charme.atom.xpath();
+		var xpathConst = new charme.atom.XPath();
 		
 		var atomDoc = charme.xml.evaluate(xmlDoc, charme.atom.nsResolver);
 		
