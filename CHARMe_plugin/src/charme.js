@@ -161,10 +161,10 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 			}
 		}
 		if (annoCount > 0) {
-			el.title = 'CHARMe annotations exist.';
+			el.title = 'CHARMe annotations exist';
 			el.style.background = 'url("' + activeImgSrc + '") no-repeat left top';
 		} else {
-			el.title = 'No CHARMe annotations.';
+			el.title = 'No CHARMe annotations';
 			el.style.background = 'url("' + inactiveImgSrc + '") no-repeat left top';
 		}
 	}, function () {
