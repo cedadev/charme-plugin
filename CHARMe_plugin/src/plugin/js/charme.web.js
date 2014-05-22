@@ -31,7 +31,7 @@ charme.web.app.config(['$routeProvider',
 			controller: 'ListAnnotationsCtrl'			
 			}
 		).when('/:targetId/annotation/:annotationId/', {
-			templateUrl: 'templates/viewAnnotation.html',
+			templateUrl: 'templates/viewannotation.html',
 			controller: 'ViewAnnotationCtrl'			
 			}
 		);
