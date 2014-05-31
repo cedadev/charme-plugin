@@ -1,5 +1,12 @@
 charme.web.controllers = angular.module('charmeControllers', ['charmeServices']);
 
+charme.web.controllers.controller('testController', ['$scope', '$location', '$filter',
+	function ($scope, $location, $filter){
+		$scope.targetId='Something or other';
+	}
+]);
+
+
 charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$location', '$filter', 'loginService', 'persistence',
 	function ($scope, $routeParams, $location, $filter, loginService, persistence){                                           
 		var targetId=$routeParams.targetId;

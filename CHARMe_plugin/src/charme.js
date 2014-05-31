@@ -232,7 +232,7 @@ charme.plugin.loadPlugin = function () {
 	plugin.id = 'charme-plugin-frame';
 	document.lastChild.appendChild(plugin);
 	plugin.style.backgroundColor = 'transparent';
-	plugin.style.minWidth = '70%';
+	plugin.style.minWidth = '1040px';
 	plugin.style.display = 'none';
 	plugin.style.margin = 'auto';
 	plugin.style.position = 'fixed';
