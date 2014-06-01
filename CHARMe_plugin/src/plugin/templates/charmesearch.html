@@ -1,0 +1,87 @@
+<div data-ng-include="templates/header.html"></div>
+<div class="modal-body">
+    <h3>Search</h3>
+    
+    <!-- The CSS styling for this form is a bit inelegant, using precise px values in both main.css (bottom 
+         of custom styles section) and inline CSS, but it works for now -->
+    <form class="form-horizontal form-charme-search">
+        <div class="control-group">
+            <label class="control-label" for="chooseDataset">Dataset</label>
+            <div class="controls">
+                <select id="chooseDataset" class="span3" ng-model="myDataset" ng-options="dataset for dataset in datasets">
+                      <option value="">MY1DMM_CHLORA_2003-01.JPEG</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label" for="chooseText">Text</label>
+            <div class="controls">
+                <input id="chooseText" type="text"/>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label" for="chooseMotivation">Motivation</label>
+            <div class="controls">
+                <select id="chooseMotivation" ng-model="myMotiv" ng-options="motiv.name for motiv in motivations">
+                </select>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label" for="chooseLink">Link type</label>
+            <div class="controls">
+                <input type="text" placeholder="Enter a DOI"/>
+            </div>
+            <div class="controls">
+                <select id="chooseLink" style="width:185px" ng-model="myLinkType" ng-options="type.value as type.text for type in citoTypes"></select>
+                <button><span class="icon-search"></span></button>
+            </div>
+        </div>
+        <div>
+            <textarea rows="2"></textarea>
+        </div>
+        <br>
+        
+        <div class="control-group">
+            <!-- I can't (yet) get this text to properly align with the dropdown -->
+            <label class="control-label" for="chooseDomain"><span>Domain of interest</span></label>
+            <div class="controls">
+                <select id="chooseDomain" domain-keywords multiple ng-model="myDomain" placeholder="Select tags..."></select>
+            </div>
+        </div>
+        <div>
+            <textarea rows="2" ng-model="myDomainLookup"></textarea>
+        </div>
+        <br>
+        
+        <div class="control-group">
+            <label class="control-label" for="chooseStart">Time</label>
+            <div class="controls">
+                <input id="chooseStart" style="width:75px" type="text" placeholder="Start date"/>
+                <span class="icon-calendar"></span>
+                <input id="chooseEnd" style="width:75px" type="text" placeholder="End date"/>
+                <span class="icon-calendar"></span>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label" for="chooseCreator">Creator</label>
+            <div class="controls">
+                <input id="chooseCreator" type="text"/>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label class="control-label" for="chooseLocation">Location</label>
+            <div class="controls">
+                <input id="chooseLocation" type="text"/>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+	<div class="pluginVersion">v0.3 BETA</div>
+	<button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
+</div>
