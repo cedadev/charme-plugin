@@ -1,20 +1,23 @@
 <div data-ng-include="'templates/header.html'"></div>
 <div class="modal-body modal-body-list" data-ng-init="searchOpen=false" >
 	<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-    <div data-ng-controller="testController" data-ng-class="['search-container', 'search-' + ($parent.searchOpen ? 'open' : 'collapsed')]" >
+    <div data-ng-class="['search-container', 'search-' + (searchOpen ? 'open' : 'collapsed')]" >
        <div class="navbar search-title">
-           <div data-ng-class="$parent.searchOpen? 'navbar-inner' : ''">
+           <div>
                <ul class="nav">
-                   <li class="search-button-holder open">
+                   <li class="search-button-holder">
                        <span class="btn"
-                             data-ng-click="$parent.searchOpen = !$parent.searchOpen"><span class="icon-search"></span></span>
+                             data-ng-click="searchOpen = !searchOpen"><span class="icon-search"></span></span>
                    </li>
-                   <li data-ng-show="$parent.searchOpen"><a>Search Annotations</a></li>
+                   <li data-ng-show="searchOpen"><a>Search Annotations</a></li>
                </ul>
            </div>
        </div>
-       <div data-ng-show="$parent.searchOpen" class="search-content">Search {{targetId}}</div>
-
+       <div data-ng-show="searchOpen" class="search-content">
+           <hr />
+           <div> <!-- <div data-ng-include="templates/charmesearch.html"> -->Insert search form
+           here</div>
+       </div>
     </div>
     <div data-ng-class="'search-results-' + (searchOpen ? 'open' : 'collapsed')">
         <!--
