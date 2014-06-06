@@ -1,12 +1,5 @@
 charme.web.controllers = angular.module('charmeControllers', ['charmeServices']);
 
-charme.web.controllers.controller('testController', ['$scope', '$location', '$filter',
-	function ($scope, $location, $filter){
-		$scope.targetId='Something or other';
-	}
-]);
-
-
 charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$location', '$filter', 'loginService', 'persistence',
 	function ($scope, $routeParams, $location, $filter, loginService, persistence){                                           
 		var targetId=$routeParams.targetId;
@@ -21,7 +14,7 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
 charme.web.controllers.controller('ListAnnotationsCtrl', ['$scope', '$routeParams', '$location', '$filter', 'fetchAnnotationsForTarget', 'loginService', 'persistence',
 function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, loginService, persistence){
 	$scope.loading=true;
-	
+
 	/*
 	 * Check if already logged in
 	 */
@@ -31,6 +24,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 		$scope.userName=auth.user.first_name + ' ' + auth.user.last_name; 
 		$scope.email=auth.user.email; 
 	}
+
 	/*
 	 * Register a login listener for future login events
 	 */
@@ -74,7 +68,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 	
 	$scope.targetId=targetId;
 	
-	charme.logic.fetchAnnotationsForTarget(targetId).then(
+	fetchAnnotationsForTarget(targetId).then(
 		function(feed){
 			$scope.$apply(function(){
 				$scope.entries=[];
@@ -297,5 +291,46 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, lo
 					$scope.loading=false;
 				});
 			});
+	};
+}]);
+
+charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchFabioTypes',
+function($scope, $routeParams, $location, $window, fetchFabioTypes) {
+    var targetId=$routeParams.targetId;
+    
+    //$scope.datasets = ['data1', 'data2', 'data3', 'data4', 'data5', 'data6'];
+	$scope.datasets = ['MY1DMM_CHLORA_2003-02.JPEG',
+                       'MY1DMM_CHLORA_2003-03.JPEG',
+                       'MY1DMM_CHLORA_2003-04.JPEG',
+                       'MY1DMM_CHLORA_2003-05.JPEG',
+                       'MY1DMM_CHLORA_2003-06.JPEG'];
+	var shortDataset = targetId.substring(targetId.lastIndexOf('/') + 1);
+	$scope.datasets.push(shortDataset);
+	$scope.myDataset = shortDataset;
+    
+    $scope.motivations = [
+		{name: 'Bookmarking'},
+		{name: 'Annotating'},
+		{name: 'Commenting'},
+		{name: 'Describing'}];
+ /*       {name: 'Motivation 1'},
+        {name: 'Motivation 2'},
+        {name: 'Motivation 3'}];
+   */
+    fetchFabioTypes().then(function(types){
+        var options = [];
+	angular.forEach(types, function(type){
+            options.push({text: type.label, value: type.resource});
+        });
+        $scope.$apply(function(){
+            $scope.citoTypes = options;
+        });
+    });
+    
+    $scope.cancel = function(){
+        if ($scope.loading)
+            return;
+        
+        $location.path(encodeURIComponent(targetId) + '/annotations/');
 	};
 }]);

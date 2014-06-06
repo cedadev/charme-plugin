@@ -240,7 +240,8 @@ charme.plugin.loadPlugin = function () {
 	plugin.style.right = '0';
 	plugin.style.bottom = '0';
 	plugin.style.top = '0';
-	plugin.style.height = '500px';
+	plugin.style.paddingTop = '50px';
+	plugin.style.height = '100%';
 	plugin.style.zIndex = 1000;
 	plugin.allowTransparency = true;
 	plugin.setAttribute('scrolling', 'no');

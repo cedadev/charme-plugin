@@ -9,9 +9,9 @@ charme.web.app.
 					$scope.$apply(function(){
 						var optgroups = [];
 						var options = [];
-						angular.forEach(categories, function(cat, key){
+						angular.forEach(categories, function(cat){
 							optgroups.push({value: cat.name, label: cat.name + ' Keywords'});
-							angular.forEach(cat.keywords, function(kword, innerKey){
+							angular.forEach(cat.keywords, function(kword){
 								options.push({text: kword.desc, value: kword.uri, optgroup: cat.name});
 							});
 						});
