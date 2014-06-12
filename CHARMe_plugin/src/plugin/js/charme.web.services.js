@@ -257,7 +257,7 @@ charme.web.services.factory('fetchFabioTypes', function(){
 });
 
 charme.web.services.factory('fetchMotivations', function(){
-	return function(annoModel, targetId){
+	return function(annoModel, targetId){	
 		var promise = new Promise(function(resolver){
 			charme.logic.fetchMotivations().then(function(types){
 				resolver.fulfill(types);

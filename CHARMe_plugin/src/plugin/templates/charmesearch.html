@@ -20,7 +20,7 @@
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls">
-            <select id="chooseMotivation" ng-model="myMotiv" ng-options="motiv.name for motiv in motivations">
+            <select id="chooseMotivation" ng-model="myMotiv" ng-options="type.value as type.text for type in motivations">
             </select>
         </div>
     </div>

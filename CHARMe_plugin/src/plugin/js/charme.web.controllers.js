@@ -297,7 +297,7 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, lo
 charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchFabioTypes', 'fetchMotivations',
 function($scope, $routeParams, $location, $window, fetchFabioTypes, fetchMotivations) {
     var targetId=$routeParams.targetId;
-
+    
     //$scope.datasets = ['data1', 'data2', 'data3', 'data4', 'data5', 'data6'];
 	$scope.datasets = ['MY1DMM_CHLORA_2003-02.JPEG',
                        'MY1DMM_CHLORA_2003-03.JPEG',
@@ -307,7 +307,7 @@ function($scope, $routeParams, $location, $window, fetchFabioTypes, fetchMotivat
 	var shortDataset = targetId.substring(targetId.lastIndexOf('/') + 1);
 	$scope.datasets.push(shortDataset);
 	$scope.myDataset = shortDataset;
-
+    
     fetchMotivations().then(function(types){
         var options = [];
 	angular.forEach(types, function(type){
@@ -317,7 +317,7 @@ function($scope, $routeParams, $location, $window, fetchFabioTypes, fetchMotivat
             $scope.motivations = options;
         });
     });
-
+    
     fetchFabioTypes().then(function(types){
         var options = [];
 	angular.forEach(types, function(type){
