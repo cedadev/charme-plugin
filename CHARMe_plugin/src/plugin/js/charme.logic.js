@@ -225,12 +225,27 @@ charme.logic.fetchGCMDVocab = function() {
 	return promise;
 };
 
-/**
- * Fetches and processes the GCMD keywords used for specifying the domain of
- * interest
- * 
- * @returns {Promise}
- */
+charme.logic.fetchMotivations = function() {
+	var promise = new Promise(function(resolver) {
+
+		var motivations = [ {
+			label : 'Bookmarking',
+			resource : 'Bookmarking'
+		}, {
+			label : 'Annotating',
+			resource : 'Annotating'
+		}, {
+			label : 'Commenting',
+			resource : 'Commenting'
+		}, {
+			label : 'Describing',
+			resource : 'Describing'
+		} ];
+		resolver.fulfill(motivations);
+	});
+	return promise;
+};
+
 charme.logic.fetchFabioTypes = function() {
 	var promise = new Promise(function(resolver) {
 
@@ -388,8 +403,8 @@ charme.logic.fetchAnnotationsForTarget = function(targetId) {
 			 * Collect all entries so that they can be processed at the same
 			 * time
 			 */
-			$.each(result.entries, function(index, value) {
-				var shortGraph = $.parseJSON(value.content);
+			$.each(result.entries, function(index, entry) {
+				var shortGraph = $.parseJSON(entry.content);
 				if (typeof shortGraph['@graph']!== 'undefined'){
 					resultArr.push(shortGraph['@graph']);
 				} else {
