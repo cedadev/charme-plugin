@@ -294,37 +294,16 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, lo
 	};
 }]);
 
-charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchFabioTypes', 'fetchMotivations',
-function($scope, $routeParams, $location, $window, fetchFabioTypes, fetchMotivations) {
+charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAllSearchFacets',
+function($scope, $routeParams, $location, $window, fetchAllSearchFacets) {
     var targetId=$routeParams.targetId;
-    
-    //$scope.datasets = ['data1', 'data2', 'data3', 'data4', 'data5', 'data6'];
-	$scope.datasets = ['MY1DMM_CHLORA_2003-02.JPEG',
-                       'MY1DMM_CHLORA_2003-03.JPEG',
-                       'MY1DMM_CHLORA_2003-04.JPEG',
-                       'MY1DMM_CHLORA_2003-05.JPEG',
-                       'MY1DMM_CHLORA_2003-06.JPEG'];
-	var shortDataset = targetId.substring(targetId.lastIndexOf('/') + 1);
-	$scope.datasets.push(shortDataset);
-	$scope.myDataset = shortDataset;
-    
-    fetchMotivations().then(function(types){
-        var options = [];
-	angular.forEach(types, function(type){
-            options.push({text: type.label, value: type.resource});
-        });
+
+    fetchAllSearchFacets().then(function(facetTypes){
         $scope.$apply(function(){
-            $scope.motivations = options;
-        });
-    });
-    
-    fetchFabioTypes().then(function(types){
-        var options = [];
-	angular.forEach(types, function(type){
-            options.push({text: type.label, value: type.resource});
-        });
-        $scope.$apply(function(){
-            $scope.citoTypes = options;
+            $scope.motivations = facetTypes[charme.logic.constants.FACET_TYPE_MOTIVATION];
+			$scope.linkTypes = facetTypes[charme.logic.constants.FACET_TYPE_DATA_TYPE];
+			$scope.domainsOfInterest = facetTypes[charme.logic.constants.FACET_TYPE_DOMAIN];
+			$scope.organization = facetTypes[charme.logic.constants.FACET_TYPE_ORGANIZATION];
         });
     });
     

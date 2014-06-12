@@ -37,8 +37,12 @@ charme.logic.constants = {
             '}											' +
              'ORDER BY ?l									',
 
-    FABIO_XP_CLASSES : '//owl:Class'
+    FABIO_XP_CLASSES : '//owl:Class',
 
+	FACET_TYPE_MOTIVATION: 'motivation',
+	FACET_TYPE_DOMAIN: 'domainOfInterest',
+	FACET_TYPE_ORGANIZATION: 'organization',
+	FACET_TYPE_DATA_TYPE: 'dataType'
 };
 
 /*
@@ -404,14 +408,31 @@ charme.logic.fetchAllSearchFacets = function(){
 			// Data is returned as ATOM wrapped json-ld
 			var result = new charme.atom.Result(data);
 			// Extract json-ld from the multiple 'content' payloads returned
-			var resultArr = [];
+			var resultMap = [];
 			/*
 			 * Collect all entries so that they can be processed at the same
 			 * time
 			 */
-			$.each(result.entries, function(index, value) {
+			$.each(result.entries, function(index, entry) {
+				var facetGraphStr = entry.content;
+				var facetGraphObj = JSON.parse(facetGraphStr);
+				var facetType = entry.id;
+				resultMap[facetType]=[];
+				var facets = [];
+				if (typeof facetGraphObj[jsonoa.constants.GRAPH]!=='undefined'){
+					facets = facetGraphObj[jsonoa.constants.GRAPH];
+				} else {
+					facets.push(facetGraphObj);
+				}
 
+				$.each(facets, function (index, facet){
+					var facetObj = {};
+					facetObj.uri=facet[jsonoa.constants.ID];
+					facetObj.label=facet[jsonoa.constants.PREF_LABEL];
+					resultMap[facetType].push(facetObj);
+				})
 			});
+			resolver.fulfill(resultMap);
 		}), function(jqXHR, textStatus, errorThrown) {
 			resolver.reject();
 		};
@@ -443,16 +464,15 @@ charme.logic.fetchAnnotationsForTarget = function(targetId) {
 			 */
 			$.each(result.entries, function(index, entry) {
 				var shortGraph = $.parseJSON(entry.content);
-				if (typeof shortGraph['@graph']!== 'undefined'){
-					resultArr.push(shortGraph['@graph']);
+				if (typeof shortGraph[jsonoa.constants.GRAPH]!== 'undefined'){
+					resultArr.push(shortGraph[jsonoa.constants.GRAPH]);
 				} else {
 				resultArr.push(shortGraph);
 				}
 
 			});
-			var graphSrc = {
-				'@graph' : resultArr
-			};
+			var graphSrc = {};
+			graphSrc[jsonoa.constants.GRAPH]=resultArr;
 
 			var graph = new jsonoa.types.Graph();
 			graph.load(graphSrc).then(function(graph) {

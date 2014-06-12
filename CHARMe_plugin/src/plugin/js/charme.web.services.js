@@ -1,8 +1,6 @@
 charme.web.services = angular.module('charmeServices', []);
 
 charme.web.services.factory('persistence', function(){ 
-	console.log('Created new lawnchair instance');
-	
 	var persistService = {};
 	persistService.persist = function(key, val){
 		$.jStorage.set(key, val);
@@ -256,15 +254,6 @@ charme.web.services.factory('fetchFabioTypes', function(){
 	};
 });
 
-charme.web.services.factory('fetchMotivations', function(){
-	return function(annoModel, targetId){	
-		var promise = new Promise(function(resolver){
-			charme.logic.fetchMotivations().then(function(types){
-				resolver.fulfill(types);
-			});
-		}, function(error){
-			resolver.reject(error);
-		});
-		return promise;
-	};
+charme.web.services.factory('fetchAllSearchFacets', function(){
+	return charme.logic.fetchAllSearchFacets;
 });

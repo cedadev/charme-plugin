@@ -1,15 +1,4 @@
-<!-- The CSS styling for this form is a bit inelegant, using precise px values in both main.css (bottom
-     of custom styles section) and inline CSS, but it works for now -->
 <form class="form-horizontal form-charme-search" ng-controller="SearchCtrl">
-    <!--
-    <div class="control-group">
-        <label class="control-label" for="chooseDataset">Dataset</label>
-        <div class="controls">
-            <select id="chooseDataset" class="span3" ng-model="myDataset" ng-options="dataset for dataset in datasets">
-            </select>
-        </div>
-    </div>
--->
     <div class="control-group">
         <label class="control-label" for="chooseText">Text</label>
         <div class="controls">
@@ -20,15 +9,19 @@
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls">
-            <select id="chooseMotivation" ng-model="myMotiv" ng-options="type.value as type.text for type in motivations">
+            <select id="chooseMotivation" ng-model="selectedMotivation"
+                    data-ng-options="motivation.uri as motivation.label for motivation in motivations">
+                <option></option>
             </select>
         </div>
     </div>
 
-    <div class="control-group">
-        <label class="control-label" for="chooseLink">Link type</label>
+    <div class="control-group"><label class="control-label" for="chooseLink">Link type</label>
         <div class="controls">
-            <select id="chooseLink" style="width:185px" ng-model="myLinkType" ng-options="type.value as type.text for type in citoTypes"></select>
+            <select id="chooseLink" style="width:185px" ng-model="selectedLinkType" ng-options=
+                    "linkType.uri as linkType.label for linkType in linkTypes">
+                <option></option>
+            </select>
         </div>
     </div>
 
@@ -39,23 +32,12 @@
         </div>
     </div>
     <div class="control-group">
-        <!-- I can't (yet) get this text to properly align with the dropdown -->
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
         <div class="controls">
-            <select id="chooseDomain" domain-keywords multiple ng-model="myDomain" placeholder="Select tags..."></select>
+            <select id="chooseDomain" data-domain-keywords multiple data-ng-model="myDomain"
+                    placeholder="Select tags..."></select>
         </div>
     </div>
-    <!--
-    <div class="control-group">
-        <label class="control-label" for="chooseStart">Time</label>
-        <div class="controls">
-            <input id="chooseStart" style="width:75px" type="text" placeholder="Start date"/>
-            <span class="icon-calendar"></span>
-            <input id="chooseEnd" style="width:75px" type="text" placeholder="End date"/>
-            <span class="icon-calendar"></span>
-        </div>
-    </div>
-    -->
     <div class="control-group">
         <label class="control-label" for="chooseCreator">Creator</label>
         <div class="controls">

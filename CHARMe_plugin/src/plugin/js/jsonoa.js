@@ -1,6 +1,12 @@
 var jsonoa = {};
 jsonoa.types = {};
 jsonoa.graph = {};
+jsonoa.constants = {
+	ID:'@id',
+	PREF_LABEL:'http://www.w3.org/2004/02/skos/core#prefLabel',
+	GRAPH: '@graph'
+};
+
 jsonoa.util = {};
 
 jsonoa.util.arraysEqual = function(arr1, arr2){
