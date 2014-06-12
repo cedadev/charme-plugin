@@ -44,7 +44,9 @@ charme.logic.constants = {
 /*
  * A series of utility functions for constructing REST requests to the various
  * CHARMe web services Main reference source for this is the CHARMe Node ICD
+ * TODO: These should all be refactored and moved into the charme.logic.urls namespace.
  */
+charme.logic.urls={};
 charme.logic._baseURL = function(uri) {
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
 		charme.settings.REMOTE_BASE_URL + '/');
@@ -73,6 +75,17 @@ charme.logic.fetchRequest = function(id) {
 		(charme.logic.constants.ANNO_DEPTH === 0 ? '' : '&depth=' + 
 			charme.logic.constants.ANNO_DEPTH);
 };
+
+charme.logic.urls.fetchSearchFacets = function(facets){
+	var url=charme.logic._baseURL() + 'suggest/atom?status=submitted&q=';
+	if (typeof facets !== 'undefined'){
+		url+=facets.join(',');
+	} else {
+		url+='*';
+	}
+	return url;
+}
+
 charme.logic.userDetailsRequest = function(id) {
 	return charme.logic._baseURL() + 'token/userinfo';
 };
@@ -225,12 +238,27 @@ charme.logic.fetchGCMDVocab = function() {
 	return promise;
 };
 
-/**
- * Fetches and processes the GCMD keywords used for specifying the domain of
- * interest
- * 
- * @returns {Promise}
- */
+charme.logic.fetchMotivations = function() {
+	var promise = new Promise(function(resolver) {
+
+		var motivations = [ {
+			label : 'Bookmarking',
+			resource : 'Bookmarking'
+		}, {
+			label : 'Annotating',
+			resource : 'Annotating'
+		}, {
+			label : 'Commenting',
+			resource : 'Commenting'
+		}, {
+			label : 'Describing',
+			resource : 'Describing'
+		} ];
+		resolver.fulfill(motivations);
+	});
+	return promise;
+};
+
 charme.logic.fetchFabioTypes = function() {
 	var promise = new Promise(function(resolver) {
 
@@ -367,6 +395,31 @@ charme.logic.fetchAnnotation = function(annotationId) {
 	return promise;
 };
 
+charme.logic.fetchAllSearchFacets = function(){
+	var promise = new Promise(function(resolver) {
+		var reqUrl = charme.logic.urls.fetchSearchFacets();
+		$.ajax(reqUrl, {
+			type : 'GET',
+		}).then(function(data) {
+			// Data is returned as ATOM wrapped json-ld
+			var result = new charme.atom.Result(data);
+			// Extract json-ld from the multiple 'content' payloads returned
+			var resultArr = [];
+			/*
+			 * Collect all entries so that they can be processed at the same
+			 * time
+			 */
+			$.each(result.entries, function(index, value) {
+
+			});
+		}), function(jqXHR, textStatus, errorThrown) {
+			resolver.reject();
+		};
+	});
+
+	return promise;
+};
+
 /**
  * Retrieve all annotations for the specified state
  * 
@@ -388,8 +441,8 @@ charme.logic.fetchAnnotationsForTarget = function(targetId) {
 			 * Collect all entries so that they can be processed at the same
 			 * time
 			 */
-			$.each(result.entries, function(index, value) {
-				var shortGraph = $.parseJSON(value.content);
+			$.each(result.entries, function(index, entry) {
+				var shortGraph = $.parseJSON(entry.content);
 				if (typeof shortGraph['@graph']!== 'undefined'){
 					resultArr.push(shortGraph['@graph']);
 				} else {

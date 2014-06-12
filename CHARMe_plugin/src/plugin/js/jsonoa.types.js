@@ -8,15 +8,15 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		'{																							' + 
 		'	"@id": "?",																				' +
 		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],										' +
-		'	"http://www.openannotation.org/spec/core/motivatedBy": {								' +
-		'		"@id": "http://www.openannotation.org/spec/core/linking"							' +
+		'	"http://www.w3.org/ns/oa#motivatedBy": {												' +
+		'		"@id": "http://www.w3.org/ns/oa#linking"											' +
 		'	},																						' +
 		'	"http://www.w3.org/ns/oa#annotatedBy": {"@id":"?"},										' +
 		'	"http://www.w3.org/ns/oa#hasBody": [],													' +
 		'	"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}										' +
 		'}																							',
 	constants: {
-		MOTIVATED_BY: 'http://www.openannotation.org/spec/core/motivatedBy',
+		MOTIVATED_BY: 'http://www.w3.org/ns/oa#motivatedBy',
 		ANNOTATED_BY: 'http://www.w3.org/ns/oa#annotatedBy',
 		BODY: 'http://www.w3.org/ns/oa#hasBody',
 		TARGET: 'http://www.w3.org/ns/oa#hasTarget'
@@ -84,7 +84,7 @@ jsonoa.types.SemanticTag = jsonoa.types.register({
 	template:
 		'{                                                                        ' +
 		'  "@id": "?",                                                            ' +
-		'  "@type": "http://www.openannotation.org/spec/core/SemanticTag",        ' +
+		'  "@type": "http://www.w3.org/ns/oa#SemanticTag",        ' +
 		'  "http://xmlns.com/foaf/0.1/page": {                                    ' +
 		'    "@id": "?"                                                           ' +
 		'	}                                                                     ' +

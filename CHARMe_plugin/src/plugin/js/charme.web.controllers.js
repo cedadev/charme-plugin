@@ -294,10 +294,10 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, lo
 	};
 }]);
 
-charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchFabioTypes',
-function($scope, $routeParams, $location, $window, fetchFabioTypes) {
+charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchFabioTypes', 'fetchMotivations',
+function($scope, $routeParams, $location, $window, fetchFabioTypes, fetchMotivations) {
     var targetId=$routeParams.targetId;
-    
+
     //$scope.datasets = ['data1', 'data2', 'data3', 'data4', 'data5', 'data6'];
 	$scope.datasets = ['MY1DMM_CHLORA_2003-02.JPEG',
                        'MY1DMM_CHLORA_2003-03.JPEG',
@@ -307,16 +307,17 @@ function($scope, $routeParams, $location, $window, fetchFabioTypes) {
 	var shortDataset = targetId.substring(targetId.lastIndexOf('/') + 1);
 	$scope.datasets.push(shortDataset);
 	$scope.myDataset = shortDataset;
-    
-    $scope.motivations = [
-		{name: 'Bookmarking'},
-		{name: 'Annotating'},
-		{name: 'Commenting'},
-		{name: 'Describing'}];
- /*       {name: 'Motivation 1'},
-        {name: 'Motivation 2'},
-        {name: 'Motivation 3'}];
-   */
+
+    fetchMotivations().then(function(types){
+        var options = [];
+	angular.forEach(types, function(type){
+            options.push({text: type.label, value: type.resource});
+        });
+        $scope.$apply(function(){
+            $scope.motivations = options;
+        });
+    });
+
     fetchFabioTypes().then(function(types){
         var options = [];
 	angular.forEach(types, function(type){
