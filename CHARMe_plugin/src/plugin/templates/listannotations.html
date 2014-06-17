@@ -21,7 +21,7 @@
         <table class="table">
             <thead><tr><td>Title</td><td>Annotated By</td><td>Date</td></tr></thead>
             <tbody>
-                <tr data-ng-show="loading"><td colspan="3" class="spinner spinner-small"><img src="img/ajaxspinner.gif"></img></td></tr>
+                <tr data-ng-show="loading"><td colspan="3" class="spinner spinner-small"><img src="img/ajaxspinner.gif"/></td></tr>
                 <tr data-ng-hide="entries || loading"><td colspan="3">No annotations.</tr>
                 <tr data-ng-repeat="entry in entries | filter:searchText">
                     <td><a href="" data-ng-click="viewAnnotation(entry.id)" title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
@@ -32,18 +32,4 @@
         </table>
     </div>
 </div>
-<div class="modal-footer">
-	<div class="pluginVersion">v0.3 BETA</div>
-	<div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="newAnnotation()">New Annotation</div>
-	<div data-ng-show="loggedIn" class="btn-group userMenu">
-	  <button class="btn">{{userName}}</button>
-	  <button class="btn dropdown-toggle" data-toggle="dropdown">
-	    <span class="caret"></span>
-	  </button>
-	  <ul class="dropdown-menu">
-	    <li><a href="" data-ng-click="logout()">Logout</a></li>
-	  </ul>	
-	</div>
-	<div class="btn" data-ng-hide="loggedIn" data-ng-click="login()">Login</div>
-	<div class="btn" data-ng-click="close()">Cancel</div>
-</div>
+<div data-ng-include="'templates/footer.html'"></div>

@@ -51,28 +51,28 @@ charme.logic.constants = {
  * TODO: These should all be refactored and moved into the charme.logic.urls namespace.
  */
 charme.logic.urls={};
-charme.logic._baseURL = function(uri) {
+charme.logic.urls._baseURL = function(uri) {
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
 		charme.settings.REMOTE_BASE_URL + '/');
 };
-charme.logic.existRequest = function(uri) {
-	return charme.logic._baseURL() + 'index/' + uri + '?format=json-ld';
+charme.logic.urls.existRequest = function(uri) {
+	return charme.logic.urls._baseURL() + 'index/' + uri + '?format=json-ld';
 };
-charme.logic.createRequest = function() {
-	return charme.logic._baseURL() + 'insert/annotation';
+charme.logic.urls.createRequest = function() {
+	return charme.logic.urls._baseURL() + 'insert/annotation';
 };
-charme.logic.stateRequest = function(newState) {
-	return charme.logic._baseURL() + 'advance_status';
+charme.logic.urls.stateRequest = function(newState) {
+	return charme.logic.urls._baseURL() + 'advance_status';
 };
 
-charme.logic.fetchForTarget = function(targetId) {
+charme.logic.urls.fetchForTarget = function(targetId) {
 	//return 'testData/charmetest.atom';
-	return charme.logic._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) +
+	return charme.logic.urls._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) +
 		'&status=submitted';
 };
 
-charme.logic.fetchRequest = function(id) {
-	return charme.logic._baseURL() +
+charme.logic.urls.fetchRequest = function(id) {
+	return charme.logic.urls._baseURL() +
 		'data/' +
 		id +
 		'?format=json-ld' +
@@ -81,33 +81,33 @@ charme.logic.fetchRequest = function(id) {
 };
 
 charme.logic.urls.fetchSearchFacets = function(facets){
-	var url=charme.logic._baseURL() + 'suggest/atom?status=submitted&q=';
+	var url=charme.logic.urls._baseURL() + 'suggest/atom?status=submitted&q=';
 	if (typeof facets !== 'undefined'){
 		url+=facets.join(',');
 	} else {
 		url+='*';
 	}
 	return url;
-}
-
-charme.logic.userDetailsRequest = function(id) {
-	return charme.logic._baseURL() + 'token/userinfo';
 };
-charme.logic.authRequest = function() {
+
+charme.logic.urls.userDetailsRequest = function(id) {
+	return charme.logic.urls._baseURL() + 'token/userinfo';
+};
+charme.logic.urls.authRequest = function() {
 	return charme.settings.AUTH_BASE_URL + charme.settings.AUTH_PATH + '/?client_id=' +
 		charme.settings.AUTH_CLIENT_ID + '&response_type=' + 
 		charme.settings.AUTH_RESPONSE_TYPE;
 };
-charme.logic.fabioTypesRequest = function() {
+charme.logic.urls.fabioTypesRequest = function() {
 	return charme.logic.constants.FABIO_URL;
 };
-charme.logic.gcmdVocabRequest = function(sparqlQry) {
+charme.logic.urls.gcmdVocabRequest = function(sparqlQry) {
 	var url = charme.logic.constants.NERC_SPARQL_EP;
 	url += '?query=' + encodeURIComponent(charme.logic.constants.SPARQL_GCMD);
 	url += '&output=json';
 	return url;
 };
-charme.logic.crossRefRequest = function(criteria) {
+charme.logic.urls.crossRefRequest = function(criteria) {
 	var url = null;
 	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] &&
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI].length > 0) {
@@ -168,7 +168,7 @@ charme.logic.findDOI = function(someString) {
  */
 charme.logic.generateGUID = function() {
 	return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+		var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
 		return v.toString(16);
 	});
 };
@@ -178,7 +178,7 @@ charme.logic.generateGUID = function() {
  * @returns {String}
  */
 charme.logic.generateId = function() {
-	return charme.logic._baseURL() + 'resource/' + charme.logic.generateGUID();
+	return charme.logic.urls._baseURL() + 'resource/' + charme.logic.generateGUID();
 };
 
 /*
@@ -191,7 +191,7 @@ charme.logic.generateId = function() {
  */
 charme.logic.fetchUserDetails = function(authToken) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.userDetailsRequest();
+		var reqUrl = charme.logic.urls.userDetailsRequest();
 		if (reqUrl === null || reqUrl.length === 0) {
 			resolver.reject();
 		}
@@ -216,7 +216,7 @@ charme.logic.fetchUserDetails = function(authToken) {
  */
 charme.logic.fetchGCMDVocab = function() {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
+		var reqUrl = charme.logic.urls.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
 		if (reqUrl === null || reqUrl.length === 0) {
 			resolver.reject();
 		}
@@ -290,7 +290,7 @@ charme.logic.fetchFabioTypes = function() {
  */
 charme.logic.fetchCrossRefMetaData = function(criteria) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.crossRefRequest(criteria);
+		var reqUrl = charme.logic.urls.crossRefRequest(criteria);
 		if (reqUrl === null || reqUrl.length === 0) {
 			resolver.reject();
 		}
@@ -311,7 +311,7 @@ charme.logic.fetchCrossRefMetaData = function(criteria) {
  * Given a state, returns true if any metadata exists for this resource
  */
 charme.logic.exists = function(state, successCB, errorCB) {
-	var reqUrl = charme.logic.existRequest(state);
+	var reqUrl = charme.logic.urls.existRequest(state);
 	$.ajax(reqUrl, {
 		dataType : 'json',
 		success : successCB,
@@ -326,7 +326,7 @@ charme.logic.exists = function(state, successCB, errorCB) {
  * errorCB: a callback to be invoked on error
  */
 charme.logic.createAnnotation = function(annotation, successCB, errorCB) {
-	var reqUrl = charme.logic.createRequest();
+	var reqUrl = charme.logic.urls.createRequest();
 	var jsonObj = annotation.serialize();
 	var stringified = JSON.stringify(jsonObj);
 	$.ajax(reqUrl, {
@@ -350,7 +350,7 @@ charme.logic.createAnnotation = function(annotation, successCB, errorCB) {
  */
 charme.logic.saveGraph = function(graph, token) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.createRequest();
+		var reqUrl = charme.logic.urls.createRequest();
 		var jsonSrc = graph.toJSON();
 		$.ajax(reqUrl, {
 			dataType : 'text',
@@ -382,7 +382,7 @@ charme.logic.fetchAnnotation = function(annotationId) {
 		shortId = matches[0];
 
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.fetchRequest(shortId);
+		var reqUrl = charme.logic.urls.fetchRequest(shortId);
 		$.ajax(reqUrl, {
 			type : 'GET',
 		}).then(function(data) {
@@ -403,7 +403,7 @@ charme.logic.fetchAllSearchFacets = function(){
 	var promise = new Promise(function(resolver) {
 		var reqUrl = charme.logic.urls.fetchSearchFacets();
 		$.ajax(reqUrl, {
-			type : 'GET',
+			type : 'GET'
 		}).then(function(data) {
 			// Data is returned as ATOM wrapped json-ld
 			var result = new charme.atom.Result(data);
@@ -450,7 +450,7 @@ charme.logic.fetchAllSearchFacets = function(){
  */
 charme.logic.fetchAnnotationsForTarget = function(targetId) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.fetchForTarget(targetId);
+		var reqUrl = charme.logic.urls.fetchForTarget(targetId);
 		$.ajax(reqUrl, {
 			type : 'GET',
 		}).then(function(data) {

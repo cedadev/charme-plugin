@@ -5,7 +5,7 @@ if (typeof module === 'undefined'){
 }
 module(' Non-network Tests');
 	test( "UT-001: Generate web service query for presence of annotations against dataset", function () {
-		deepEqual(charme.logic.existRequest('stable'), 'http://charme-dev.cems.rl.ac.uk/index/stable?format=json-ld');
+		deepEqual(charme.logic.urls.existRequest('stable'), 'http://charme-dev.cems.rl.ac.uk/index/stable?format=json-ld');
 	});
 	
 	asyncTest( "UT-003: Parse JSON-LD response for listing all nodes", function () {

@@ -13,6 +13,7 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
  */
 charme.web.controllers.controller('ListAnnotationsCtrl', ['$scope', '$routeParams', '$location', '$filter', 'fetchAnnotationsForTarget', 'loginService', 'persistence',
 function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, loginService, persistence){
+        $scope.listAnnotationsFlag=true;
 	$scope.loading=true;
 
 	/*
@@ -55,7 +56,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 	};
 	$scope.login = function(){
 		window.addEventListener('message', loginService._loginEvent, false);
-		window.open(charme.logic.authRequest());
+		window.open(charme.logic.urls.authRequest());
 	};
 	
 	loginService.addLogoutListener(function(){
@@ -111,6 +112,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
  */
 charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes',
       function ($scope, $routeParams, $location, $window, fetchAnnotation, fetchKeywords, fetchFabioTypes){
+                $scope.viewAnnotationFlag=true;
 		var targetId=$routeParams.targetId;
 		$scope.cancel = function(){
 			$location.path(encodeURIComponent(targetId) + '/annotations/');
@@ -226,6 +228,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams
  */
 charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchFabioTypes',
 function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchFabioTypes){
+        $scope.newAnnotationFlag=true;
 	var targetId=$routeParams.targetId;
 	$scope.targetId=targetId;
 	$scope.loggedIn=loginService.isLoggedIn();
@@ -259,7 +262,7 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, lo
 	};
 	$scope.login = function(){
 		window.addEventListener('message', loginService._loginEvent, false);
-		window.open(charme.logic.authRequest());
+		window.open(charme.logic.urls.authRequest());
 		loginService.addLoginListener(function(authToken){
 			$scope.$apply(function(){
 				$scope.loggedIn=authToken.token ? true : false;

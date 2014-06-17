@@ -1,15 +1,25 @@
 <div class="modal-footer">
 	<div class="pluginVersion">v0.3 BETA</div>
-	<div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="newAnnotation()">New Annotation</div>
-	<div data-ng-show="loggedIn" class="btn-group userMenu">
-	  <button class="btn">{{userName}}</button>
-	  <button class="btn dropdown-toggle" data-toggle="dropdown">
-	    <span class="caret"></span>
-	  </button>
-	  <ul class="dropdown-menu">
-	    <li><a href="" data-ng-click="logout()">Logout</a></li>
-	  </ul>	
-	</div>
-	<div class="btn" data-ng-hide="loggedIn" data-ng-click="login()">Login</div>
-	<div class="btn" data-ng-click="close()">Cancel</div>
+        
+        <div data-ng-show="listAnnotationsFlag">
+            <div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="newAnnotation()">New Annotation</div>
+            <div data-ng-show="loggedIn" class="btn-group userMenu">
+                <button class="btn">{{userName}}</button>
+                <button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+                <ul class="dropdown-menu">
+                    <li><a href="" data-ng-click="logout()">Logout</a></li>
+                </ul>	
+            </div>
+            <button class="btn" data-ng-hide="loggedIn" data-ng-click="login()">Login</button>
+            <button class="btn" data-ng-click="close()">Cancel</button>
+        </div>
+        
+        <div data-ng-show="newAnnotationFlag">
+            <button class="btn btn-primary" data-ng-disabled="newAnnoForm.$invalid || loading" data-ng-click="save(anno)">Save</button>
+            <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
+        </div>
+	
+        <div data-ng-show="viewAnnotationFlag">
+            <button class="btn" data-ng-click="cancel()">Back</button>
+        </div>
 </div>
