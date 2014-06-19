@@ -242,6 +242,155 @@ charme.logic.fetchGCMDVocab = function() {
 	return promise;
 };
 
+
+/**
+ * Fetches the keywords used for specifying Motivation
+ * This will pick up statically defined list of motivations from a text file - motivations.json
+ * No SPARQL call is made since the list of motivations is not expected to change drastically over time.
+ *
+ * @returns {Promise}
+ */
+charme.logic.fetchMotivationVocab = function() {
+
+    //return $.getJSON("motivations.json").done();
+
+    var promise = new Promise(function(resolver) {
+
+
+// ATTEMPT 1 : Using getJSON()....   couldnot make it work
+
+//        $.getJSON("motivations.json")
+//            .done(function (jsonResp) {
+//                var keywords = [];
+//                $(jsonResp.results.bindings).each(function (index, binding) {
+//                    var word = binding.l.value;
+//                    word = word.substring(word.lastIndexOf('>') + 1);
+//                    keywords.push({
+//                        uri: binding.p.value,
+//                        desc: word
+//                    });
+//                });
+//                resolver.fulfill(keywords);
+//            })
+//            //.fail(function (e) {
+//            //    resolver.reject(e);
+//            //});
+
+
+// ATTEMPT 2 : Using .ajax()....   couldnot make it work
+//
+//        $.ajax({
+//            type: 'GET',
+//            url: 'motivations.json',
+//            dataType: 'json',
+//            success: function (jsonResp) {
+//                var keywords = [];
+//                $(jsonResp.results.bindings).each(function (index, binding) {
+//                    var word = binding.l.value;
+//                    word = word.substring(word.lastIndexOf('>') + 1);
+//                    keywords.push({
+//                        uri: binding.p.value,
+//                        desc: word
+//                    });
+//                });
+//                resolver.fulfill(keywords);
+//            },
+//            error: function(e) {
+//                resolver.reject(e);
+//            }
+//        });
+
+
+
+// ATTEMPT 3 : Reading in the motivations from a json formatted string... Works !
+
+        try {
+
+            var jsontext =      '{                                                                                                                              ' +
+                                '    "head": {                                                                                                                  ' +
+                                '        "vars": [ "p" , "l" ]                                                                                                  ' +
+                                '    } ,                                                                                                                        ' +
+                                '    "results": {                                                                                                               ' +
+                                '        "bindings": [                                                                                                          ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:bookmarking" } ,  ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > bookmarking" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:classifying" } ,  ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > classifying" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:commenting" } ,   ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > commenting" }                        ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:describing" } ,   ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > describing" }                        ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:editing" } ,      ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > editing" }                           ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:highlighting" } , ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > highlighting" }                      ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:identifying" } ,  ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > identifying" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:linking" } ,      ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > linking" }                           ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:moderating" } ,   ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > moderating" }                        ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:questioning" } ,  ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > questioning" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:replying" } ,     ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > replying" }                          ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://openannotation.org/spec/core/core.html#Motivation/oa:tagging" } ,      ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > tagging" }                           ' +
+                                '            }                                                                                                                  ' +
+                                '        ]                                                                                                                      ' +
+                                '    }                                                                                                                          ' +
+                                '}                                                                                                                              ' ;
+
+
+            var jsonResp = JSON.parse(jsontext);
+
+            var keywords = [];
+            $(jsonResp.results.bindings).each(function (index, binding) {
+                var word = binding.l.value;
+                word = word.substring(word.lastIndexOf('>') + 1);
+                keywords.push({
+                    uri: binding.p.value,
+                    desc: word
+                });
+            });
+            resolver.fulfill(keywords);
+
+
+        }
+        catch(e) {
+            resolver.reject(e);
+        }
+
+
+    });
+
+    return promise;
+
+};
+
 charme.logic.fetchMotivations = function() {
 	var promise = new Promise(function(resolver) {
 

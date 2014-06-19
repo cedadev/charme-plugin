@@ -224,8 +224,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams
 /**
  * New annotation screen.
  */
-charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchFabioTypes',
-function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchFabioTypes){
+charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchFabioTypes', 'fetchAllMotivations',
+function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchFabioTypes, fetchAllMotivations){
 	var targetId=$routeParams.targetId;
 	$scope.targetId=targetId;
 	$scope.loggedIn=loginService.isLoggedIn();
@@ -238,6 +238,20 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, lo
 			$scope.citoTypes = options;
 		});
 	});
+
+
+    fetchAllMotivations().then(function(motivations){
+        var options = [];
+        angular.forEach(motivations, function(motivation, innerKey){
+            options.push({text: motivation.desc, value: motivation.uri});
+        });
+        $scope.$apply(function(){
+            $scope.motivations = options;
+        });
+    });
+
+
+
 	
 	$scope.cancel = function(){
 		if ($scope.loading)

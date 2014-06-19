@@ -184,6 +184,15 @@ charme.web.services.factory('saveAnnotation', function(){
 						var linkBody =graph.createNode(type, linkURI);
 						anno.addValue(anno.BODY, linkBody);
 					}
+
+                    //Automatically add the "Linking" Motivation
+                    //var tagId = charme.logic.generateId();
+                    var page = graph.createStub("http://www.w3.org/ns/oa#linking");
+                    //var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
+                    //tag.setValue(tag.MOTIVATED_BY, page);
+                    anno.addValue(anno.MOTIVATED_BY, page);
+
+
 					
 				} else {
 					resolver.reject('No URI entered');
@@ -198,7 +207,25 @@ charme.web.services.factory('saveAnnotation', function(){
 					tag.setValue(tag.PAGE, page);
 					anno.addValue(anno.BODY, tag);
 				});
+
+                //Automatically add the "Tagging" Motivation
+                //var tagId = charme.logic.generateId();
+                var page = graph.createStub("http://www.w3.org/ns/oa#tagging");
+                //var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
+                anno.addValue(anno.MOTIVATED_BY, page);
+                //tag.setValue(tag.MOTIVATED_BY, page);
+                //anno.addValue(anno.BODY, tag);
+
 			}
+            if (annoModel.motivation){
+                angular.forEach(annoModel.motivation, function(value){
+                    //var tagId = charme.logic.generateId();
+                    var page = graph.createStub(value);
+                    //var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
+                    //tag.setValue(tag.MOTIVATED_BY, page);
+                    anno.addValue(anno.MOTIVATED_BY, page);
+                });
+            }
 			var person = graph.createNode(jsonoa.types.Person, 'http://localhost/' + charme.logic.generateGUID());
 			person.setValue(person.MBOX, graph.createStub('mailto:' + auth.user.email));
 			person.setValue(person.NAME, auth.user.first_name + ' ' + auth.user.last_name);
@@ -240,6 +267,30 @@ charme.web.services.factory('fetchKeywords', function(){
 		return promise;
 	};
 });
+
+
+charme.web.services.factory('fetchAllMotivations', function(){
+    var categories = [];//Only fetch once, and scope to session
+    return function(annoModel, targetId){
+        var promise = new Promise(function(resolver){
+            if (categories.length===0){
+                charme.logic.fetchMotivationVocab().then(function(keywords){
+                    categories.push({
+                        name: 'OA Motivation',
+                        keywords: keywords
+                    });
+                    resolver.fulfill(categories);
+                });
+            } else {
+                resolver.fulfill(categories);
+            }
+        }, function(error){
+            resolver.reject(error);
+        });
+        return promise;
+    };
+});
+
 
 charme.web.services.factory('fetchFabioTypes', function(){
 	return function(annoModel, targetId){	

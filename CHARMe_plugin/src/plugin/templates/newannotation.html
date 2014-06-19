@@ -7,12 +7,19 @@
 	</div>
 	<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
 	<form name="newAnnoForm">
-            <h4>Comments <span title="Free text comments go here; a link may be included below" class="icon-question-sign"></span></h4>
+
+        <h4>Comments <span title="Free text comments go here; a link may be included below" class="icon-question-sign"></span></h4>
 		<textarea data-ng-model="anno.comment" rows="3"></textarea>
+
+        <h4>Motivation <span title="Select tag(s) describing the motivations of this annotation" class="icon-question-sign"></span></h4>
+        <select data-ng-model="anno.motivation" data-motivation-keywords multiple placeholder="Select motivations...">
+        </select>
+
 		<h4>Domain Classification <span title="Select tag(s) describing the subject of this annotation" class="icon-question-sign"></span></h4>
 		<select data-ng-model="anno.domain" data-domain-keywords multiple placeholder="Select tags...">
 		</select>
-                <h4>Link <span title="Select type of reference (e.g. journal article) you wish to link to - a textbox will then open for the address" class="icon-question-sign"></span></h4>
+
+        <h4>Link <span title="Select type of reference (e.g. journal article) you wish to link to - a textbox will then open for the address" class="icon-question-sign"></span></h4>
 		<div class="row-fluid">
 			<div class="span2">				
 				<select class="input-medium" data-ng-model="anno.type" name="type" title="Please select a link subtype" data-ng-options="type.value as type.text for type in citoTypes" data-ng-required="anno.type">
