@@ -51,22 +51,28 @@ charme.logic.constants = {
  * TODO: These should all be refactored and moved into the charme.logic.urls namespace.
  */
 charme.logic.urls={};
-charme.logic._baseURL = function(uri) {
+charme.logic.urls._baseURL = function(uri) {
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
 		charme.settings.REMOTE_BASE_URL + '/');
 };
-charme.logic.existRequest = function(uri) {
-	return charme.logic._baseURL() + 'index/' + uri + '?format=json-ld';
+charme.logic.urls.existRequest = function(uri) {
+	return charme.logic.urls._baseURL() + 'index/' + uri + '?format=json-ld';
 };
-charme.logic.createRequest = function() {
-	return charme.logic._baseURL() + 'insert/annotation';
+charme.logic.urls.createRequest = function() {
+	return charme.logic.urls._baseURL() + 'insert/annotation';
 };
-charme.logic.stateRequest = function(newState) {
-	return charme.logic._baseURL() + 'advance_status';
+charme.logic.urls.stateRequest = function(newState) {
+	return charme.logic.urls._baseURL() + 'advance_status';
 };
 
-charme.logic.fetchRequest = function(id) {
-	return charme.logic._baseURL() +
+charme.logic.urls.fetchForTarget = function(targetId) {
+	//return 'testData/charmetest.atom';
+	return charme.logic.urls._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) +
+		'&status=submitted';
+};
+
+charme.logic.urls.fetchRequest = function(id) {
+	return charme.logic.urls._baseURL() +
 		'data/' +
 		id +
 		'?format=json-ld' +
@@ -74,36 +80,34 @@ charme.logic.fetchRequest = function(id) {
 			charme.logic.constants.ANNO_DEPTH);
 };
 
-
-
 charme.logic.urls.fetchSearchFacets = function(facets){
-	var url=charme.logic._baseURL() + 'suggest/atom?status=submitted&q=';
+	var url=charme.logic.urls._baseURL() + 'suggest/atom?status=submitted&q=';
 	if (typeof facets !== 'undefined'){
 		url+=facets.join(',');
 	} else {
 		url+='*';
 	}
 	return url;
-}
-
-charme.logic.userDetailsRequest = function(id) {
-	return charme.logic._baseURL() + 'token/userinfo';
 };
-charme.logic.authRequest = function() {
+
+charme.logic.urls.userDetailsRequest = function(id) {
+	return charme.logic.urls._baseURL() + 'token/userinfo';
+};
+charme.logic.urls.authRequest = function() {
 	return charme.settings.AUTH_BASE_URL + charme.settings.AUTH_PATH + '/?client_id=' +
 		charme.settings.AUTH_CLIENT_ID + '&response_type=' + 
 		charme.settings.AUTH_RESPONSE_TYPE;
 };
-charme.logic.fabioTypesRequest = function() {
+charme.logic.urls.fabioTypesRequest = function() {
 	return charme.logic.constants.FABIO_URL;
 };
-charme.logic.gcmdVocabRequest = function(sparqlQry) {
+charme.logic.urls.gcmdVocabRequest = function(sparqlQry) {
 	var url = charme.logic.constants.NERC_SPARQL_EP;
 	url += '?query=' + encodeURIComponent(charme.logic.constants.SPARQL_GCMD);
 	url += '&output=json';
 	return url;
 };
-charme.logic.crossRefRequest = function(criteria) {
+charme.logic.urls.crossRefRequest = function(criteria) {
 	var url = null;
 	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] &&
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI].length > 0) {
@@ -181,7 +185,7 @@ charme.logic.findDOI = function(someString) {
  */
 charme.logic.generateGUID = function() {
 	return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-		var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+		var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
 		return v.toString(16);
 	});
 };
@@ -191,7 +195,7 @@ charme.logic.generateGUID = function() {
  * @returns {String}
  */
 charme.logic.generateId = function() {
-	return charme.logic._baseURL() + 'resource/' + charme.logic.generateGUID();
+	return charme.logic.urls._baseURL() + 'resource/' + charme.logic.generateGUID();
 };
 
 /*
@@ -204,7 +208,7 @@ charme.logic.generateId = function() {
  */
 charme.logic.fetchUserDetails = function(authToken) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.userDetailsRequest();
+		var reqUrl = charme.logic.urls.userDetailsRequest();
 		if (reqUrl === null || reqUrl.length === 0) {
 			resolver.reject();
 		}
@@ -229,7 +233,7 @@ charme.logic.fetchUserDetails = function(authToken) {
  */
 charme.logic.fetchGCMDVocab = function() {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
+		var reqUrl = charme.logic.urls.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
 		if (reqUrl === null || reqUrl.length === 0) {
 			resolver.reject();
 		}
@@ -253,6 +257,155 @@ charme.logic.fetchGCMDVocab = function() {
 		});
 	});
 	return promise;
+};
+
+
+/**
+ * Fetches the keywords used for specifying Motivation
+ * This will pick up statically defined list of motivations from a text file - motivations.json
+ * No SPARQL call is made since the list of motivations is not expected to change drastically over time.
+ *
+ * @returns {Promise}
+ */
+charme.logic.fetchMotivationVocab = function() {
+
+    //return $.getJSON("motivations.json").done();
+
+    var promise = new Promise(function(resolver) {
+
+
+// ATTEMPT 1 : Using getJSON()....   couldnot make it work
+
+//        $.getJSON("motivations.json")
+//            .done(function (jsonResp) {
+//                var keywords = [];
+//                $(jsonResp.results.bindings).each(function (index, binding) {
+//                    var word = binding.l.value;
+//                    word = word.substring(word.lastIndexOf('>') + 1);
+//                    keywords.push({
+//                        uri: binding.p.value,
+//                        desc: word
+//                    });
+//                });
+//                resolver.fulfill(keywords);
+//            })
+//            //.fail(function (e) {
+//            //    resolver.reject(e);
+//            //});
+
+
+// ATTEMPT 2 : Using .ajax()....   couldnot make it work
+//
+//        $.ajax({
+//            type: 'GET',
+//            url: 'motivations.json',
+//            dataType: 'json',
+//            success: function (jsonResp) {
+//                var keywords = [];
+//                $(jsonResp.results.bindings).each(function (index, binding) {
+//                    var word = binding.l.value;
+//                    word = word.substring(word.lastIndexOf('>') + 1);
+//                    keywords.push({
+//                        uri: binding.p.value,
+//                        desc: word
+//                    });
+//                });
+//                resolver.fulfill(keywords);
+//            },
+//            error: function(e) {
+//                resolver.reject(e);
+//            }
+//        });
+
+
+
+// ATTEMPT 3 : Reading in the motivations from a json formatted string... Works !
+
+        try {
+
+            var jsontext =      '{                                                                                                                              ' +
+                                '    "head": {                                                                                                                  ' +
+                                '        "vars": [ "p" , "l" ]                                                                                                  ' +
+                                '    } ,                                                                                                                        ' +
+                                '    "results": {                                                                                                               ' +
+                                '        "bindings": [                                                                                                          ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#bookmarking" } ,                                      ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > bookmarking" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#classifying" } ,                                      ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > classifying" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#commenting" } ,                                       ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > commenting" }                        ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#describing" } ,                                       ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > describing" }                        ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#editing" } ,                                          ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > editing" }                           ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#highlighting" } ,                                     ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > highlighting" }                      ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#identifying" } ,                                      ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > identifying" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#linking" } ,                                          ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > linking" }                           ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#moderating" } ,                                       ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > moderating" }                        ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#questioning" } ,                                      ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > questioning" }                       ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#replying" } ,                                         ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > replying" }                          ' +
+                                '            } ,                                                                                                                ' +
+                                '            {                                                                                                                  ' +
+                                '                "p": { "type": "uri" , "value": "http://www.w3.org/ns/oa#tagging" } ,                                          ' +
+                                '                "l": { "type": "literal" , "xml:lang": "en" , "value": "OA > Motivation > tagging" }                           ' +
+                                '            }                                                                                                                  ' +
+                                '        ]                                                                                                                      ' +
+                                '    }                                                                                                                          ' +
+                                '}                                                                                                                              ' ;
+
+
+            var jsonResp = JSON.parse(jsontext);
+
+            var keywords = [];
+            $(jsonResp.results.bindings).each(function (index, binding) {
+                var word = binding.l.value;
+                word = word.substring(word.lastIndexOf('>') + 1);
+                keywords.push({
+                    uri: binding.p.value,
+                    desc: word
+                });
+            });
+            resolver.fulfill(keywords);
+
+
+        }
+        catch(e) {
+            resolver.reject(e);
+        }
+
+
+    });
+
+    return promise;
+
 };
 
 charme.logic.fetchMotivations = function() {
@@ -303,7 +456,7 @@ charme.logic.fetchFabioTypes = function() {
  */
 charme.logic.fetchCrossRefMetaData = function(criteria) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.crossRefRequest(criteria);
+		var reqUrl = charme.logic.urls.crossRefRequest(criteria);
 		if (reqUrl === null || reqUrl.length === 0) {
 			resolver.reject();
 		}

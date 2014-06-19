@@ -8,9 +8,7 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		'{																							' + 
 		'	"@id": "?",																				' +
 		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],										' +
-		'	"http://www.w3.org/ns/oa#motivatedBy": {												' +
-		'		"@id": "http://www.w3.org/ns/oa#linking"											' +
-		'	},																						' +
+		'	"http://www.w3.org/ns/oa#motivatedBy": [],												' +
 		'	"http://www.w3.org/ns/oa#annotatedBy": {"@id":"?"},										' +
 		'	"http://www.w3.org/ns/oa#hasBody": [],													' +
 		'	"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}										' +

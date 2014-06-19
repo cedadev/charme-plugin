@@ -35,7 +35,43 @@ charme.web.app.
 			);
 		},
 	};
-}]).directive('charmeCito', ['fetchFabioTypes', function(fetchFabioTypes){
+}]).directive('motivationKeywords', ['fetchAllMotivations', function(fetchAllMotivations){
+        return {
+            restrict: 'A',
+            require: '?ngModel',
+            link: function($scope, element, attrs, $ngModel){
+                fetchAllMotivations().then(
+                    function(categories){
+                        $scope.$apply(function(){
+                            var optgroups = [];
+                            var options = [];
+                            angular.forEach(categories, function(cat){
+                                optgroups.push({value: cat.name, label: cat.name + ' Keywords'});
+                                angular.forEach(cat.keywords, function(kword){
+                                    options.push({text: kword.desc, value: kword.uri, optgroup: cat.name});
+                                });
+                            });
+                            var el = $(element).selectize({
+                                persist: false,
+                                options: options,
+                                optgroups: optgroups
+                            })[0].selectize;
+                            function applyChange(){
+                                $ngModel.$setViewValue(el.getValue());
+                            };
+                            el.on('change', function(){$scope.$apply(applyChange);});
+
+                        });
+                    },
+                    function(error){
+                        $scope.$apply(function(){
+                            $scope.errorMsg='Error: ' + error;
+                        });
+                    }
+                );
+            },
+        };
+    }]).directive('charmeCito', ['fetchFabioTypes', function(fetchFabioTypes){
 	return {
 		restrict: 'A',
 		require: '?ngModel',
