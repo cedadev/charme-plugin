@@ -9,7 +9,7 @@
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls">
-            <select id="chooseMotivation" ng-model="selectedMotivation"
+            <select id="chooseMotivation" data-ng-model="criteria.selectedMotivation"
                     data-ng-options="motivation.uri as motivation.label for motivation in motivations">
                 <option></option>
             </select>
@@ -18,7 +18,7 @@
 
     <div class="control-group"><label class="control-label" for="chooseLink">Link type</label>
         <div class="controls">
-            <select id="chooseLink" style="width:185px" ng-model="selectedLinkType" ng-options=
+            <select id="chooseLink" style="width:185px" data-ng-model="criteria.selectedLinkType" ng-options=
                     "linkType.uri as linkType.label for linkType in linkTypes">
                 <option></option>
             </select>
@@ -28,26 +28,27 @@
     <div class="control-group">
         <label class="control-label">Link</label>
         <div class="controls">
-            <input type="text" placeholder="Enter a DOI"/>
+            <input type="text" data-ng-model="criteria.selectedLink" placeholder="Enter a URL or DOI"/>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
         <div class="controls">
-            <select id="chooseDomain" data-domain-keywords multiple data-ng-model="myDomain"
+            <select id="chooseDomain" data-domain-keywords multiple
+                    data-ng-model="criteria.selectedDomains"
                     placeholder="Select tags..."></select>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseCreator">Creator</label>
         <div class="controls">
-            <input id="chooseCreator" type="text"/>
+            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" type="text"/>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseLocation">Organisation</label>
         <div class="controls">
-            <input id="chooseLocation" type="text"/>
+            <input id="chooseLocation" type="text" data-ng-model="criteria.selectedOrganisation" />
         </div>
     </div>
 </form>

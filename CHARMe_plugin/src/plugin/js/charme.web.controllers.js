@@ -11,8 +11,8 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
 /**
  * List all annotations for target.
  */
-charme.web.controllers.controller('ListAnnotationsCtrl', ['$scope', '$routeParams', '$location', '$filter', 'fetchAnnotationsForTarget', 'loginService', 'persistence',
-function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, loginService, persistence){
+charme.web.controllers.controller('ListAnnotationsCtrl', ['$scope', '$routeParams', '$location', '$filter', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations',
+function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, loginService, searchAnnotations){
 	$scope.loading=true;
 
 	/*
@@ -67,43 +67,33 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 	};
 	
 	$scope.targetId=targetId;
-	
-	fetchAnnotationsForTarget(targetId).then(
-		function(feed){
-			$scope.$apply(function(){
-				$scope.entries=[];
-				//Prepare the model for the view
-				angular.forEach(feed.entries, function(value, key){
-					var anno = value.annotation;
-					var title = $filter('shortAnnoTitle')(anno);
-					var updated = value.updated;
-					var person = anno.getValue(anno.ANNOTATED_BY);
-					var author = '';
-					var email = '';
-					if (person){
-						author = person.getValue(person.NAME);
-						email = person.getValue(person.MBOX).getValue(person.ID);
-					}
-					$scope.entries.push(
-						{
-							'id': value.id, 
-							'title': title,
-							'updated': updated,
-							'author': author,
-							'email' : email
-						}
-					);
-				});
-				$scope.loading=false;
-			});
-		},
-		function(error){
-			$scope.$apply(function(){
-				$scope.errorMsg='Error: ' + error;
-				$scope.loading=false;
-			});
-		}
-	);
+
+	var criteria = {
+		targets:[targetId]
+	};
+
+	searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
+			$scope.loading = true;
+	});
+
+	searchAnnotations.addListener(searchAnnotations.listenerTypes.AFTER_SEARCH, function(){
+		$scope.$apply( function(){
+			$scope.loading = false;
+		});
+	});
+
+	searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results){
+		$scope.$apply( function(){
+			$scope.entries = results;
+		});
+	});
+
+	searchAnnotations.addListener(searchAnnotations.listenerTypes.ERROR, function(errorMsg) {
+		$scope.$apply( function(){
+			$scope.errorMsg = errorMsg;
+		});
+	})
+
 }]);
 
 /**
@@ -294,8 +284,8 @@ function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, lo
 	};
 }]);
 
-charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAllSearchFacets',
-function($scope, $routeParams, $location, $window, fetchAllSearchFacets) {
+charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAllSearchFacets', 'searchAnnotations',
+function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchAnnotations) {
     var targetId=$routeParams.targetId;
 
     fetchAllSearchFacets().then(function(facetTypes){
@@ -306,7 +296,41 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets) {
 			$scope.organization = facetTypes[charme.logic.constants.FACET_TYPE_ORGANIZATION];
         });
     });
-    
+
+	var criteria = {
+		targets:[targetId]
+	};
+
+	searchAnnotations.searchAnnotations(criteria);
+
+	/*
+	 Listen for changes to model and re-run search
+	 */
+	var models = [
+		'selectedMotivation',
+		'selectedLinkType',
+		'selectedLink',
+		''
+	];
+	/*
+	$scope.criteria = {
+		motivations: '',
+		linkTypes: '',
+		domainsOfInterest: '',
+		organization: ''
+	};
+*/
+	$scope.$watchCollection('criteria', function(){
+		console.log('$watch triggered');
+		if (typeof $scope.criteria !== 'undefined') {
+			criteria.motivations = $scope.criteria.selectedMotivation;
+			criteria.linkTypes = $scope.criteria.linkType;
+			criteria.domainsOfInterest = $scope.criteria.selectedDomains;
+			criteria.organization = $scope.criteria.selectedOrganization;
+			searchAnnotations.searchAnnotations(criteria);
+		}
+	});
+
     $scope.cancel = function(){
         if ($scope.loading)
             return;

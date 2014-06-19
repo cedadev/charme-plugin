@@ -133,6 +133,85 @@ charme.web.services.factory('fetchAnnotation', function(){
 }
 );
 
+charme.web.services.factory('searchAnnotations', function(){
+	var searchService = {};
+	searchService.listenerTypes = {
+		SUCCESS: 'SUCCESS',
+		ERROR: 'ERROR',
+		BEFORE_SEARCH: 'BEFORE_SEARCH',
+		AFTER_SEARCH: 'AFTER_SEARCH'
+	};
+
+	searchService.results = [];
+	searchService.listeners = {};
+
+	searchService.addListener = function (type, listener){
+		if (typeof searchService.listeners[type] === 'undefined'){
+			searchService.listeners[type] = [];
+		}
+		searchService.listeners[type].push(listener);
+	};
+
+	searchService.removeListener = function(type, listener){
+		if (typeof searchService.listeners[type] !== 'undefined'){
+			var index = searchService.listeners[type].indexOf(listener);
+			if (index > -1){
+				searchService.listeners[type].splice(index, 1);
+			}
+		}
+	}
+
+	searchService.tellListeners = function (type, data){
+		angular.forEach(searchService.listeners[type], function(listener){
+			if (typeof data !== 'undefined'){
+				listener(data);
+			} else {
+				listener();
+			}
+		})
+	};
+
+	searchService.searchAnnotations = function(criteria){
+		searchService.tellListeners(searchService.listenerTypes.BEFORE_SEARCH);
+		charme.logic.searchAnnotations(criteria).then(
+			function(feed){
+				var results = [];
+				//Prepare the model for the view
+				angular.forEach(feed.entries, function(value, key){
+					var anno = value.annotation;
+					var title = charme.logic.shortAnnoTitle(anno);
+					var updated = value.updated;
+					var person = anno.getValue(anno.ANNOTATED_BY);
+					var author = '';
+					var email = '';
+					if (person){
+						author = person.getValue(person.NAME);
+						email = person.getValue(person.MBOX).getValue(person.ID);
+					}
+					results.push(
+						{
+							'id': value.id,
+							'title': title,
+							'updated': updated,
+							'author': author,
+							'email' : email
+						}
+					);
+				});
+				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results);
+				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
+			},
+			function(error){
+				searchService.tellListeners(searchService.listenerTypes.ERROR, 'Error: ' + error);
+				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
+			}
+		);
+
+	};
+
+	return searchService;
+});
+
 charme.web.services.factory('saveAnnotation', function(){ 
 	return function(annoModel, targetId, auth){
 		var promise = new Promise(function(resolver){

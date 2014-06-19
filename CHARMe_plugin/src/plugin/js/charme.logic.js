@@ -65,12 +65,6 @@ charme.logic.stateRequest = function(newState) {
 	return charme.logic._baseURL() + 'advance_status';
 };
 
-charme.logic.fetchForTarget = function(targetId) {
-	//return 'testData/charmetest.atom';
-	return charme.logic._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) +
-		'&status=submitted';
-};
-
 charme.logic.fetchRequest = function(id) {
 	return charme.logic._baseURL() +
 		'data/' +
@@ -79,6 +73,8 @@ charme.logic.fetchRequest = function(id) {
 		(charme.logic.constants.ANNO_DEPTH === 0 ? '' : '&depth=' + 
 			charme.logic.constants.ANNO_DEPTH);
 };
+
+
 
 charme.logic.urls.fetchSearchFacets = function(facets){
 	var url=charme.logic._baseURL() + 'suggest/atom?status=submitted&q=';
@@ -119,6 +115,23 @@ charme.logic.crossRefRequest = function(criteria) {
 	}
 	return url;
 };
+
+charme.logic.urls.fetchAnnotations = function(criteria) {
+	var url= charme.logic._baseURL() + 'search/atom?status=submitted';
+	if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
+		url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
+	}
+	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
+		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
+	}
+/*
+	criteria.motivations = $scope.criteria.selectedMotivation;
+	criteria.linkTypes = $scope.criteria.linkType;
+	criteria.domainsOfInterest = $scope.criteria.selectedDomains;
+	criteria.organization = $scope.criteria.selectedOrganization;
+*/
+	return url;
+}
 
 /*
  * Utility functions
@@ -441,18 +454,30 @@ charme.logic.fetchAllSearchFacets = function(){
 	return promise;
 };
 
+charme.logic.shortAnnoTitle = function(anno){
+	var out='';
+	var bodies = anno.getValues(anno.BODY);
+	angular.forEach(bodies, function(body){
+		if (body instanceof jsonoa.types.TextBody){
+			out=body.getValue(body.CONTENT_CHARS);
+		} else if (body instanceof jsonoa.types.Publication && out.length===0){
+			out=body.getValue(body.CITING_ENTITY).getValue(body.ID);
+		}
+	});
+	return out;
+}
+
 /**
- * Retrieve all annotations for the specified state
- * 
- * Parameters: successCB: a callback to be invoked on successful completion. The
- * returned JSON-LD graph will be passed into this function errorCB: a callback
- * to be invoked on error
+ * Retrieve all annotations matching the supplied criteria
+ *
+ * Parameters:
+ * 	criteria: The values which will be used to search the annotations
  */
-charme.logic.fetchAnnotationsForTarget = function(targetId) {
+charme.logic.searchAnnotations = function(criteria) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.fetchForTarget(targetId);
+		var reqUrl = charme.logic.urls.fetchAnnotations(criteria);
 		$.ajax(reqUrl, {
-			type : 'GET',
+			type : 'GET'
 		}).then(function(data) {
 			// Data is returned as ATOM wrapped json-ld
 			var result = new charme.atom.Result(data);
@@ -467,7 +492,7 @@ charme.logic.fetchAnnotationsForTarget = function(targetId) {
 				if (typeof shortGraph[jsonoa.constants.GRAPH]!== 'undefined'){
 					resultArr.push(shortGraph[jsonoa.constants.GRAPH]);
 				} else {
-				resultArr.push(shortGraph);
+					resultArr.push(shortGraph);
 				}
 
 			});
@@ -490,5 +515,5 @@ charme.logic.fetchAnnotationsForTarget = function(targetId) {
 			resolver.reject();
 		});
 	});
-    return promise;
+	return promise;
 };

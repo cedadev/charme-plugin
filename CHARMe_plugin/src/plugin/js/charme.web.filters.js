@@ -3,18 +3,7 @@
  */
 charme.web.app.
 	filter('shortAnnoTitle', function(){
-		return function(input){
-			var out='';
-			var bodies = input.getValues(input.BODY);
-			angular.forEach(bodies, function(body){
-				if (body instanceof jsonoa.types.TextBody){
-					out=body.getValue(body.CONTENT_CHARS);
-				} else if (body instanceof jsonoa.types.Publication && out.length===0){
-					out=body.getValue(body.CITING_ENTITY).getValue(body.ID);
-				}
-			});
-			return out;
-		};
+		return charme.logic.shortAnnoTitle;
 	}).
 	filter('truncate', ['$filter', function($filter){
 		return function(input, length){
