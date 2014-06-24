@@ -159,7 +159,7 @@ charme.web.services.factory('searchAnnotations', function(){
 				searchService.listeners[type].splice(index, 1);
 			}
 		}
-	}
+	};
 
 	searchService.tellListeners = function (type, data){
 		angular.forEach(searchService.listeners[type], function(listener){
@@ -168,7 +168,7 @@ charme.web.services.factory('searchAnnotations', function(){
 			} else {
 				listener();
 			}
-		})
+		});
 	};
 
 	searchService.searchAnnotations = function(criteria){
@@ -233,8 +233,7 @@ charme.web.services.factory('saveAnnotation', function(){
 					///typeInst = new type();
 				}
 				if (annoModel.uri){
-					var linkURI = annoModel.uri;
-					
+					var linkURI = encodeURI(annoModel.uri);
 					var doiVal = charme.logic.findDOI(linkURI);
 					
 					//If a DOI is provided, create a citation act for the body

@@ -144,7 +144,7 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
  * @param activeImgSrc
  * @param inactiveImgSrc
  */
-charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc) {
+charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc) {
 	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href), function (xmlDoc) {
 		// Success callback
 		var constants = new charme.plugin.constants();
@@ -167,7 +167,16 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 			el.title = 'No CHARMe annotations';
 			el.style.background = 'url("' + inactiveImgSrc + '") no-repeat left top';
 		}
+                
+                charme.common.addEvent(el, 'click', charme.plugin.showPlugin);
 	}, function () {
+                el.title = 'CHARMe Plugin - Unable to fetch annotation data';
+                el.style.background = 'url("' + noconnectionImgSrc + '") no-repeat left top';
+                charme.common.addEvent(el, 'click', function(e){
+                    alert('CHARMe Plugin - Unable to fetch annotation data');
+                    charme.plugin.stopBubble(e);
+                });
+            
 		if (window.console) {
 			window.console.error('CHARMe Plugin - Unable to fetch annotation data');
 		} else {
@@ -208,17 +217,17 @@ charme.plugin.markupTags = function () {
 	activeImage.src = charme.settings.path + '/activebuttonsmall.png';
 	var inactiveImage = new Image();
 	inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
+        var noconnectionImage = new Image();
+	noconnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
 
 	var els = charme.plugin.getByClass('charme-dataset');
 	for (var i = 0; i < els.length; i++) {
 		if (els[i].href) {
-			charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src);
+			charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noconnectionImage.src);
 		}
 		els[i].style.display = 'inline-block';
 		els[i].style.width = '36px';
 		els[i].style.height = '26px';
-		els[i].style.title = 'Click to view or create CHARMe metadata annotations';
-		charme.common.addEvent(els[i], 'click', charme.plugin.showPlugin);
 	}
 };
 
@@ -264,6 +273,23 @@ charme.plugin.loadFunc = function () {
 	this.contentWindow.charme.web.addCloseListener(charme.plugin.closeFunc);
 };
 
+charme.plugin.stopBubble = function(e){
+    /*
+     * Prevent default behaviour for anchor onclick (ie following the link)
+     */
+    if (e && e.stopPropagation) { // Non-IE browsers
+            e.preventDefault(); // Prevent default behaviour, but NOT BUBBLING - This is an important distinction, 
+            // we don't want to prevent events firing further up the chain as this might interfere with data provider's site.
+    } else { // IE versions <= 8
+            if (window.event) {
+                    window.event.returnValue = false; // Prevent default behaviour, but NOT BUBBLING
+            }
+            if (e) {
+                    e.returnValue = false;
+            }
+    }
+}
+
 /**
  * Renders the plugin visible
  * @param e event object. This is used
@@ -273,20 +299,7 @@ charme.plugin.showPlugin = function (e) {
 	charme.common.removeEvent(plugin, 'load', charme.plugin.loadFunc);
 	charme.common.addEvent(plugin, 'load', charme.plugin.loadFunc);
 
-	/*
-	 * Prevent default behaviour for anchor onclick (ie following the link)
-	 */
-	if (e && e.stopPropagation) { // Non-IE browsers
-		e.preventDefault(); // Prevent default behaviour, but NOT BUBBLING - This is an important distinction, 
-		// we don't want to prevent events firing further up the chain as this might interfere with data provider's site.
-	} else { // IE versions <= 8
-		if (window.event) {
-			window.event.returnValue = false; // Prevent default behaviour, but NOT BUBBLING
-		}
-		if (e) {
-			e.returnValue = false;
-		}
-	}
+        charme.plugin.stopBubble(e);
 	var targetHref = '';
 	if (typeof e.target === 'undefined') {
 		targetHref = e.srcElement.href;

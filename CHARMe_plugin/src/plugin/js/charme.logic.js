@@ -47,8 +47,8 @@ charme.logic.constants = {
 
 /*
  * A series of utility functions for constructing REST requests to the various
- * CHARMe web services Main reference source for this is the CHARMe Node ICD
- * TODO: These should all be refactored and moved into the charme.logic.urls namespace.
+ * CHARMe web services - main reference source for this is the CHARMe Node ICD
+ * 
  */
 charme.logic.urls={};
 charme.logic.urls._baseURL = function(uri) {
@@ -128,14 +128,19 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
 	}
-/*
-	criteria.motivations = $scope.criteria.selectedMotivation;
-	criteria.linkTypes = $scope.criteria.linkType;
-	criteria.domainsOfInterest = $scope.criteria.selectedDomains;
-	criteria.organization = $scope.criteria.selectedOrganization;
-*/
+        // need node to support search for linkType
+        if (typeof criteria.linkTypes !== 'undefined' && criteria.linkTypes.length > 0){
+		url+='&linkType=' + encodeURIComponent(criteria.linkTypes.join(' '));
+	}
+        if (typeof criteria.domainsOfInterest !== 'undefined' && criteria.domainsOfInterest.length > 0){
+		url+='&domainOfInterest=' + encodeURIComponent(criteria.domainsOfInterest.join(' '));
+	}
+        if (typeof criteria.organization !== 'undefined' && criteria.organization.length > 0){
+		url+='&organization=' + encodeURIComponent(criteria.organization.join(' '));
+	}
+
 	return url;
-}
+};
 
 /*
  * Utility functions
