@@ -9,7 +9,6 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		'	"@id": "?",																				' +
 		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],										' +
 		'	"http://www.w3.org/ns/oa#motivatedBy": [],												' +
-		'	"http://www.w3.org/ns/oa#annotatedBy": {"@id":"?"},										' +
 		'	"http://www.w3.org/ns/oa#hasBody": [],													' +
 		'	"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}										' +
 		'}																							',
@@ -69,11 +68,9 @@ jsonoa.types.Person = jsonoa.types.register({
 	'{													' +
 	'	"@id":"?",			' +
 	'	"@type":["http://xmlns.com/foaf/0.1/Person"],	'+
-	'	"http://xmlns.com/foaf/0.1/mbox":{"@id":"?"},	'+
 	'	"http://xmlns.com/foaf/0.1/name":"?"			'+
 	'}													',
 	constants: {
-		MBOX: 'http://xmlns.com/foaf/0.1/mbox',
 		NAME: 'http://xmlns.com/foaf/0.1/name'
 	}
 });

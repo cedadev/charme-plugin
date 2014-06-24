@@ -74,6 +74,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 	};
 
 	searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
+			$scope.entries = [];
 			$scope.loading = true;
 	});
 
@@ -305,34 +306,16 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchA
 	};
 
 	searchAnnotations.searchAnnotations(criteria);
-
-	/*
-	 Listen for changes to model and re-run search
-	 */
-	var models = [
-		'selectedMotivation',
-		'selectedLinkType',
-		'selectedLink',
-		''
-	];
-	/*
-	$scope.criteria = {
-		motivations: '',
-		linkTypes: '',
-		domainsOfInterest: '',
-		organization: ''
-	};
-*/
-	$scope.$watchCollection('criteria', function(){
+	$scope.$watch('criteria', function(){
 		console.log('$watch triggered');
 		if (typeof $scope.criteria !== 'undefined') {
-			criteria.motivations = $scope.criteria.selectedMotivation;
-			criteria.linkTypes = $scope.criteria.linkType;
+			criteria.motivations = [$scope.criteria.selectedMotivation];
+			criteria.linkTypes = [$scope.criteria.selectedLinkType];
 			criteria.domainsOfInterest = $scope.criteria.selectedDomains;
 			criteria.organization = $scope.criteria.selectedOrganization;
 			searchAnnotations.searchAnnotations(criteria);
 		}
-	});
+	}, true);
 
     $scope.cancel = function(){
         if ($scope.loading)

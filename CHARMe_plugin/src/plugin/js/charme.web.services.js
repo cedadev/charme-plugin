@@ -142,7 +142,6 @@ charme.web.services.factory('searchAnnotations', function(){
 		AFTER_SEARCH: 'AFTER_SEARCH'
 	};
 
-	searchService.results = [];
 	searchService.listeners = {};
 
 	searchService.addListener = function (type, listener){
