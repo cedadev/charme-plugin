@@ -92,6 +92,17 @@ jsonoa.types.SemanticTag = jsonoa.types.register({
 	}
 });
 
+jsonoa.types.Organization = jsonoa.types.register({
+	template: '{                                                     ' +
+		'	"@id": "?",                                        ' +
+		'	"@type": "http://xmlns.com/foaf/0.1/Organization", ' +
+		'	"http://xmlns.com/foaf/0.1/name": "?"              ' +
+		'}                                                     ',
+	constants: {
+		NAME: 'http://xmlns.com/foaf/0.1/name'
+	}
+});
+
 jsonoa.types.TechnicalReport = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/TechnicalReport"}'});
 jsonoa.types.ConferencePaper = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/ConferencePaper"}'});
 jsonoa.types.JournalArticle = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/JournalArticle"}'});

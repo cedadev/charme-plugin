@@ -183,18 +183,15 @@ charme.web.services.factory('searchAnnotations', function(){
 					var updated = value.updated;
 					var person = anno.getValue(anno.ANNOTATED_BY);
 					var author = '';
-					var email = '';
 					if (person){
 						author = person.getValue(person.NAME);
-						email = person.getValue(person.MBOX).getValue(person.ID);
 					}
 					results.push(
 						{
 							'id': value.id,
 							'title': title,
 							'updated': updated,
-							'author': author,
-							'email' : email
+							'author': author
 						}
 					);
 				});
@@ -305,11 +302,7 @@ charme.web.services.factory('saveAnnotation', function(){
                     anno.addValue(anno.MOTIVATED_BY, page);
                 });
             }
-			var person = graph.createNode(jsonoa.types.Person, 'http://localhost/' + charme.logic.generateGUID());
-			person.setValue(person.MBOX, graph.createStub('mailto:' + auth.user.email));
-			person.setValue(person.NAME, auth.user.first_name + ' ' + auth.user.last_name);
-			anno.setValue(anno.ANNOTATED_BY, person);
-			
+
 			var target = graph.createNode(jsonoa.types.DatasetTarget, targetId);
 			anno.setValue(anno.TARGET, target);
 			charme.logic.saveGraph(graph, auth.token).then(
@@ -317,7 +310,8 @@ charme.web.services.factory('saveAnnotation', function(){
 					resolver.fulfill(data);
 				}, 
 				function(error){
-					resolver.reject(error);
+					console.error(error)
+					resolver.reject('Unable to save annotation');
 				}
 			);
 		});

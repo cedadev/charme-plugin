@@ -29,7 +29,7 @@
                 <tr data-ng-show="!loading && entries.length===0"><td colspan="3">No annotations.</td></tr>
                 <tr data-ng-repeat="entry in entries | filter:searchText">
                     <td><a href="" data-ng-click="viewAnnotation(entry.id)" title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
-                    <td><a href="{{entry.email}}">{{entry.author}}</a></td>
+                    <td>{{entry.author}}</td>
                     <td>{{entry.updated | date:'d/M/yyyy'}}</td>
                 </tr>
             </tbody>

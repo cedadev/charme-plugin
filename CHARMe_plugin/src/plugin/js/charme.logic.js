@@ -121,7 +121,7 @@ charme.logic.urls.crossRefRequest = function(criteria) {
 };
 
 charme.logic.urls.fetchAnnotations = function(criteria) {
-	var url= charme.logic._baseURL() + 'search/atom?status=submitted';
+	var url= charme.logic.urls._baseURL() + 'search/atom?status=submitted';
 	if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
 		url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
 	}
@@ -477,7 +477,7 @@ charme.logic.fetchCrossRefMetaData = function(criteria) {
  * Given a state, returns true if any metadata exists for this resource
  */
 charme.logic.exists = function(state, successCB, errorCB) {
-	var reqUrl = charme.logic.existRequest(state);
+	var reqUrl = charme.logic.urls.existRequest(state);
 	$.ajax(reqUrl, {
 		dataType : 'json',
 		success : successCB,
@@ -492,7 +492,7 @@ charme.logic.exists = function(state, successCB, errorCB) {
  * errorCB: a callback to be invoked on error
  */
 charme.logic.createAnnotation = function(annotation, successCB, errorCB) {
-	var reqUrl = charme.logic.createRequest();
+	var reqUrl = charme.logic.urls.createRequest();
 	var jsonObj = annotation.serialize();
 	var stringified = JSON.stringify(jsonObj);
 	$.ajax(reqUrl, {
@@ -504,7 +504,7 @@ charme.logic.createAnnotation = function(annotation, successCB, errorCB) {
 		contentType : 'application/ld+json',
 		success : successCB,
 		error : errorCB,
-		data : stringified,
+		data : stringified
 	});
 };
 
@@ -516,7 +516,7 @@ charme.logic.createAnnotation = function(annotation, successCB, errorCB) {
  */
 charme.logic.saveGraph = function(graph, token) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.createRequest();
+		var reqUrl = charme.logic.urls.createRequest();
 		var jsonSrc = graph.toJSON();
 		$.ajax(reqUrl, {
 			dataType : 'text',
@@ -548,7 +548,7 @@ charme.logic.fetchAnnotation = function(annotationId) {
 		shortId = matches[0];
 
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.fetchRequest(shortId);
+		var reqUrl = charme.logic.urls.fetchRequest(shortId);
 		$.ajax(reqUrl, {
 			type : 'GET',
 		}).then(function(data) {
