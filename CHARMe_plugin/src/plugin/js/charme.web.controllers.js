@@ -93,8 +93,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 		$scope.$apply( function(){
 			$scope.errorMsg = errorMsg;
 		});
-	})
-
+	});
 }]);
 
 /**
@@ -103,6 +102,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes',
       function ($scope, $routeParams, $location, $window, fetchAnnotation, fetchKeywords, fetchFabioTypes){
 		$scope.viewAnnotationFlag=true;
+                $scope.loading=true;
 		var targetId=$routeParams.targetId;
 		$scope.cancel = function(){
 			$location.path(encodeURIComponent(targetId) + '/annotations/');
@@ -113,6 +113,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams
 		
 		Promise.every(fetchKeywords(), fetchAnnotation(annoId), fetchFabioTypes()).then(
 				function (results){
+                                        $scope.loading=false;
 					$scope.$apply(function(){
 						var categories = results[0];
 						var keywords = {};
@@ -188,13 +189,16 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams
 								}
 														
 							});
-							
-							var author = anno.getValue(anno.ANNOTATED_BY);
-							if (author){
-								$scope.author = author.getValue(author.NAME);
-								$scope.email = author.getValue(author.MBOX);
-							}	
-							
+                                                        
+                                                        var authorDetails = anno.getValues(anno.ANNOTATED_BY);
+                                                        angular.forEach(authorDetails, function(authorDetail){
+                                                            if (authorDetail instanceof jsonoa.types.Person){
+                                                                $scope.author = authorDetail.getValue(authorDetail.GIVEN_NAME) + ' ' + authorDetail.getValue(authorDetail.FAMILY_NAME);
+                                                            } else if (authorDetail instanceof jsonoa.types.Organization){
+                                                                $scope.organization = authorDetail.getValue(authorDetail.NAME);
+                                                            }
+                                                        });
+                                                        
 							if (!$scope.comment){
 								$scope.noComment=true;
 							}
@@ -306,33 +310,16 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchA
 
 	searchAnnotations.searchAnnotations(criteria);
 
-	/*
-	 Listen for changes to model and re-run search
-	 */
-	var models = [
-		'selectedMotivation',
-		'selectedLinkType',
-		'selectedLink',
-		''
-	];
-	/*
-	$scope.criteria = {
-		motivations: '',
-		linkTypes: '',
-		domainsOfInterest: '',
-		organization: ''
-	};
-*/
-	$scope.$watchCollection('criteria', function(){
-		console.log('$watch triggered');
+	//Listen for changes to model and re-run search
+	$scope.$watch('criteria', function(){
 		if (typeof $scope.criteria !== 'undefined') {
 			criteria.motivations = $scope.criteria.selectedMotivation;
-			criteria.linkTypes = $scope.criteria.linkType;
+			criteria.linkTypes = $scope.criteria.selectedLinkType;
 			criteria.domainsOfInterest = $scope.criteria.selectedDomains;
 			criteria.organization = $scope.criteria.selectedOrganization;
 			searchAnnotations.searchAnnotations(criteria);
 		}
-	});
+	}, true);
 
     $scope.cancel = function(){
         if ($scope.loading)

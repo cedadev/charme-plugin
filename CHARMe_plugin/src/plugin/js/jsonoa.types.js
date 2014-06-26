@@ -66,15 +66,17 @@ jsonoa.types.Publication = jsonoa.types.register({
 
 jsonoa.types.Person = jsonoa.types.register({
 	template:
-	'{													' +
-	'	"@id":"?",			' +
-	'	"@type":["http://xmlns.com/foaf/0.1/Person"],	'+
-	'	"http://xmlns.com/foaf/0.1/mbox":{"@id":"?"},	'+
-	'	"http://xmlns.com/foaf/0.1/name":"?"			'+
-	'}													',
+	'{                                                      ' +
+	'	"@id":"?",                                      ' +
+	'	"@type":["http://xmlns.com/foaf/0.1/Person"],   ' +
+	//'	"http://xmlns.com/foaf/0.1/mbox":{"@id":"?"},	' +
+	'	"http://xmlns.com/foaf/0.1/familyName":"?",     ' +
+        '	"http://xmlns.com/foaf/0.1/givenName":"?"       ' +
+	'}                                                      ',
 	constants: {
-		MBOX: 'http://xmlns.com/foaf/0.1/mbox',
-		NAME: 'http://xmlns.com/foaf/0.1/name'
+		//MBOX: 'http://xmlns.com/foaf/0.1/mbox',
+		FAMILY_NAME: 'http://xmlns.com/foaf/0.1/familyName',
+                GIVEN_NAME: 'http://xmlns.com/foaf/0.1/givenName'
 	}
 });
 

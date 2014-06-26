@@ -181,17 +181,25 @@ charme.web.services.factory('searchAnnotations', function(){
 					var anno = value.annotation;
 					var title = charme.logic.shortAnnoTitle(anno);
 					var updated = value.updated;
-					var person = anno.getValue(anno.ANNOTATED_BY);
-					var author = '';
-					if (person){
-						author = person.getValue(person.NAME);
-					}
+                                        var person = anno.getValues(anno.ANNOTATED_BY);
+                                        var author = '';
+                                        var organization = '';
+                                        
+                                        angular.forEach(person, function(detail){
+                                            if (detail instanceof jsonoa.types.Person){
+                                                author = detail.getValue(detail.GIVEN_NAME) + ' ' + detail.getValue(detail.FAMILY_NAME);
+                                            } else if (detail instanceof jsonoa.types.Organization){
+                                                organization = detail.getValue(detail.NAME);
+                                            }
+                                        });
+                                        
 					results.push(
 						{
 							'id': value.id,
 							'title': title,
 							'updated': updated,
-							'author': author
+							'author': author,
+                                                        'organization': organization
 						}
 					);
 				});
