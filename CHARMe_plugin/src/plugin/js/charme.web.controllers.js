@@ -306,8 +306,8 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchA
 	var criteria = {
 		targets:[targetId]
 	};
-
 	searchAnnotations.searchAnnotations(criteria);
+
 	$scope.$watch('criteria', function(){
 		if (typeof $scope.criteria !== 'undefined') {
 			criteria.motivations = [$scope.criteria.selectedMotivation];
@@ -318,6 +318,8 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchA
 			});
 			criteria.domainsOfInterest = selectedDomains;
 			criteria.organization = $scope.criteria.selectedOrganization;
+			criteria.creator = $scope.criteria.selectedCreator;
+			searchAnnotations.searchAnnotations(criteria);
 		}
 	}, true);
 
