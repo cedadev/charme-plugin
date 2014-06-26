@@ -76,6 +76,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 	searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
 			$scope.entries = [];
 			$scope.loading = true;
+		$scope.errorMsg = ''
 	});
 
 	searchAnnotations.addListener(searchAnnotations.listenerTypes.AFTER_SEARCH, function(){
@@ -174,8 +175,9 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams
 									if (!$scope.tags){
 										$scope.tags = [];
 									}
-									var tagURI = body.getValue(body.PAGE).getValue(body.ID);
-									$scope.tags.push({uri: tagURI, desc: keywords[tagURI]});
+									var tagURI = body.getValue(body.ID);
+									var prefLabel = body.getValue(body.PREF_LABEL);
+									$scope.tags.push({uri: tagURI, desc: prefLabel});
 								} else {
 									//Match the citation type to a text description.
 									var type = body.getValue(body.TYPE);
@@ -297,7 +299,7 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchA
             $scope.motivations = facetTypes[charme.logic.constants.FACET_TYPE_MOTIVATION];
 			$scope.linkTypes = facetTypes[charme.logic.constants.FACET_TYPE_DATA_TYPE];
 			$scope.domainsOfInterest = facetTypes[charme.logic.constants.FACET_TYPE_DOMAIN];
-			$scope.organization = facetTypes[charme.logic.constants.FACET_TYPE_ORGANIZATION];
+			$scope.organizations = facetTypes[charme.logic.constants.FACET_TYPE_ORGANIZATION];
         });
     });
 
@@ -307,13 +309,15 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchA
 
 	searchAnnotations.searchAnnotations(criteria);
 	$scope.$watch('criteria', function(){
-		console.log('$watch triggered');
 		if (typeof $scope.criteria !== 'undefined') {
 			criteria.motivations = [$scope.criteria.selectedMotivation];
 			criteria.linkTypes = [$scope.criteria.selectedLinkType];
-			criteria.domainsOfInterest = $scope.criteria.selectedDomains;
+			var selectedDomains = [];
+			angular.forEach($scope.criteria.selectedDomains, function (selectedDomain) {
+				selectedDomains.push(selectedDomain.value);
+			});
+			criteria.domainsOfInterest = selectedDomains;
 			criteria.organization = $scope.criteria.selectedOrganization;
-			searchAnnotations.searchAnnotations(criteria);
 		}
 	}, true);
 

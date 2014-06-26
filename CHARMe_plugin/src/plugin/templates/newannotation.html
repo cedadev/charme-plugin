@@ -1,41 +1,57 @@
 <div data-ng-include="'templates/header.html'"></div>
 <div class="modal-body modal-body-new">
-	<div data-ng-show="loading" class="ajaxModal">
-		<div class="modalProgress spinner">
-			<img src="img/ajaxspinner.gif"/>
-		</div>
-	</div>
-	<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-	<form name="newAnnoForm">
+    <div data-ng-show="loading" class="ajaxModal">
+        <div class="modalProgress spinner">
+            <img src="img/ajaxspinner.gif"/>
+        </div>
+    </div>
+    <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+    <form name="newAnnoForm">
 
-        <h4>Comments <span title="Free text comments go here; a link may be included below" class="icon-question-sign"></span></h4>
-		<textarea data-ng-model="anno.comment" rows="3"></textarea>
+        <h4>Comments <span title="Free text comments go here; a link may be included below"
+                           class="icon-question-sign"></span></h4>
+        <textarea data-ng-model="anno.comment" rows="3"></textarea>
 
-        <h4>Motivation <span title="Select tag(s) describing the motivations of this annotation" class="icon-question-sign"></span></h4>
-        <select data-ng-model="anno.motivation" data-motivation-keywords multiple placeholder="Select motivations...">
+        <h4>Motivation <span title="Select tag(s) describing the motivations of this annotation"
+                             class="icon-question-sign"></span></h4>
+        <select data-ng-model="anno.motivation" data-motivation-keywords multiple
+                placeholder="Select motivations...">
         </select>
 
-		<h4>Domain Classification <span title="Select tag(s) describing the subject of this annotation" class="icon-question-sign"></span></h4>
-		<select data-ng-model="anno.domain" data-domain-keywords multiple placeholder="Select tags...">
-		</select>
+        <h4>Domain Classification <span
+                title="Select tag(s) describing the subject of this annotation"
+                class="icon-question-sign"></span></h4>
+        <select data-ng-model="anno.domain" data-domain-keywords multiple
+                placeholder="Select tags...">
+        </select>
 
-        <h4>Link <span title="Select type of reference (e.g. journal article) you wish to link to - a textbox will then open for the address" class="icon-question-sign"></span></h4>
-		<div class="row-fluid">
-			<div class="span2">				
-				<select class="input-medium" data-ng-model="anno.type" name="type" title="Please select a link subtype" data-ng-options="type.value as type.text for type in citoTypes" data-ng-required="anno.type">
-				<option value="">No link</option>
-				</select>
-			</div>
-			<div class="span1"></div>
-			<div class="span8" data-ng-show="anno.type">	
-				<div data-ng-class="{'control-group error':anno.type && !anno.uri, 'control-group success':anno.citoText}">			
-					<input name="annoURI" data-ng-model="anno.uri" type="text" class="input-block-level" title="Please enter a URI. Use DOI where available." placeholder="Annotation URI" data-ng-required="anno.type" data-ng-change="changeURI(anno.uri)"></input>			
-				</div>
-			</div>
-			<div class="span1" data-ng-show="anno.citoText">
-				<span class="icon-tag" title="{{anno.citoText}}"></span>
-			</div>
-		</div>
-	</form>
+        <h4>Link <span
+                title="Select type of reference (e.g. journal article) you wish to link to - a textbox will then open for the address"
+                class="icon-question-sign"></span></h4>
+
+        <div class="row-fluid">
+            <div class="span2">
+                <select class="input-medium" data-ng-model="anno.type" name="type"
+                        title="Please select a link subtype"
+                        data-ng-options="type.value as type.text for type in citoTypes"
+                        data-ng-required="anno.type">
+                    <option value="">No link</option>
+                </select>
+            </div>
+            <div class="span1"></div>
+            <div class="span8" data-ng-show="anno.type">
+                <div data-ng-class="{'control-group error':anno.type && !anno.uri, 'control-group success':anno.citoText}">
+                    <input name="annoURI" data-ng-model="anno.uri" type="text"
+                           class="input-block-level"
+                           title="Please enter a URI. Use DOI where available."
+                           placeholder="Annotation URI" data-ng-required="anno.type"
+                           data-ng-change="changeURI(anno.uri)"></input>
+                </div>
+            </div>
+            <div class="span1" data-ng-show="anno.citoText">
+                <span class="icon-tag" title="{{anno.citoText}}"></span>
+            </div>
+        </div>
+    </form>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

@@ -79,13 +79,11 @@ jsonoa.types.SemanticTag = jsonoa.types.register({
 	template:
 		'{                                                                        ' +
 		'  "@id": "?",                                                            ' +
-		'  "@type": "http://www.w3.org/ns/oa#SemanticTag",        ' +
-		'  "http://xmlns.com/foaf/0.1/page": {                                    ' +
-		'    "@id": "?"                                                           ' +
-		'	}                                                                     ' +
+			'  "@type": "http://www.w3.org/ns/oa#SemanticTag",                        ' +
+			'  "http://www.w3.org/2004/02/skos/core#prefLabel": "?"                   ' +
 		'}                                                                        ',
 	constants: {
-		PAGE: 'http://xmlns.com/foaf/0.1/page'
+		PREF_LABEL: 'http://www.w3.org/2004/02/skos/core#prefLabel'
 	}
 });
 

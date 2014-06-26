@@ -4,6 +4,7 @@ jsonoa.graph = {};
 jsonoa.constants = {
 	ID:'@id',
 	PREF_LABEL:'http://www.w3.org/2004/02/skos/core#prefLabel',
+	NAME: 'http://xmlns.com/foaf/0.1/name',
 	GRAPH: '@graph'
 };
 

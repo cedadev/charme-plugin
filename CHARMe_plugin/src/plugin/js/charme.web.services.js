@@ -208,7 +208,7 @@ charme.web.services.factory('searchAnnotations', function(){
 	return searchService;
 });
 
-charme.web.services.factory('saveAnnotation', function(){ 
+charme.web.services.factory('saveAnnotation', function () {
 	return function(annoModel, targetId, auth){
 		var promise = new Promise(function(resolver){
 			
@@ -260,36 +260,23 @@ charme.web.services.factory('saveAnnotation', function(){
 					}
 
                     //Automatically add the "Linking" Motivation
-                    //var tagId = charme.logic.generateId();
                     var page = graph.createStub("http://www.w3.org/ns/oa#linking");
-                    //var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
-                    //tag.setValue(tag.MOTIVATED_BY, page);
                     anno.addValue(anno.MOTIVATED_BY, page);
-
-
-					
 				} else {
 					resolver.reject('No URI entered');
 				}
-				
 			}
 			if (annoModel.domain){
 				angular.forEach(annoModel.domain, function(value){
-					var tagId = charme.logic.generateId();
-					var page = graph.createStub(value);
+					var tagId = value.value;
 					var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
-					tag.setValue(tag.PAGE, page);
+					tag.setValue(tag.PREF_LABEL, value.text);
 					anno.addValue(anno.BODY, tag);
 				});
 
                 //Automatically add the "Tagging" Motivation
-                //var tagId = charme.logic.generateId();
                 var page = graph.createStub("http://www.w3.org/ns/oa#tagging");
-                //var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
                 anno.addValue(anno.MOTIVATED_BY, page);
-                //tag.setValue(tag.MOTIVATED_BY, page);
-                //anno.addValue(anno.BODY, tag);
-
 			}
             if (annoModel.motivation){
                 angular.forEach(annoModel.motivation, function(value){
@@ -342,7 +329,7 @@ charme.web.services.factory('fetchKeywords', function(){
 
 charme.web.services.factory('fetchAllMotivations', function(){
     var categories = [];//Only fetch once, and scope to session
-    return function(annoModel, targetId){
+	return function () {
         var promise = new Promise(function(resolver){
             if (categories.length===0){
                 charme.logic.fetchMotivationVocab().then(function(keywords){
