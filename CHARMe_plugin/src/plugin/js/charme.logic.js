@@ -128,15 +128,20 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
 	}
-        // need node to support search for linkType
-        if (typeof criteria.linkTypes !== 'undefined' && criteria.linkTypes.length > 0){
-		url+='&linkType=' + encodeURIComponent(criteria.linkTypes.join(' '));
-	}
-        if (typeof criteria.domainsOfInterest !== 'undefined' && criteria.domainsOfInterest.length > 0){
+	// need node to support search for linkType
+	//if (typeof criteria.linkTypes !== 'undefined' && criteria.linkTypes.length > 0) {
+	//	url+='&linkType=' + encodeURIComponent(criteria.linkTypes.join(' '));
+	//}
+	if (typeof criteria.domainsOfInterest !== 'undefined' && criteria.domainsOfInterest.length > 0) {
 		url+='&domainOfInterest=' + encodeURIComponent(criteria.domainsOfInterest.join(' '));
 	}
-        if (typeof criteria.organization !== 'undefined' && criteria.organization.length > 0){
-		url+='&organization=' + encodeURIComponent(criteria.organization.join(' '));
+	if (typeof criteria.organization !== 'undefined' && criteria.organization !== null &&
+		criteria.organization.length > 0) {
+		url += '&organization=' + encodeURIComponent(criteria.organization);
+	}
+	if (typeof criteria.creator !== 'undefined' && criteria.creator !== null &&
+		criteria.creator.length > 0) {
+		url += '&userName=' + encodeURIComponent(criteria.creator);
 	}
 
 	return url;
@@ -251,6 +256,7 @@ charme.logic.fetchGCMDVocab = function() {
 			$(jsonResp.results.bindings).each(function(index, binding) {
 				var word = binding.l.value;
 				word = word.substring(word.lastIndexOf('>') + 1);
+				word = word.trim();
 				keywords.push({
 					uri : binding.p.value,
 					desc : word
@@ -599,7 +605,9 @@ charme.logic.fetchAllSearchFacets = function(){
 				$.each(facets, function (index, facet){
 					var facetObj = {};
 					facetObj.uri=facet[jsonoa.constants.ID];
-					facetObj.label=facet[jsonoa.constants.PREF_LABEL];
+					if (facetType === charme.logic.constants.FACET_TYPE_ORGANIZATION)
+						facetObj.label = facet[jsonoa.constants.NAME]; else
+						facetObj.label = facet[jsonoa.constants.PREF_LABEL];
 					resultMap[facetType].push(facetObj);
 				})
 			});

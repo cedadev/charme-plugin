@@ -68,7 +68,7 @@ textarea {
 .modal-body{
 	/*overflow-y: auto;*/
 	/*max-height: 300px;*/
-    min-height: 300px;
+    min-height: 350px;
 }
 .modal-body-new{
 	overflow-y: visible;

@@ -9,7 +9,6 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		'	"@id": "?",																				' +
 		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],										' +
 		'	"http://www.w3.org/ns/oa#motivatedBy": [],												' +
-		'	"http://www.w3.org/ns/oa#annotatedBy": {"@id":"?"},										' +
 		'	"http://www.w3.org/ns/oa#hasBody": [],													' +
 		'	"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}										' +
 		'}																							',
@@ -84,13 +83,11 @@ jsonoa.types.SemanticTag = jsonoa.types.register({
 	template:
 		'{                                                                        ' +
 		'  "@id": "?",                                                            ' +
-		'  "@type": "http://www.w3.org/ns/oa#SemanticTag",        ' +
-		'  "http://xmlns.com/foaf/0.1/page": {                                    ' +
-		'    "@id": "?"                                                           ' +
-		'	}                                                                     ' +
+			'  "@type": "http://www.w3.org/ns/oa#SemanticTag",                        ' +
+			'  "http://www.w3.org/2004/02/skos/core#prefLabel": "?"                   ' +
 		'}                                                                        ',
 	constants: {
-		PAGE: 'http://xmlns.com/foaf/0.1/page'
+		PREF_LABEL: 'http://www.w3.org/2004/02/skos/core#prefLabel'
 	}
 });
 
