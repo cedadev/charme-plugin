@@ -8,6 +8,13 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
 	}
 ]);
 
+charme.web.controllers.controller('HeaderCtrl', ['$scope',
+function ($scope){
+    $scope.close = function(){
+        charme.web.close();
+    };
+}]);
+
 /**
  * List all annotations for target.
  */
@@ -101,7 +108,7 @@ function ($scope, $routeParams, $location, $filter, fetchAnnotationsForTarget, l
 /**
  * View details of individual annotation.
  */
-charme.web.controllers.controller('ViewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes',
+charme.web.controllers.controller('ViewAnnotationCtViewAnrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes',
       function ($scope, $routeParams, $location, $window, fetchAnnotation, fetchKeywords, fetchFabioTypes){
 		$scope.viewAnnotationFlag=true;
                 $scope.loading=true;
