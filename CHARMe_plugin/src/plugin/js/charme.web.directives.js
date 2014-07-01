@@ -62,11 +62,7 @@ charme.web.app.directive('domainKeywords', ['fetchKeywords', function (fetchKeyw
 								optgroups: optgroups
 							})[0].selectize;
 
-							/*function applyChange() {
-								$ngModel.$setViewValue(el.getValue());
-							};*/
-                                                        
-                                                        function applyChange() {
+                            function applyChange() {
 								var selectedOptions = [];
 								var values = el.getValue();
 								angular.forEach(options, function (option) {

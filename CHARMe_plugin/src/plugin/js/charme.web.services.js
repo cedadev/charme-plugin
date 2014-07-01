@@ -275,10 +275,10 @@ charme.web.services.factory('saveAnnotation', function () {
 				}
 			}
 			if (annoModel.domain){
-				angular.forEach(annoModel.domain, function(value){
-					var tagId = value.value;
+				angular.forEach(annoModel.domain, function(domain){
+					var tagId = domain.value;
 					var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
-					tag.setValue(tag.PREF_LABEL, value.text);
+					tag.setValue(tag.PREF_LABEL, domain.text);
 					anno.addValue(anno.BODY, tag);
 				});
 
@@ -287,9 +287,9 @@ charme.web.services.factory('saveAnnotation', function () {
                 anno.addValue(anno.MOTIVATED_BY, page);
 			}
             if (annoModel.motivation){
-                angular.forEach(annoModel.motivation, function(value){
+                angular.forEach(annoModel.motivation, function(motivation){
                     //var tagId = charme.logic.generateId();
-                    var page = graph.createStub(value);
+                    var page = graph.createStub(motivation.value);
                     //var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
                     //tag.setValue(tag.MOTIVATED_BY, page);
                     anno.addValue(anno.MOTIVATED_BY, page);
