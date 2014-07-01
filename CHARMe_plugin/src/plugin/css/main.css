@@ -63,17 +63,19 @@ textarea {
 	margin-left: 0;
 	left: 5px;
 	top: 5px;
-	min-width: 95%;
+	width: 95%;
 }
 .modal-body{
-	max-height: 270px;
+	/*overflow-y: auto;*/
+	/*max-height: 300px;*/
+    min-height: 400px;
 }
 .modal-body-new{
 	overflow-y: visible;
 }
 
 .modal-body-list{
-	overflow-y: auto;
+	/*overflow-y: auto;*/
 }
 
 .popover-visible{
@@ -130,11 +132,139 @@ body {
 	bottom: 0;
 	right: 0;
 	margin: auto;
-	text-align: center;
 }
 .annoListSearch{
 	width: 95%;
 }
+.semanticTag{
+	margin-right: 10px;
+}
+.spinner{
+	text-align: center !important;
+}
+.spinner-small img{
+	width: 24px;
+	height: 24px;
+}
+.userMenu {
+	text-align: left;
+}
+#charmeTitle{
+	vertical-align: bottom;
+	width: 158px;
+	height: 40px;
+	margin-right: 20px;
+}
+#targetTitle{
+	clear: left;
+}
+.pluginVersion{
+	float: left;
+}
+
+.search-container{
+    position: absolute;
+    left:0;
+    top:0;
+    bottom: 0;
+}
+.search-title .brand {
+    margin-left: 0;
+}
+
+.search-title .nav {
+    width: 100%;
+}
+.search-open{
+    width: 360px;
+    animation: search-slide-in 500ms;
+    -webkit-animation: search-slide-in 500ms;
+}
+.search-button-holder{
+    margin-right: 5px;
+    margin-top: 10px;
+}
+
+@keyframes search-slide-in{
+    from{
+        /*width: 45px;*/
+        margin-left: -315px;
+    }
+    to{
+        /*width: 300px;*/
+        margin-left: 0;
+    }
+}
+
+@-webkit-keyframes search-slide-in{
+    from{
+        /*width: 45px;*/
+        margin-left: -315px;
+    }
+    to{
+        /*width: 300px;*/
+        margin-left: 0;
+    }
+}
+
+.search-collapsed{
+    width: 360px;
+    margin-left: -315px;
+    animation: search-slide-out 500ms;
+    -webkit-animation: search-slide-out 500ms;
+    padding-left: 5px;
+}
+
+@keyframes search-slide-out{
+    from{
+        /*width: 300px;*/
+        margin-left: 0;
+    }
+    to{
+        /*width: 45px;*/
+        margin-left: -315px;
+    }
+}
+
+@-webkit-keyframes search-slide-out{
+    from{
+        /*width: 300px;*/
+        margin-left: 0;
+    }
+    to{
+        /*width: 45px;*/
+        margin-left: -315px;
+    }
+}
+
+.search-title{
+    width: 100%;
+}
+.search-content {
+    min-height: 100%;
+    padding: 9px 15px;
+    background-color: #f2f2f2;
+    border-style: solid;
+    border-width: 0 1px 0 0;
+    border-color: #ccc;
+}
+
+.search-results-open {
+    margin-left: 360px;
+}
+
+.search-results-collapsed {
+    margin-left: 45px;
+}
+
+.form-horizontal .control-label {
+    width: 80px;
+}
+
+.form-horizontal .controls {
+    margin-left: 100px;
+}
+
 /* ==========================================================================
    Media Queries
    ========================================================================== */

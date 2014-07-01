@@ -1,6 +1,13 @@
 var jsonoa = {};
 jsonoa.types = {};
 jsonoa.graph = {};
+jsonoa.constants = {
+	ID:'@id',
+	PREF_LABEL:'http://www.w3.org/2004/02/skos/core#prefLabel',
+	NAME: 'http://xmlns.com/foaf/0.1/name',
+	GRAPH: '@graph'
+};
+
 jsonoa.util = {};
 
 jsonoa.util.arraysEqual = function(arr1, arr2){
@@ -10,8 +17,14 @@ jsonoa.util.isWrapped = function(obj){
 	return (obj.node);
 };
 
+/**
+ * Tests whether a given value is a jsonoa graph node, or a primitive type
+ * @param test
+ * @returns
+ */
 jsonoa.util.isNode = function(test){
-	return (test['@id']);
+	//Check value is not null, and then check that it has an @id attribute
+	return test && test['@id'] ? true : false;
 };
 
 jsonoa.types.registry = [];
@@ -53,14 +66,7 @@ jsonoa.types.register = function(typeDesc){
 			this[key]=typeDesc.constants[key];
 		}
 		
-		//Accessor Methods
-		this.getValue=function(attr){
-			this._isInit();
-			
-			var attrVal = this.node[attr];
-			if (attrVal instanceof Array){
-				attrVal = attrVal[0];
-			}
+		this._wrapValue = function(attrVal){
 			if (jsonoa.util.isNode(attrVal)){
 				var linkedNode = this.graph.getNode(attrVal['@id']);
 				if (!linkedNode){
@@ -72,39 +78,68 @@ jsonoa.types.register = function(typeDesc){
 			} else {
 				return attrVal;
 			}
+		};
+		
+		//Accessor Methods
+		this.getValue=function(attr){
+			this._isInit();
+			
+			var attrVal = this.node[attr];
+			if (attrVal instanceof Array){
+				attrVal = attrVal[0];
+			}
+			
+			return this._wrapValue(attrVal);
 				
 		};
 		this.getValues=function(attr){
 			this._isInit();
 			var attrVal = this.node[attr];
-			if (typeof attrVal === 'Array'){
-				return attrVal;
+			if (attrVal instanceof Array){
+				var wrappedArr = [];
+				for (var i=0; i < attrVal.length; i++){
+					wrappedArr.push(this._wrapValue(attrVal[i]));
+				}
+				return wrappedArr;
 			} else {
-				return [attrVal];
+				return [this._wrapValue(attrVal)];
 			}
 		};
 		this.setValue=function(attr,value){
 			this._isInit();
+			if (value instanceof Array){
+				throw 'Type exception, cannot set value to an array type. Use addValue function instead.';
+			}
 			if (typeof this.node[attr] !== 'object' && this.template[attr]!=='?'){
 				throw 'Field (' + attr + ') is defined as constant in type template';
 			}
-			//If the provided value is a complex type, then just insert a pointer or 'stub'. The actual object is assumed to reside elsewhere in the graph.
-			if (jsonoa.util.isWrapped(value) && jsonoa.util.isNode(this.node[attr])){
-				this.node[attr]=(this.graph.createStub(value.node[value.ID])).node;
+			if (typeof value !== typeof this.node[attr] && !(this.node[attr] instanceof Array)){
+				throw 'Type exception, cannot set field (' + attr + ') with type ' + (typeof this.node[attr]) + ' to value of type ' + (typeof value);
 			}
-			else if (this.node[attr] instanceof Array && !(value instanceof Array)){
+			if (jsonoa.util.isWrapped(value)){
+				value = (this.graph.createStub(value.node[value.ID])).node;
+			}
+			if (this.node[attr] instanceof Array && !(value instanceof Array)){
 				this.node[attr] = [value];
-			}
-			else{
-				//Basically just checks that you're not trying to set a primitive field to an object, and vice-versa.
-				//Also enforces template, and prevents 
-				if (typeof value === typeof this.node[attr]){
-					this.node[attr]=value;
-				} else {
-					throw 'Type exception, cannot set field (' + attr + ') with type ' + (typeof this.node[attr]) + ' to value of type ' + (typeof value);
-				}
+			} else {
+				this.node[attr] = value;
 			}
 		};
+		this.addValue=function(attr,value){
+			this._isInit();
+			if (typeof this.node[attr] !== 'object' && this.template[attr]!=='?'){
+				throw 'Field (' + attr + ') is defined as constant in type template';
+			}
+			if (!(this.node[attr] instanceof Array)){
+				throw 'Field (' + attr + ') is not defined as an array type in template';
+			}
+			else{
+				if (jsonoa.util.isWrapped(value)){
+					value = (this.graph.createStub(value.node[value.ID])).node;
+				}
+				this.node[attr].push(value);
+			}
+		};		
 		this._checkRequiredFields = function(){
 			for (var prop in this.node){
 				var val = this.node[prop];
@@ -204,7 +239,7 @@ jsonoa.types.Graph = function(){
 	};
 	
 	//Traverse the graph, decorate nodes with utility functions and identifiers, then stitch them together.
-	this.load = function(graphSrc){
+	this.load = function(graphSrc, ignoreErrors){
 		var parentGraph = this;
 		return new Promise(function(resolver) {
 			var graph;
@@ -226,8 +261,15 @@ jsonoa.types.Graph = function(){
 				for (var i=0; i < graphArr.length;i++){
 					var node = graphArr[i];
 					if (jsonoa.types.hasType(node)){
-						var nodeType = jsonoa.types.identify(node); 
-						parentGraph.createNode(nodeType, node['@id'], node);
+						var nodeType = jsonoa.types.identifyFromNode(node);
+						if (nodeType){
+							parentGraph.createNode(nodeType, node['@id'], node);
+						} else {
+							if (!ignoreErrors){
+								resolver.reject('Unknown node type in graph');
+								return;
+							}
+						}
 					}
 					
 				}
@@ -257,8 +299,7 @@ jsonoa.types.Stub = jsonoa.types.register({
 	}
 });
 
-jsonoa.types.identify = function(node){
-	var typeArr = node['@type'];
+jsonoa.types.identifyFromType = function(typeArr){
 	if (!(typeArr instanceof Array)){
 		typeArr = [typeArr];
 	}
@@ -269,6 +310,15 @@ jsonoa.types.identify = function(node){
 			return jsonoa.types.registry[i].typeDef;
 		}
 	}
+	return null;
+};
+
+jsonoa.types.identifyFromNode = function(node){
+	var typeArr = node['@type'];
+	if (!(typeArr instanceof Array)){
+		typeArr = [typeArr];
+	}
+	return jsonoa.types.identifyFromType(typeArr);
 };
 
 jsonoa.types.hasType = function(node){

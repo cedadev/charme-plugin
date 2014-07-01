@@ -1,28 +1,39 @@
-<div class="modal">
-	<div class="modal-header">
-	    <button type="button" class="close">&times;</button>
-	    <h3>CHARMe Annotations<br/>
-	    <small>{{targetId}}</small>
-	    </h3>
-	</div>
-	<div class="modal-body modal-body-list">
-		<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-		<form class="form-search">
-			<input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">	
-		</form>
-		<table class="table">
-			<thead><tr><td>Title</td><td>Annotated By</td><td>Date</td></tr></thead>
-			<tbody>
-				<tr data-ng-repeat="entry in entries | filter:searchText">
-					<td><a data-ng-click="viewAnnotation(entry.id)">{{entry.title | truncate:50}}</a></td>
-					<td><a href="{{entry.email}}">{{entry.author}}</a></td>
-					<td>{{entry.updated | date:'d/M/yyyy'}}</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-	<div class="modal-footer">
-		<div class="btn btn-primary" data-ng-click="newAnnotation()">New Annotation</div>
-		<div class="btn">Cancel</div>
-	</div>
+<div data-ng-include="'templates/header.html'"></div>
+<div class="modal-body modal-body-list" data-ng-init="searchOpen=true" >
+	<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+    <div data-ng-class="['search-container', 'search-' + (searchOpen ? 'open' : 'collapsed')]" >
+       <div class="btn search-button-holder" data-ng-click="searchOpen = !searchOpen" style="float:right;">
+           <span data-ng-class="searchOpen ? 'icon-chevron-left' : 'icon-search'"></span>
+       </div>
+       <div class="search-content">
+           <div data-ng-show="searchOpen">
+               <h5>Search Annotations</h5>
+               <hr />
+               <div data-ng-include="'templates/charmesearch.html'"></div>
+           </div>
+       </div>
+    </div>
+    <div data-ng-class="'search-results-' + (searchOpen ? 'open' : 'collapsed')">
+        <!--
+        <form class="form-search">
+            <input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">
+        </form> -->
+        <table class="table">
+            <thead><tr><td>Title</td><td>Annotated By</td><td>Date</td></tr></thead>
+            <tbody>
+                <tr data-ng-hide="!loading">
+                    <td colspan="3" class="spinner spinner-small">
+                    <img src ="img/ajaxspinner.gif" />
+                    </td>
+                </tr>
+                <tr data-ng-show="!loading && entries.length===0"><td colspan="3">No annotations.</td></tr>
+                <tr data-ng-repeat="entry in entries | filter:searchText">
+                    <td><a href="" data-ng-click="viewAnnotation(entry.id)" title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
+                    <td>{{entry.author}}</td>
+                    <td>{{entry.updated | date:'d/M/yyyy'}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+<div data-ng-include="'templates/footer.html'"></div>

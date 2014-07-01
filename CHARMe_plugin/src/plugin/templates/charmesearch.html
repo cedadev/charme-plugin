@@ -1,0 +1,53 @@
+<form class="form-horizontal form-charme-search" ng-controller="SearchCtrl">
+    <!--
+     <div class="control-group">
+         <label class="control-label" for="chooseText">Text</label>
+         <div class="controls">
+             <input id="chooseText" type="text"/>
+         </div>
+     </div>
+ -->
+    <div class="control-group">
+        <label class="control-label" for="chooseMotivation">Motivation</label>
+        <div class="controls">
+            <select id="chooseMotivation" data-ng-model="criteria.selectedMotivation"
+                    data-ng-options="motivation.uri as motivation.label for motivation in motivations">
+                <option></option>
+            </select>
+        </div>
+    </div>
+    <!--
+        <div class="control-group"><label class="control-label" for="chooseLink">Link type</label>
+            <div class="controls">
+                <select id="chooseLink" style="width:185px" data-ng-model="criteria.selectedLinkType" ng-options=
+                        "linkType.uri as linkType.label for linkType in linkTypes">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+    -->
+    <div class="control-group">
+        <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
+        <div class="controls">
+            <select id="chooseDomain" data-domain-keywords multiple
+                    data-ng-model="criteria.selectedDomains"
+                    placeholder="Select tags..."></select>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="chooseLocation">Organisation</label>
+        <div class="controls">
+            <select id="chooseLocation" data-ng-model="criteria.selectedOrganization"
+                    data-ng-options="organization.uri as organization.label for organization in organizations">
+                <option></option>
+            </select>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label" for="chooseCreator">Creator</label>
+
+        <div class="controls">
+            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" type="text"/>
+        </div>
+    </div>
+</form>

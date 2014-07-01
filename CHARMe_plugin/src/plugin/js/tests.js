@@ -1,7 +1,11 @@
 //Tests that do not generate any requests to remote sites
+//This is to make Webstorm happy basically
+if (typeof module === 'undefined'){
+	var module = function(){};
+}
 module(' Non-network Tests');
 	test( "UT-001: Generate web service query for presence of annotations against dataset", function () {
-		deepEqual(charme.logic.existRequest('stable'), 'http://charme-dev.cems.rl.ac.uk/index/stable?format=json-ld');
+		deepEqual(charme.logic.urls.existRequest('stable'), 'http://charme-dev.cems.rl.ac.uk/index/stable?format=json-ld');
 	});
 	
 	asyncTest( "UT-003: Parse JSON-LD response for listing all nodes", function () {
@@ -185,11 +189,11 @@ module(' Non-network Tests');
 			'		"@type":["http://www.w3.org/ns/oa#Annotation"],																					' +
 			'		"http://www.openannotation.org/spec/core/motivatedBy":{"@id":"http://www.openannotation.org/spec/core/linking"},				' +
 			'		"http://www.w3.org/ns/oa#annotatedBy":{"@id":"http://localhost/804eaa65d370"},													' +			
-			'		"http://www.w3.org/ns/oa#hasBody":{"@id":"http://localhost/bodyID"},															' +
+			'		"http://www.w3.org/ns/oa#hasBody":[{"@id":"http://dx.doi.org/10.1890/13-0133.1"}],												' +
 			'		"http://www.w3.org/ns/oa#hasTarget":{"@id":"http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG"}			' +
 			'	},																																	' +
 			'	{																																	' +
-			'		"@id":"http://localhost/bodyID",																								' +
+			'		"@id":"http://dx.doi.org/10.1890/13-0133.1",																					' +
 			'		"@type":["http://purl.org/spar/cito/CitationAct"],																				' +
 			'		"http://purl.org/spar/cito/hasCitationEvent":{"@id":"http://purl.org/spar/cito/citesAsDataSource"},								' +
 			'		"http://purl.org/spar/cito/hasCitedEntity":{"@id":"http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG"},	' +
@@ -202,14 +206,14 @@ module(' Non-network Tests');
 			'		"http://xmlns.com/foaf/0.1/name":"Andrew Henry"																					' +
 			'	},																																	' +
 			'	{																																	' +
-			'		"@id":"http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG",														' +
+			'		"@id":"http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG",												' +
 			'		"@type": "http://purl.org/dc/dcmitype/Dataset"																					' +
 			'	}																																	' +
 			']																																		' +
 			'}																																		';
 		var graph = new jsonoa.types.Graph();
 		var anno = graph.createNode(jsonoa.types.Annotation, 'http://localhost/annoID');
-		var body = graph.createNode(jsonoa.types.Publication, 'http://localhost/bodyID'); 
+		var body = graph.createNode(jsonoa.types.Publication, 'http://dx.doi.org/10.1890/13-0133.1'); 
 		body.setValue(body.CITED_ENTITY, graph.createStub('http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG'));
 		body.setValue(body.CITING_ENTITY, graph.createStub('http://dx.doi.org/10.1890/13-0133.1'));
 		anno.setValue(anno.BODY, body);
@@ -232,9 +236,9 @@ module(' Non-network Tests');
 			'		"@id": "http://www.openannotation.org/spec/core/linking"							' +
 			'	},																						' +
 			'	"http://www.w3.org/ns/oa#annotatedBy": {},												' +
-			'	"http://www.w3.org/ns/oa#hasBody": {													' +
+			'	"http://www.w3.org/ns/oa#hasBody": [{													' +
 			'		"@id": "http://charme-dev.cems.rl.ac.uk/resource/03e8f39d7e2648729cb0cab6e032c3ce"	' +
-			'	},																						' +
+			'	}],																						' +
 			'	"http://www.w3.org/ns/oa#hasTarget": {													' +
 			'		"@id": "http://badc.nerc.ac.uk/view/badc.nerc.ac.uk__ATOM__dataent_namblex"			' +
 			'	}																						' +
@@ -266,7 +270,65 @@ module(' Non-network Tests');
 		} catch (e){
 			ok(e==='Required field http://www.w3.org/ns/oa#annotatedBy missing', 'Required Field Missing Error');
 		}
+	});
+	
+	test( "UT-023: Create an annotation with both text and publication and marshall to JSON", function () {
+		var jsonSrc = 
+			'{"@graph": [{																					' +
+			'	"@id": "http://charme-dev.cems.rl.ac.uk/resource/5b3496263a454e1db06fc5088bb43cf4",			' +
+			'	"@type": "http://www.w3.org/ns/oa#Annotation",												' +
+			'	"http://www.openannotation.org/spec/core/motivatedBy": {									' +
+			'		"@id": "http://www.openannotation.org/spec/core/linking"								' +
+			'	},																							' +
+			'	"http://www.w3.org/ns/oa#annotatedBy": {},													' +
+			'	"http://www.w3.org/ns/oa#hasBody": [														' +
+			'		{"@id": "http://charme-dev.cems.rl.ac.uk/resource/03e8f39d7e2648729cb0cab6e032c3ce"},	' +
+			'		{"@id": "http://dx.doi.org/10.1890/13-0133.1"}											' +
+			'	],																							' +
+			'	"http://www.w3.org/ns/oa#hasTarget": {														' +
+			'		"@id": "http://badc.nerc.ac.uk/view/badc.nerc.ac.uk__ATOM__dataent_namblex"				' +
+			'	}																							' +
+			'},																								' +
+			'{																								' +
+			'	"@id": "http://charme-dev.cems.rl.ac.uk/resource/03e8f39d7e2648729cb0cab6e032c3ce",			' +
+			'	"@type": [																					' +
+			'		"http://www.w3.org/2011/content#ContentAsText",											' +			
+			'		"http://purl.org/dc/dcmitype/Text"														' +
+			'	],																							' +
+			'	"http://purl.org/dc/elements/1.1/format": "text/plain",										' +
+			'	"http://www.w3.org/2011/content#chars": "This is based on Envisat data"						' +
+			'},																								' +
+			'{																																	' +
+			'	"@id":"http://dx.doi.org/10.1890/13-0133.1",																					' +
+			'	"@type":["http://purl.org/spar/cito/CitationAct"],																				' +
+			'	"http://purl.org/spar/cito/hasCitationEvent":{"@id":"http://purl.org/spar/cito/citesAsDataSource"},								' +
+			'	"http://purl.org/spar/cito/hasCitedEntity":{"@id":"http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG"},	' +
+			'	"http://purl.org/spar/cito/hasCitingEntity":{"@id":"http://dx.doi.org/10.1890/13-0133.1"}										' +
+			'},																																	' +			
+			'{																								' +
+			'	"@id":"http://badc.nerc.ac.uk/view/badc.nerc.ac.uk__ATOM__dataent_namblex",					' +
+			'	"@type": "http://purl.org/dc/dcmitype/Dataset"												' +
+			'}																								' +
+			']}																								';
+		var graph = new jsonoa.types.Graph();
+		var anno = graph.createNode(jsonoa.types.Annotation, 'http://charme-dev.cems.rl.ac.uk/resource/5b3496263a454e1db06fc5088bb43cf4');
+		var textBody = graph.createNode(jsonoa.types.TextBody, 'http://charme-dev.cems.rl.ac.uk/resource/03e8f39d7e2648729cb0cab6e032c3ce'); 
+		textBody.setValue(textBody.CONTENT_CHARS, 'This is based on Envisat data');
+		anno.addValue(anno.BODY, textBody);
+		var pubBody = graph.createNode(jsonoa.types.Publication, 'http://dx.doi.org/10.1890/13-0133.1');
+		pubBody.setValue(pubBody.CITED_ENTITY, graph.createStub('http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG'));
+		pubBody.setValue(pubBody.CITING_ENTITY, graph.createStub('http://dx.doi.org/10.1890/13-0133.1'));
+		anno.addValue(anno.BODY, pubBody);
+		var target = graph.createNode(jsonoa.types.DatasetTarget, 'http://badc.nerc.ac.uk/view/badc.nerc.ac.uk__ATOM__dataent_namblex');
+		anno.setValue(anno.TARGET, target);
+		try {
+			var graphJSON = graph.toJSON();
+			deepEqual(graphJSON.replace(/\s/g,''), jsonSrc.replace(/\s/g,''));
+		} catch (e){
+			ok(e==='Required field http://www.w3.org/ns/oa#annotatedBy missing', 'Required Field Missing Error');
+		}
 	});	
+
 	asyncTest( "UT-026: Parse atom feed", function(){
 		expect(6);
 		
@@ -275,7 +337,7 @@ module(' Non-network Tests');
 			url: reqUrl
 		}).then(
 			function(xmlResp){
-				var result = new charme.atom.result(xmlResp);
+				var result = new charme.atom.Result(xmlResp);
 				deepEqual(result.id, 'http://charme-dev.cems.rl.ac.uk:8027/searchatom');
 				deepEqual(result.first.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
 				deepEqual(result.next.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=11&status=submitted');
@@ -295,7 +357,7 @@ module(' Non-network Tests');
 			url: reqUrl
 		}).then(
 			function(xmlResp){
-				var result = new charme.atom.result(xmlResp);
+				var result = new charme.atom.Result(xmlResp);
 				deepEqual(result.id, 'http://charme-dev.cems.rl.ac.uk:8027/searchatom');
 				deepEqual(result.first.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=1&status=submitted');
 				deepEqual(result.next.href, 'http://charme-dev.cems.rl.ac.uk:8027/search/atom/?&startIndex=11&status=submitted');
@@ -328,12 +390,7 @@ module(' Non-network Tests');
 	test( "UT-JOA-005: Test template checking", function () {
 		var graph = new jsonoa.types.Graph();
 		var anno = graph.createNode(jsonoa.types.Annotation, 'http://localhost/annoID');
-		try {
-			anno.setValue(anno.TYPE, 'http://www.w3.org/ns/oa#Annotation');
-			ok(false, "Template enforcement failed");
-		} catch(e){
-			ok(true, "Template enforcement succeeded");
-		}
+		anno.setValue(anno.TYPE, 'http://www.w3.org/ns/oa#Annotation');
 		
 		var target = graph.createNode(jsonoa.types.DatasetTarget, 'http://localhost:8090/DAV/NASA/Chlorophyl/2003/MY1DMM_CHLORA_2003-03.JPEG');
 		anno.setValue(anno.TARGET, target);

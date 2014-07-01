@@ -11,30 +11,34 @@
         <meta name="viewport" content="width=device-width">
         <!-- ### BEGIN CSS -->
 		<link rel="stylesheet" href="css/normalize.min.css">
-		<link rel="stylesheet" href="js/vendor/select2/select2.css"/>
-		<link rel="stylesheet" href="css/bootstrap.min.css">	
-    	<link rel="stylesheet" href="js/vendor/select2/select2-bootstrap.css">			
+		<link rel="stylesheet" href="css/bootstrap.min.css">
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" type="text/css" href="css/selectize.default.css" />
         <!-- ### END CSS -->
     </head>
     <body>
-		<div data-ng-view><!-- Views are inserted in here by the framework depending on URL-based routing. See charme.web.js --></div>
+		<div class="modal">
+			<div data-ng-view><!-- Views are inserted in here by the framework depending on URL-based routing. See charme.web.js --></div>
+		</div>
 	    <script src="js/vendor/modernizr-2.6.2.min.js"></script>
 		<script src="js/vendor/angular.js"></script>
 		<script src="js/vendor/angular-route.js"></script>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+		<script src="js/vendor/jquery.json-2.4.min.js"></script>
+		<script src="js/vendor/jstorage.min.js"></script>
 		<script type="text/javascript" src="js/vendor/selectize.js"></script>
+        <script src="js/vendor/bootstrap.min.js"></script>
+        <script src="js/vendor/Promise.js"></script>
+        <script src="js/vendor/jsonld.js"></script>
+
 		<!-- ## BEGIN SCRIPTS -->
-		<script src="js/vendor/bootstrap.min.js"></script>
-		<script src="js/vendor/Promise.js"></script>		
-		<script src="js/vendor/jsonld.js"></script>
 		<script src="js/jsonoa.js"></script>
 		<script src="js/jsonoa.types.js"></script>
 		<script src="js/vendor/wgxpath.install.js"></script>
-		<script src="js/charme.common.js"></script>
+		<script src="../charme.common.js"></script>
 		<script src="js/charme.logic.js"></script>
+		<script src="../charme.settings.js"></script>
         <script src="js/charme.crossref.js"></script>
         <script src="js/charme.xml.js"></script>
         <script src="js/charme.atom.js"></script>

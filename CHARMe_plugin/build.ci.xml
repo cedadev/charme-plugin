@@ -1,0 +1,26 @@
+<?xml version="1.0"?>   
+<project name="PROJECTNAME" basedir="." default="main">
+	<property file="build.ci.properties"/>
+	<target name="_check_env">
+		<condition property="env.error">
+			<and>
+				<available file="build.ci.properties"/>
+			</and>
+		</condition>
+	</target>
+	<target name="_on_error" depends="_check_env" unless="env.error">
+		<fail message="build.ci.properties not defined"/>
+	</target>
+	<target name="init" depends="_on_error">
+	</target>
+	<target name="build" depends="init">
+		<mkdir dir="${build.dir}" />
+		<copy todir="${build.dir}" flatten="false" overwrite="true">
+			<resources>
+				<fileset dir="${src.dir}">
+				</fileset>
+			</resources>
+		</copy>
+	</target>
+	<target name="main" depends="build"/>
+</project>

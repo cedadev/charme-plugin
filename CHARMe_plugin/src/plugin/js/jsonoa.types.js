@@ -8,15 +8,12 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		'{																							' + 
 		'	"@id": "?",																				' +
 		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],										' +
-		'	"http://www.openannotation.org/spec/core/motivatedBy": {								' +
-		'		"@id": "http://www.openannotation.org/spec/core/linking"							' +
-		'	},																						' +
-		'	"http://www.w3.org/ns/oa#annotatedBy": {"@id":"?"},										' +
-		'	"http://www.w3.org/ns/oa#hasBody": {"@id":"?"},											' +
+		'	"http://www.w3.org/ns/oa#motivatedBy": [],												' +
+		'	"http://www.w3.org/ns/oa#hasBody": [],													' +
 		'	"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}										' +
 		'}																							',
 	constants: {
-		MOTIVATED_BY: 'http://www.openannotation.org/spec/core/motivatedBy',
+		MOTIVATED_BY: 'http://www.w3.org/ns/oa#motivatedBy',
 		ANNOTATED_BY: 'http://www.w3.org/ns/oa#annotatedBy',
 		BODY: 'http://www.w3.org/ns/oa#hasBody',
 		TARGET: 'http://www.w3.org/ns/oa#hasTarget'
@@ -71,11 +68,38 @@ jsonoa.types.Person = jsonoa.types.register({
 	'{													' +
 	'	"@id":"?",			' +
 	'	"@type":["http://xmlns.com/foaf/0.1/Person"],	'+
-	'	"http://xmlns.com/foaf/0.1/mbox":{"@id":"?"},	'+
 	'	"http://xmlns.com/foaf/0.1/name":"?"			'+
 	'}													',
 	constants: {
-		MBOX: 'http://xmlns.com/foaf/0.1/mbox',
 		NAME: 'http://xmlns.com/foaf/0.1/name'
 	}
 });
+
+jsonoa.types.SemanticTag = jsonoa.types.register({
+	template:
+		'{                                                                        ' +
+		'  "@id": "?",                                                            ' +
+			'  "@type": "http://www.w3.org/ns/oa#SemanticTag",                        ' +
+			'  "http://www.w3.org/2004/02/skos/core#prefLabel": "?"                   ' +
+		'}                                                                        ',
+	constants: {
+		PREF_LABEL: 'http://www.w3.org/2004/02/skos/core#prefLabel'
+	}
+});
+
+jsonoa.types.Organization = jsonoa.types.register({
+	template: '{                                                     ' +
+		'	"@id": "?",                                        ' +
+		'	"@type": "http://xmlns.com/foaf/0.1/Organization", ' +
+		'	"http://xmlns.com/foaf/0.1/name": "?"              ' +
+		'}                                                     ',
+	constants: {
+		NAME: 'http://xmlns.com/foaf/0.1/name'
+	}
+});
+
+jsonoa.types.TechnicalReport = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/TechnicalReport"}'});
+jsonoa.types.ConferencePaper = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/ConferencePaper"}'});
+jsonoa.types.JournalArticle = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/JournalArticle"}'});
+jsonoa.types.Article = jsonoa.types.register({template: '{"@id": "?","@type": "http://purl.org/spar/fabio/Article"}'});
+jsonoa.types.MetaDataDoc = jsonoa.types.register({template:'{"@id": "?", "@type": "http://purl.org/spar/fabio/MetadataDocument"}'});
