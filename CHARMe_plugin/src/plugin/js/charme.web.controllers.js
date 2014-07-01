@@ -329,10 +329,6 @@ function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchA
                         criteria.linkTypes = [$scope.criteria.selectedLinkType];
 			criteria.organization = $scope.criteria.selectedOrganization;
 			criteria.creator = $scope.criteria.selectedCreator;
-                        
-                        console.log('Motivations: ' + criteria.motivations);
-                        console.log('Domains: ' + criteria.domainsOfInterest);
-                        
 			searchAnnotations.searchAnnotations(criteria);
 		}
 	}, true);

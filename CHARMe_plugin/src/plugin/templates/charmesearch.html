@@ -35,15 +35,14 @@
         <div class="controls">
             <select id="chooseDomain" data-domain-keywords multiple
                     data-ng-model="criteria.selectedDomains"
-                    placeholder="Select tags...">
-            </select>
+                    placeholder="Select tags..."></select>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseLocation">Organisation</label>
         <div class="controls">
             <select id="chooseLocation" data-ng-model="criteria.selectedOrganization"
-                    data-ng-options="organization.uri as organization.label for organization in organizations | orderBy: 'uri'">
+                    data-ng-options="organization.uri as organization.label for organization in organizations">
                 <option></option>
             </select>
         </div>
