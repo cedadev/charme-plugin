@@ -33,6 +33,13 @@ charme.web.app.directive('domainKeywords', ['fetchKeywords', function (fetchKeyw
 								$scope.$apply(applyChange);
 							});
 
+							//Load initial values
+							if ($ngModel.$modelValue instanceof Array){
+								angular.forEach($ngModel.$modelValue, function(value){
+									el.addItem(value.value);
+								})
+							}
+
 						});
 					}, function (error) {
 						$scope.$apply(function () {
@@ -76,6 +83,13 @@ charme.web.app.directive('domainKeywords', ['fetchKeywords', function (fetchKeyw
 								$scope.$apply(applyChange);
 							});
 
+							//Load initial values
+							if ($ngModel.$modelValue instanceof Array){
+								angular.forEach($ngModel.$modelValue, function(value){
+									el.addItem(value.value);
+								})
+							}
+
 						});
 					}, function (error) {
 						$scope.$apply(function () {
@@ -107,6 +121,7 @@ charme.web.app.directive('domainKeywords', ['fetchKeywords', function (fetchKeyw
 							el.on('change', function (event) {
 								$scope.$apply(applyChange);
 							});
+
 						});
 					}, function (error) {
 						$scope.$apply(function () {

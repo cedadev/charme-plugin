@@ -76,10 +76,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$scope', '$routeParam
 
         $scope.targetId=targetId;
 
-        var criteria = {
-            targets:[targetId]
-        };
-
         searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
             $scope.entries = [];
             $scope.loading = true;
@@ -315,8 +311,8 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         };
     }]);
 
-charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', 'fetchAllSearchFacets', 'searchAnnotations',
-    function($scope, $routeParams, $location, $window, fetchAllSearchFacets, searchAnnotations) {
+charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'fetchAllSearchFacets', 'searchAnnotations',
+    function($scope, $routeParams, $location, $window, $timeout, fetchAllSearchFacets, searchAnnotations) {
         var targetId=$routeParams.targetId;
 
         fetchAllSearchFacets().then(function(facetTypes){
@@ -328,31 +324,134 @@ charme.web.controllers.controller('SearchCtrl', ['$scope', '$routeParams', '$loc
             });
         });
 
-        var criteria = {
-            targets:[targetId]
-        };
-        searchAnnotations.searchAnnotations(criteria);
+		var criteriaFromSearch = function(){
+			var criteria = {
+				targets:[targetId]
+			};
+			var selectedMotivations = [];
+			var motivationParam = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
+			if (typeof motivationParam === 'string'){
+				var motivationParamsArr = motivationParam.split(',');
+				angular.forEach(motivationParamsArr, function(selectedMotivation) {
+					selectedMotivations.push(selectedMotivation);
+				});
+				criteria.motivations = selectedMotivations;//[$scope.criteria.selectedMotivations];
+			}
+
+			var selectedDomains = [];
+			var domainsParam = $location.search()[charme.web.constants.PARAM_DOMAINS];
+			if (typeof domainsParam === 'string'){
+				var domainsParamArr = domainsParam.split(',');
+				angular.forEach(domainsParamArr, function(selectedDomain) {
+					selectedDomains.push(selectedDomain);
+				});
+				criteria.domainsOfInterest = selectedDomains;
+			}
+			var organization = $location.search()[charme.web.constants.PARAM_ORGANIZATION];
+			if (typeof organization === 'string'){
+				criteria.organization = organization;
+			}
+
+			var creator = $location.search()[charme.web.constants.PARAM_CREATOR];
+			if (typeof creator === 'string') {
+				criteria.creator = creator;
+			}
+			return criteria;
+		};
+
+		var loadCriteriaIntoModel = function(criteria){
+			if (typeof $scope.criteria=== 'undefined'){
+				$scope.criteria = {};
+			}
+			if (criteria.motivations instanceof Array){
+				var loadedMotivations = [];
+				angular.forEach(criteria.motivations, function(motivation){
+					loadedMotivations.push({value: motivation});
+				})
+				$scope.criteria.selectedMotivations = loadedMotivations;
+			}
+
+			if (criteria.domainsOfInterest instanceof Array){
+				var loadedDomains = [];
+				angular.forEach(criteria.domainsOfInterest, function(domain){
+					loadedDomains.push({value: domain});
+				})
+				$scope.criteria.selectedDomains = loadedDomains;
+			}
+
+			if (typeof criteria.organization !== 'undefined'){
+				$scope.criteria.selectedOrganization = criteria.organization;
+			}
+
+			if (typeof criteria.creator !== 'undefined'){
+				$scope.criteria.selectedCreator = criteria.creator;
+			}
+
+		}
+
+		var criteriaOnLoad = criteriaFromSearch();
+		loadCriteriaIntoModel(criteriaOnLoad);
+        searchAnnotations.searchAnnotations(criteriaOnLoad);
+
+		var debounceHandle;
 
         $scope.$watch('criteria', function(){
             if (typeof $scope.criteria !== 'undefined') {
-                var selectedMotivations = [];
-                angular.forEach($scope.criteria.selectedMotivations, function(selectedMotivation) {
-                    selectedMotivations.push(selectedMotivation.value);
-                });
-                criteria.motivations = selectedMotivations;//[$scope.criteria.selectedMotivations];
 
-                var selectedDomains = [];
-                angular.forEach($scope.criteria.selectedDomains, function(selectedDomain) {
-                    selectedDomains.push(selectedDomain.value);
-                });
-                criteria.domainsOfInterest = selectedDomains;
+				if (debounceHandle){
+					$timeout.cancel(debounceHandle);
+				}
 
-                criteria.linkTypes = [$scope.criteria.selectedLinkType];
-                criteria.organization = $scope.criteria.selectedOrganization;
-                criteria.creator = $scope.criteria.selectedCreator;
-                searchAnnotations.searchAnnotations(criteria);
+				/*
+				Set timeout here in order to 'debounce' input from text fields. This avoids a search being triggered on each keypress.
+				Newer versions of angular provide this out of the box, but we are stuck supporting IE8. For now...
+				*/
+				debounceHandle = $timeout(function() {
+					var selectedMotivations = [];
+					angular.forEach($scope.criteria.selectedMotivations,
+						function (selectedMotivation) {
+							selectedMotivations.push(selectedMotivation.value);
+						});
+					var currentMotivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
+					currentMotivations =
+							typeof currentMotivations === 'undefined' ? '' : currentMotivations;
+					var newMotivations = selectedMotivations.join(',');
+					if (currentMotivations !== newMotivations) {
+						$location.search(charme.web.constants.PARAM_MOTIVATIONS, newMotivations);
+					}
+
+					var selectedDomains = [];
+					angular.forEach($scope.criteria.selectedDomains, function (selectedDomain) {
+						selectedDomains.push(selectedDomain.value);
+					});
+					var currentDomains = $location.search()[charme.web.constants.PARAM_DOMAINS];
+					currentDomains = typeof currentDomains === 'undefined' ? '' : currentDomains;
+					var newDomains = selectedDomains.join(',');
+					if (currentDomains !== newDomains) {
+						$location.search(charme.web.constants.PARAM_DOMAINS, newDomains);
+					}
+
+					var currentOrganization = $location.search()[charme.web.constants.PARAM_ORGANIZATION];
+					currentOrganization =
+							typeof currentOrganization === 'undefined' ? '' : currentOrganization;
+					var newOrganization = $scope.criteria.selectedOrganization;
+					if (currentOrganization !== newOrganization) {
+						$location.search(charme.web.constants.PARAM_ORGANIZATION, newOrganization);
+					}
+
+					var currentCreator = $location.search()[charme.web.constants.PARAM_CREATOR];
+					currentCreator = typeof currentCreator === 'undefined' ? '' : currentCreator;
+					var newCreator = $scope.criteria.selectedCreator;
+					if (currentCreator !== newCreator) {
+						$location.search(charme.web.constants.PARAM_CREATOR, newCreator);
+					}
+				}, 500);
             }
         }, true);
+
+		$scope.$on('$routeUpdate', function(){
+			searchAnnotations.searchAnnotations(criteriaFromSearch());
+		});
 
         $scope.cancel = function(){
             if ($scope.loading)
