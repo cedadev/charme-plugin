@@ -78,6 +78,7 @@ charme.plugin.request = {};
  * @returns {String}
  */
 charme.plugin.request.fetchForTarget = function (targetId) {
+
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
 		charme.plugin.constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' +
 		encodeURIComponent(targetId) + '&status=submitted';
@@ -145,6 +146,7 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
  * @param inactiveImgSrc
  */
 charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc) {
+
 	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href), function (xmlDoc) {
 		// Success callback
 		var constants = new charme.plugin.constants();
@@ -230,6 +232,55 @@ charme.plugin.markupTags = function () {
 		els[i].style.height = '26px';
 	}
 };
+
+
+
+/* ============================================================================================  */
+/**
+ * Function to capture messages fromm the Plugin Iframe
+ */
+
+function listenMessage(msg) {
+    var _msg= msg.data;
+    var n = _msg.lastIndexOf(':::');
+    var targetId = _msg.substring(n + 3);
+
+    charme.plugin.markupTargetRefresh(targetId);
+}
+
+if (window.addEventListener) {
+    window.addEventListener("message", listenMessage, false);
+} else {
+    window.attachEvent("onmessage", listenMessage);
+}
+
+
+/**
+ * Refresh CHARMe icon insertion point for specified TargetId
+ */
+charme.plugin.markupTargetRefresh = function (targetId) {
+
+     //preload charme icon
+     var activeImage = new Image();
+     activeImage.src = charme.settings.path + '/activebuttonsmall.png';
+     var inactiveImage = new Image();
+     inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
+     var noconnectionImage = new Image();
+     noconnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
+
+
+    var els = charme.plugin.getByClass('charme-dataset');
+    for (var i = 0; i < els.length; i++) {
+        if (els[i].href && els[i].href === targetId) {
+                charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noconnectionImage.src);
+        }
+    }
+
+
+
+};
+
+/* ============================================================================================  */
 
 /**
  * Creates the iFrame in which the plugin will be hosted. Should only be called once
