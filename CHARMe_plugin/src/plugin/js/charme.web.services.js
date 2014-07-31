@@ -72,6 +72,8 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 			angular.forEach(loginService._loginListeners, function(value, key){
 				value(loginService.getAuth());
 			});
+		}, function(error){
+			loginService.logout();
 		});
 	};
 	
