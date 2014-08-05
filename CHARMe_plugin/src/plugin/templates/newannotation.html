@@ -7,21 +7,21 @@
     </div>
     <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
     <form name="newAnnoForm">
-
         <h4>Comments <span title="Free text comments go here; a link may be included below"
                            class="icon-question-sign"></span></h4>
         <textarea data-ng-model="anno.comment" rows="3"></textarea>
 
         <h4>Motivation <span title="Select tag(s) describing the motivations of this annotation"
                              class="icon-question-sign"></span></h4>
-        <select data-ng-model="anno.motivation" data-motivation-keywords multiple
+        <select data-motivations-to-show="motivationCategoriesForNewAnno" data-motivation-keywords multiple
+                data-ng-model="anno.motivation"
                 placeholder="Select motivations...">
         </select>
 
-        <h4>Domain Classification <span
-                title="Select tag(s) describing the subject of this annotation"
-                class="icon-question-sign"></span></h4>
-        <select data-ng-model="anno.domain" data-domain-keywords multiple
+        <h4>Domain Classification <span title="Select tag(s) describing the subject of this annotation"
+                                        class="icon-question-sign"></span></h4>
+        <select data-keywords-to-show="domainCategoriesForNewAnno" data-domain-keywords multiple
+                data-ng-model="anno.domain" 
                 placeholder="Select tags...">
         </select>
 

@@ -80,13 +80,18 @@ charme.logic.urls.fetchRequest = function(id) {
 			charme.logic.constants.ANNO_DEPTH);
 };
 
-charme.logic.urls.fetchSearchFacets = function(facets){
+charme.logic.urls.fetchSearchFacets = function(criteria, facets){
 	var url=charme.logic.urls._baseURL() + 'suggest/atom?status=submitted&q=';
 	if (typeof facets !== 'undefined'){
 		url+=facets.join(',');
 	} else {
 		url+='*';
 	}
+
+        if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
+		url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
+	}
+        
 	return url;
 };
 
@@ -142,6 +147,15 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 	if (typeof criteria.creator !== 'undefined' && criteria.creator !== null &&
 		criteria.creator.length > 0) {
 		url += '&userName=' + encodeURIComponent(criteria.creator);
+	}
+        //if (typeof criteria.pageNum !== 'undefined' && criteria.pageNum !== null) {
+	//	url += '&startPage=' + encodeURIComponent(criteria.pageNum.toString());
+	//}
+        //if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
+	//	url += '&count=' + encodeURIComponent(criteria.resultsPerPage.toString());
+	//}
+        if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
+		url += '&count=' + encodeURIComponent(criteria.count.toString());
 	}
 
 	return url;
@@ -419,7 +433,7 @@ charme.logic.fetchMotivationVocab = function() {
 
 };
 
-charme.logic.fetchMotivations = function() {
+/*charme.logic.fetchMotivations = function() {
 	var promise = new Promise(function(resolver) {
 
 		var motivations = [ {
@@ -438,7 +452,7 @@ charme.logic.fetchMotivations = function() {
 		resolver.fulfill(motivations);
 	});
 	return promise;
-};
+};*/
 
 charme.logic.fetchFabioTypes = function() {
 	var promise = new Promise(function(resolver) {
@@ -576,11 +590,12 @@ charme.logic.fetchAnnotation = function(annotationId) {
 	return promise;
 };
 
-charme.logic.fetchAllSearchFacets = function(){
+charme.logic.fetchAllSearchFacets = function(criteria){
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.fetchSearchFacets();
+		var reqUrl = charme.logic.urls.fetchSearchFacets(criteria);
+                
 		$.ajax(reqUrl, {
-			type : 'GET',
+			type : 'GET'
 		}).then(function(data) {
 			// Data is returned as ATOM wrapped json-ld
 			var result = new charme.atom.Result(data);
@@ -609,7 +624,7 @@ charme.logic.fetchAllSearchFacets = function(){
 						facetObj.label = facet[jsonoa.constants.NAME]; else
 						facetObj.label = facet[jsonoa.constants.PREF_LABEL];
 					resultMap[facetType].push(facetObj);
-				})
+				});
 			});
 			resolver.fulfill(resultMap);
 		}), function(jqXHR, textStatus, errorThrown) {

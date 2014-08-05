@@ -12,30 +12,36 @@
            </div>
        </div>
     </div>
-    <div data-ng-class="'search-results-' + (searchOpen ? 'open' : 'collapsed')">
+
+    <div data-ng-class="['search-results', 'search-results-' + (searchOpen ? 'open' : 'collapsed')]">
         <!--
         <form class="form-search">
             <input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">
         </form> -->
         <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
         
-        <table class="table">
+        <table class="table search-results-table">
             <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
             <tbody>
                 <tr data-ng-hide="!loading">
                     <td colspan="4" class="spinner spinner-small">
-                    <img src ="img/ajaxspinner.gif" />
+                        <img src ="img/ajaxspinner.gif" />
                     </td>
                 </tr>
-                <tr data-ng-show="!loading && entries.length===0"><td colspan="4">No annotations.</td></tr>
+                <tr data-ng-show="!loading && entries.length===0"><td colspan="4">No annotations</td></tr>
                 <tr data-ng-repeat="entry in entries">
-                    <td><a href="" data-ng-click="viewAnnotation(entry.id)" title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
+                    <td><a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
+                           title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
                     <td>{{entry.author}}</td>
-                    <td>{{entry.organization}}</td>
-                    <td>{{entry.updated | date:'d/M/yyyy'}}</td>
+                    <td>{{entry.organizationName}}</td>
+                    <td>{{entry.date | date:'d/M/yyyy'}}</td>
                 </tr>
             </tbody>
         </table>
+    </div>
+    
+    <div data-ng-class="['pagination_container', 'pagination_padding-' + (searchOpen ? 'open' : 'collapsed')]">
+        <div data-ng-include="'templates/pagination.html'"></div>
     </div>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

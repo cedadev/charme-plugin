@@ -7,7 +7,9 @@
 	<div data-ng-show="!loading">
 
 		<div class="popover popover-visible">
-            <h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>
+            <!--<h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>-->
+            <h3 class="popover-title"><a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> - 
+                                      <a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a></h3>
             <div class="popover-content">
               <p data-ng-show="comment">"{{comment}}"</p>
               <p data-ng-show="noComment">No comment</p>

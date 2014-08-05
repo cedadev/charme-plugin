@@ -143,12 +143,12 @@ charme.web.services.factory('searchAnnotations', function(){
 	};
 
 	searchService.listeners = {};
-
+        
 	searchService.addListener = function (type, listener){
 		if (typeof searchService.listeners[type] === 'undefined'){
 			searchService.listeners[type] = [];
-		}
-		searchService.listeners[type].push(listener);
+		}    
+            searchService.listeners[type].push(listener);
 	};
 
 	searchService.removeListener = function(type, listener){
@@ -159,11 +159,15 @@ charme.web.services.factory('searchAnnotations', function(){
 			}
 		}
 	};
+        
+        searchService.clearListeners = function() {
+            searchService.listeners = {};
+        };
 
-	searchService.tellListeners = function (type, data){
+	searchService.tellListeners = function (type, data1, data2, data3){
 		angular.forEach(searchService.listeners[type], function(listener){
-			if (typeof data !== 'undefined'){
-				listener(data);
+			if (typeof data1 !== 'undefined' && typeof data2 !== 'undefined' && typeof data3 !== 'undefined'){
+				listener(data1, data2, data3);
 			} else {
 				listener();
 			}
@@ -182,35 +186,52 @@ charme.web.services.factory('searchAnnotations', function(){
 					var updated = value.updated;
                                         var person = anno.getValues(anno.ANNOTATED_BY);
                                         var author = '';
-                                        var organization = '';
+                                        var userName = '';
+                                        var organizationName = '';
+                                        var date = anno.getValue(anno.DATE)['@value'];
                                         
                                         angular.forEach(person, function(detail){
                                             if (detail instanceof jsonoa.types.Person){
                                                 author = detail.getValue(detail.GIVEN_NAME) + ' ' + detail.getValue(detail.FAMILY_NAME);
+                                                userName = detail.getValue(detail.USER_NAME);
                                             } else if (detail instanceof jsonoa.types.Organization){
-                                                organization = detail.getValue(detail.NAME);
+                                                organizationName = detail.getValue(detail.NAME);
                                             }
                                         });
                                         
 					results.push(
 						{
-							'id': value.id,
-							'title': title,
-							'updated': updated,
-							'author': author,
-                                                        'organization': organization
+                                                    'id': value.id,
+						    'title': title,
+						    'updated': updated,
+						    'author': author,
+                                                    'userName': userName,
+                                                    'organizationName': organizationName,
+                                                    'date': date
 						}
 					);
 				});
-				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results);
-				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
+                                
+                                results.sort(function(a, b) {return (Date.parse(a.date) - Date.parse(b.date)) * criteria.listOrder;});
+                                results.splice(0, criteria.resultsPerPage * (criteria.pageNum - 1));
+                                results.splice(criteria.resultsPerPage, results.length - criteria.resultsPerPage);
+                                
+                                var pages = [];
+                                for(var i = 1; i <= Math.ceil(feed.totalResults / criteria.resultsPerPage); i++) {
+                                    if(i === criteria.pageNum)
+                                        pages.push({status: 'current'});
+                                    else
+                                        pages.push({status: 'notCurrent'});
+                                }
+                                
+				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, feed.totalResults);
+				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);   
 			},
 			function(error){
 				searchService.tellListeners(searchService.listenerTypes.ERROR, 'Error: ' + error);
 				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
 			}
 		);
-
 	};
 
 	return searchService;
@@ -372,5 +393,17 @@ charme.web.services.factory('fetchFabioTypes', function(){
 });
 
 charme.web.services.factory('fetchAllSearchFacets', function(){
-	return charme.logic.fetchAllSearchFacets;
+    /* return charme.logic.fetchAllSearchFacets(); */
+
+    return function(criteria) {
+	var promise = new Promise(function(resolver){
+            charme.logic.fetchAllSearchFacets(criteria).then(function(facetTypes){
+                resolver.fulfill(facetTypes);
+            });
+        }, function(error){
+            resolver.reject(error);
+        });
+
+	return promise;
+    };
 });

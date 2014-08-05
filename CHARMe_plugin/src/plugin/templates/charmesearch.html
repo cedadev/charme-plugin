@@ -10,11 +10,7 @@
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls">
-            <!--<select id="chooseMotivation" data-ng-model="criteria.selectedMotivation"
-                    data-ng-options="motivation.uri as motivation.label for motivation in motivations | orderBy: 'uri'">
-                <option></option>
-            </select>-->
-            <select id="chooseMotivation" data-motivation-keywords multiple
+            <select id="chooseMotivation" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
                     data-ng-model="criteria.selectedMotivations"
                     placeholder="Select tags...">
             </select>
@@ -33,9 +29,10 @@
     <div class="control-group">
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
         <div class="controls">
-            <select id="chooseDomain" data-domain-keywords multiple
+            <select id="chooseDomain" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
                     data-ng-model="criteria.selectedDomains"
-                    placeholder="Select tags..."></select>
+                    placeholder="Select tags...">
+            </select>
         </div>
     </div>
     <div class="control-group">
@@ -52,6 +49,26 @@
 
         <div class="controls">
             <input id="chooseCreator" data-ng-model="criteria.selectedCreator" type="text"/>
+        </div>
+    </div>
+    
+    <div>
+        <button class="btn reset-button" data-ng-disabled="loading" data-ng-click="reset();" type="reset">Reset</button>
+    </div>
+    
+    <div class="annoListOptions">
+        <div>
+            Results per page:
+            <span data-ng-repeat="rpp in resultsPerPage" data-ng-click="setResultsPerPage(rpp)">
+                &nbsp;&nbsp;<a data-ng-class="rpp === selectedRPP ? 'selected' : 'notSelected'" href="">{{rpp}}</a>
+            </span>
+            <span data-ng-show="!loading && numResults > 0">({{numResults}})</span>
+        </div>
+        <div>
+            Sort by:
+            <span data-ng-repeat="option in listOrderOptions" data-ng-click="setListOrder(option.sortNum)">
+                &nbsp;&nbsp;<a data-ng-class="option.sortNum === selectedOrder ? 'selected' : 'notSelected'" href="">{{option.text}}</a>
+            </span>
         </div>
     </div>
 </form>

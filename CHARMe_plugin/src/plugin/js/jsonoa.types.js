@@ -16,7 +16,8 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		MOTIVATED_BY: 'http://www.w3.org/ns/oa#motivatedBy',
 		ANNOTATED_BY: 'http://www.w3.org/ns/oa#annotatedBy',
 		BODY: 'http://www.w3.org/ns/oa#hasBody',
-		TARGET: 'http://www.w3.org/ns/oa#hasTarget'
+		TARGET: 'http://www.w3.org/ns/oa#hasTarget',
+                DATE: 'http://www.w3.org/ns/oa#annotatedAt'
 	}
 });
 
@@ -74,6 +75,7 @@ jsonoa.types.Person = jsonoa.types.register({
 	'}                                                      ',
 	constants: {
 		//MBOX: 'http://xmlns.com/foaf/0.1/mbox',
+                USER_NAME: 'http://xmlns.com/foaf/0.1/accountName',
 		FAMILY_NAME: 'http://xmlns.com/foaf/0.1/familyName',
                 GIVEN_NAME: 'http://xmlns.com/foaf/0.1/givenName'
 	}
@@ -83,8 +85,8 @@ jsonoa.types.SemanticTag = jsonoa.types.register({
 	template:
 		'{                                                                        ' +
 		'  "@id": "?",                                                            ' +
-			'  "@type": "http://www.w3.org/ns/oa#SemanticTag",                        ' +
-			'  "http://www.w3.org/2004/02/skos/core#prefLabel": "?"                   ' +
+		'  "@type": "http://www.w3.org/ns/oa#SemanticTag",                        ' +
+		'  "http://www.w3.org/2004/02/skos/core#prefLabel": "?"                   ' +
 		'}                                                                        ',
 	constants: {
 		PREF_LABEL: 'http://www.w3.org/2004/02/skos/core#prefLabel'
@@ -98,6 +100,7 @@ jsonoa.types.Organization = jsonoa.types.register({
 		'	"http://xmlns.com/foaf/0.1/name": "?"              ' +
 		'}                                                     ',
 	constants: {
+                URI: '@id',
 		NAME: 'http://xmlns.com/foaf/0.1/name'
 	}
 });

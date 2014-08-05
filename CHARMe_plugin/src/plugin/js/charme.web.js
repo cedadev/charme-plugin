@@ -1,7 +1,11 @@
 var charme;
 charme.web={};
 charme.web.constants = {
-	CHARME_TK: 'CHARME_AT'	
+        CHARME_TK: 'CHARME_AT',
+ 	PARAM_MOTIVATIONS: 'motivations',
+ 	PARAM_DOMAINS: 'domains',
+ 	PARAM_ORGANIZATION: 'organization',
+ 	PARAM_CREATOR: 'userName'//'creator'
 };
 
 charme.web._closeListeners = [];
@@ -28,7 +32,8 @@ charme.web.app.config(['$routeProvider',
 			controller: 'NewAnnotationCtrl'
 		}).when('/:targetId/annotations/', {
 			templateUrl: 'templates/listannotations.html',
-			controller: 'ListAnnotationsCtrl'			
+			controller: 'ListAnnotationsCtrl',
+                        reloadOnSearch: false
 			}
 		).when('/:targetId/annotation/:annotationId/', {
 			templateUrl: 'templates/viewannotation.html',
