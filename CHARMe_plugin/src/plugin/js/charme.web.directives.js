@@ -166,6 +166,7 @@ charme.web.app.directive('domainKeywords', function ($timeout) {
 							el.on('change', function (event) {
 								$scope.$apply(applyChange);
 							});
+
 						});
 					}, function (error) {
 						$scope.$apply(function () {
