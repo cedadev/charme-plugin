@@ -117,26 +117,26 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                     criteria.selectedRPP = selectedRPP;
             }
 
-            var listOrder = $location.search()['listOrder'];
-            if(typeof listOrder === 'string')
-                criteria.listOrder = listOrder;
+            //var listOrder = $location.search()['listOrder'];
+            //if(typeof listOrder === 'string')
+            //    criteria.listOrder = listOrder;
             
             return criteria;
         };
         
         criteria = criteriaFromUrl();
         
-        $rootScope.$on('listOptions', function(event, newResultsPerPage, newSelectedRPP, newListOrder) {
+        $rootScope.$on('listOptions', function(event, newResultsPerPage, newSelectedRPP) {//, newListOrder) {
             criteria.resultsPerPage = newResultsPerPage;
             criteria.selectedRPP = newSelectedRPP;
-            criteria.listOrder = newListOrder;
+            //criteria.listOrder = newListOrder;
         });
         
         $scope.viewAnnotation = function(annoId) {
             $timeout(function() {
                 $location.search('resultsPerPage', criteria.resultsPerPage.toString())
                          .search('selectedRPP', criteria.selectedRPP.toString())
-                         .search('listOrder', criteria.listOrder.toString())
+                         //.search('listOrder', criteria.listOrder.toString())
                          .replace();
             });
         };
@@ -394,7 +394,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         
         $scope.loading = true;
         $scope.resultsPerPage = [10, 20, 30, 'All'];  // first value in this array must be a number (not 'All')
-        $scope.listOrderOptions = [{text: 'Newest', sortNum: -1}, {text: 'Oldest', sortNum: 1}];
+        //$scope.listOrderOptions = [{text: 'Newest', sortNum: -1}, {text: 'Oldest', sortNum: 1}];
 
         $scope.criteria = {
             selectedMotivations: [],
@@ -402,8 +402,8 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         };
         
         var criteria = {
-            targets: [targetId],
-            count: 100000  // until the node can handle date queries, we must always retrieve all annotations
+            targets: [targetId]
+            //count: 100000  // until the node can handle date queries, we must always retrieve all annotations
         };
 
         fetchAllSearchFacets(criteria).then(function(facetTypes){
@@ -433,9 +433,9 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             criteria.pageNum = 1;
             criteria.resultsPerPage = $scope.resultsPerPage[0];
             criteria.selectedRPP = $scope.resultsPerPage[0];
-            criteria.listOrder = $scope.listOrderOptions[0].sortNum;
+            //criteria.listOrder = $scope.listOrderOptions[0].sortNum;
             $scope.selectedRPP = criteria.selectedRPP;
-            $scope.selectedOrder = criteria.listOrder;
+            //$scope.selectedOrder = criteria.listOrder;
 
             var motivationParam = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
             if(typeof motivationParam === 'string')
@@ -473,11 +473,11 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                     $scope.selectedRPP = criteria.selectedRPP = selectedRPP;
             }
 
-            var listOrder = $location.search()['listOrder'];
-            if(typeof listOrder === 'string')
-                $scope.selectedOrder = criteria.listOrder = parseInt(listOrder);
+            //var listOrder = $location.search()['listOrder'];
+            //if(typeof listOrder === 'string')
+            //    $scope.selectedOrder = criteria.listOrder = parseInt(listOrder);
             
-            $rootScope.$broadcast('listOptions', criteria.resultsPerPage, criteria.selectedRPP, criteria.listOrder);
+            $rootScope.$broadcast('listOptions', criteria.resultsPerPage, criteria.selectedRPP);//, criteria.listOrder);
             return criteria;
         };
  
@@ -611,12 +611,12 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                      .search('selectedRPP', criteria.selectedRPP.toString());
         };
         
-        $scope.setListOrder = function(sortNum) {
-            $scope.selectedOrder = criteria.listOrder = sortNum;
-            criteria.pageNum = 1;
-            $location.search('pageNum', criteria.pageNum.toString())
-                     .search('listOrder', criteria.listOrder.toString());
-        };
+        //$scope.setListOrder = function(sortNum) {
+        //    $scope.selectedOrder = criteria.listOrder = sortNum;
+        //    criteria.pageNum = 1;
+        //    $location.search('pageNum', criteria.pageNum.toString())
+        //             .search('listOrder', criteria.listOrder.toString());
+        //};
         
         $scope.reset = function() {
             $rootScope.$broadcast('reset');

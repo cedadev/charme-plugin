@@ -148,15 +148,15 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 		criteria.creator.length > 0) {
 		url += '&userName=' + encodeURIComponent(criteria.creator);
 	}
-        //if (typeof criteria.pageNum !== 'undefined' && criteria.pageNum !== null) {
-	//	url += '&startPage=' + encodeURIComponent(criteria.pageNum.toString());
-	//}
-        //if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
-	//	url += '&count=' + encodeURIComponent(criteria.resultsPerPage.toString());
-	//}
-        if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
-		url += '&count=' + encodeURIComponent(criteria.count.toString());
+        if (typeof criteria.pageNum !== 'undefined' && criteria.pageNum !== null) {
+		url += '&startPage=' + encodeURIComponent(criteria.pageNum.toString());
 	}
+        if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
+		url += '&count=' + encodeURIComponent(criteria.resultsPerPage.toString());
+	}
+        //if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
+	//	url += '&count=' + encodeURIComponent(criteria.count.toString());
+	//}
 
 	return url;
 };

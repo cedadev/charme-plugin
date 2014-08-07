@@ -214,9 +214,10 @@ charme.web.services.factory('searchAnnotations', function(){
 					);
 				});
                                 
-                                results.sort(function(a, b) {return (Date.parse(a.date) - Date.parse(b.date)) * criteria.listOrder;});
-                                results.splice(0, criteria.resultsPerPage * (criteria.pageNum - 1));
-                                results.splice(criteria.resultsPerPage, results.length - criteria.resultsPerPage);
+                                // date sorting on client side
+                                //results.sort(function(a, b) {return (Date.parse(a.date) - Date.parse(b.date)) * criteria.listOrder;});
+                                //results.splice(0, criteria.resultsPerPage * (criteria.pageNum - 1));
+                                //results.splice(criteria.resultsPerPage, results.length - criteria.resultsPerPage);
                                 
                                 var pages = [];
                                 for(var i = 1; i <= Math.ceil(feed.totalResults / criteria.resultsPerPage); i++) {

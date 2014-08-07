@@ -64,11 +64,11 @@
             </span>
             <span data-ng-show="!loading && numResults > 0">({{numResults}})</span>
         </div>
-        <div>
+        <!-- waiting for node to support date sorting <div> 
             Sort by:
             <span data-ng-repeat="option in listOrderOptions" data-ng-click="setListOrder(option.sortNum)">
                 &nbsp;&nbsp;<a data-ng-class="option.sortNum === selectedOrder ? 'selected' : 'notSelected'" href="">{{option.text}}</a>
             </span>
-        </div>
+        </div>-->
     </div>
 </form>

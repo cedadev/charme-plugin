@@ -94,9 +94,9 @@ charme.plugin.parseXML = function (xmlString) {
 	//Unfortunately, Internet explorer support for XPath is difficult. Need to force the response type, but only for IE.
 	//SHOULD use feature detection, but in this case it needs to apply to all IE versions, and does not relate to a specific feature that can be easily detected (the response type needs to be set because the feature in question even exists to be detected)
 	if (charme.common.isIE11orLess) {
-		xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-		xmlDoc.async = false;
-		xmlDoc.loadXML(xmlString);
+            xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+            xmlDoc.async = false;
+            xmlDoc.loadXML(xmlString);
 	} else {
 		var parser = new DOMParser();
 		xmlDoc = parser.parseFromString(xmlString, "text/xml");
@@ -146,18 +146,17 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
  * @param inactiveImgSrc
  */
 charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc) {
-
 	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href), function (xmlDoc) {
 		// Success callback
 		var constants = new charme.plugin.constants();
-		var annoCount = 0;
+		var annoCount = 0;                
 		if (typeof XPathResult !== 'undefined') {
 			annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc,
 				XPathResult.NUMBER_TYPE);
 		} else {
 			//Internet explorer
-			annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc,
-				XPathResult.ANY_TYPE);
+			annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc);//,
+				//XPathResult.ANY_TYPE);
 			if (typeof annoCount === 'object' && annoCount.text) {
 				annoCount = parseInt(annoCount.text);
 			}
