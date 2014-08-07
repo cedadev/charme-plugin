@@ -592,17 +592,21 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             }
         });
 
+		var maxResults, firstSearchFlag = true;
         searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, totalResults){
             $scope.$apply(function() {
-                $scope.numResults = totalResults;
                 $scope.loading = false;
+				if(firstSearchFlag) {
+					firstSearchFlag = false;
+					maxResults = totalResults;
+				}
             });
         });
         $scope.setResultsPerPage = function(rpp) {
             if(typeof rpp === "number")
                 criteria.resultsPerPage = rpp;
             else if(typeof rpp === "string")
-                criteria.resultsPerPage = $scope.numResults;
+                criteria.resultsPerPage = maxResults;
             
             $scope.selectedRPP = criteria.selectedRPP = rpp;
             criteria.pageNum = 1;

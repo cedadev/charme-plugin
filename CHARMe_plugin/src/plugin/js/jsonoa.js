@@ -95,7 +95,9 @@ jsonoa.types.register = function(typeDesc){
 		this.getValues=function(attr){
 			this._isInit();
 			var attrVal = this.node[attr];
-			if (attrVal instanceof Array){
+			if (typeof attrVal==='undefined')
+				return [];
+			else if (attrVal instanceof Array){
 				var wrappedArr = [];
 				for (var i=0; i < attrVal.length; i++){
 					wrappedArr.push(this._wrapValue(attrVal[i]));

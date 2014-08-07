@@ -186,46 +186,46 @@ charme.web.services.factory('searchAnnotations', function(){
 					var anno = value.annotation;
 					var title = charme.logic.shortAnnoTitle(anno);
 					var updated = value.updated;
-                                        var person = anno.getValues(anno.ANNOTATED_BY);
-                                        var author = '';
-                                        var userName = '';
-                                        var organizationName = '';
-                                        var date = anno.getValue(anno.DATE)['@value'];
-                                        
-                                        angular.forEach(person, function(detail){
-                                            if (detail instanceof jsonoa.types.Person){
-                                                author = detail.getValue(detail.GIVEN_NAME) + ' ' + detail.getValue(detail.FAMILY_NAME);
-                                                userName = detail.getValue(detail.USER_NAME);
-                                            } else if (detail instanceof jsonoa.types.Organization){
-                                                organizationName = detail.getValue(detail.NAME);
-                                            }
-                                        });
+					var person = anno.getValues(anno.ANNOTATED_BY);
+					var author = '';
+					var userName = '';
+					var organizationName = '';
+					var date = anno.getValue(anno.DATE)['@value'];
+
+					angular.forEach(person, function(detail){
+						if (detail instanceof jsonoa.types.Person){
+							author = detail.getValue(detail.GIVEN_NAME) + ' ' + detail.getValue(detail.FAMILY_NAME);
+							userName = detail.getValue(detail.USER_NAME);
+						} else if (detail instanceof jsonoa.types.Organization){
+							organizationName = detail.getValue(detail.NAME);
+						}
+					});
                                         
 					results.push(
 						{
-                                                    'id': value.id,
+                            'id': value.id,
 						    'title': title,
 						    'updated': updated,
 						    'author': author,
-                                                    'userName': userName,
-                                                    'organizationName': organizationName,
-                                                    'date': date
+							'userName': userName,
+							'organizationName': organizationName,
+							'date': date
 						}
 					);
 				});
                                 
-                                // date sorting on client side
-                                //results.sort(function(a, b) {return (Date.parse(a.date) - Date.parse(b.date)) * criteria.listOrder;});
-                                //results.splice(0, criteria.resultsPerPage * (criteria.pageNum - 1));
-                                //results.splice(criteria.resultsPerPage, results.length - criteria.resultsPerPage);
-                                
-                                var pages = [];
-                                for(var i = 1; i <= Math.ceil(feed.totalResults / criteria.resultsPerPage); i++) {
-                                    if(i === criteria.pageNum)
-                                        pages.push({status: 'current'});
-                                    else
-                                        pages.push({status: 'notCurrent'});
-                                }
+				// date sorting on client side
+				//results.sort(function(a, b) {return (Date.parse(a.date) - Date.parse(b.date)) * criteria.listOrder;});
+				//results.splice(0, criteria.resultsPerPage * (criteria.pageNum - 1));
+				//results.splice(criteria.resultsPerPage, results.length - criteria.resultsPerPage);
+
+				var pages = [];
+				for(var i = 1; i <= Math.ceil(feed.totalResults / criteria.resultsPerPage); i++) {
+					if(i === criteria.pageNum)
+						pages.push({status: 'current'});
+					else
+						pages.push({status: 'notCurrent'});
+				}
                                 
 				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, feed.totalResults);
 				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);   
@@ -234,7 +234,10 @@ charme.web.services.factory('searchAnnotations', function(){
 				searchService.tellListeners(searchService.listenerTypes.ERROR, 'Error: ' + error);
 				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
 			}
-		);
+		, function(error){
+				searchService.tellListeners(searchService.listenerTypes.ERROR, 'Error: ' + error);
+				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
+		});
 	};
 
 	return searchService;
@@ -270,13 +273,10 @@ charme.web.services.factory('saveAnnotation', function () {
 					//If a DOI is provided, create a citation act for the body
 					if (doiVal){
 						//Create a fully qualified canonical URI for the DOI
-						linkURI=charme.logic.constants.DOI_PREFIX + linkURI;
+						linkURI=charme.logic.constants.DOI_PREFIX + doiVal;
 						//Auto-generating IDs at the moment on client side, which shouldn't happen. The Node must take responsibility for this, but no method is available yet for multiple bodies
 						var citoId = charme.logic.generateId();
 						
-						/**
-						 * Add logic here for determining if DOI. If it is a DOI, then use CITO ontology
-						 */
 						/*
 						 * Create a citation act for the body. 
 						 */
