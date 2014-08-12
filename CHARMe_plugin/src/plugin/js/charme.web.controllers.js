@@ -1,5 +1,8 @@
 charme.web.controllers = angular.module('charmeControllers', ['charmeServices']);
 
+/**
+ * A controller that is run on intialisation of the plugin.
+ */
 charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$location', '$filter', 'loginService', 'persistence', 'searchAnnotations',
     function ($scope, $routeParams, $location, $filter, loginService, persistence, searchAnnotations){
         var targetId=$routeParams.targetId;
@@ -9,6 +12,9 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
     }
 ]);
 
+/**
+ * A controller specific to the plugin header
+ */
 charme.web.controllers.controller('HeaderCtrl', ['$scope',
 function ($scope){
     $scope.close = function(){
@@ -17,7 +23,7 @@ function ($scope){
 }]);
 
 /**
- * List all annotations for target.
+ * List the results of an annotation search.
  */
 charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$filter', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 
     function ($rootScope, $scope, $routeParams, $location, $timeout, $filter, fetchAnnotationsForTarget, loginService, searchAnnotations){
@@ -37,9 +43,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         /*
          * Register a login listener for future login events
          */
-        /**
-         * Add a login listener
-         */
         loginService.addLoginListener(function(authToken){
             $scope.$apply(function(){
                 $scope.loggedIn=authToken.token ? true : false;
@@ -51,6 +54,9 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 
         var targetId=$routeParams.targetId;
 
+		/**
+		 * Onclick functions for buttons
+		 */
         $scope.close = function(){
             charme.web.close();
         };
@@ -72,6 +78,9 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
             loginService.logout();
         };
 
+		/**
+		 * Listen for search events. Searches are triggered by asynchronous events in the faceted search bar.
+		 */
         $scope.targetId=targetId;
 
         searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
@@ -92,6 +101,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                 $scope.pages = pages;
                 
                 angular.forEach($scope.entries, function(entry) {
+					//Double-escape URIs embedded within a URI in order to work with Angular routing
                     entry.uri = '#/' + encodeURIComponent(encodeURIComponent(targetId)) + '/annotation/' 
                                      + encodeURIComponent(encodeURIComponent(entry.id)) + '/';
                 });
@@ -103,7 +113,11 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                 $scope.errorMsg = errorMsg;
             });
         });
-        
+
+		/**
+		 * Search criteria are encoded in URL. This is a convenience function for retrieving search criteria from URL
+		 * @type {{}}
+		 */
         var criteria = {};
         var criteriaFromUrl = function() {
             var resultsPerPage = $location.search()['resultsPerPage'];
@@ -116,11 +130,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                 else
                     criteria.selectedRPP = selectedRPP;
             }
-
-            //var listOrder = $location.search()['listOrder'];
-            //if(typeof listOrder === 'string')
-            //    criteria.listOrder = listOrder;
-            
             return criteria;
         };
         
@@ -129,14 +138,12 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         $rootScope.$on('listOptions', function(event, newResultsPerPage, newSelectedRPP) {//, newListOrder) {
             criteria.resultsPerPage = newResultsPerPage;
             criteria.selectedRPP = newSelectedRPP;
-            //criteria.listOrder = newListOrder;
         });
         
         $scope.viewAnnotation = function(annoId) {
             $timeout(function() {
                 $location.search('resultsPerPage', criteria.resultsPerPage.toString())
                          .search('selectedRPP', criteria.selectedRPP.toString())
-                         //.search('listOrder', criteria.listOrder.toString())
                          .replace();
             });
         };
@@ -410,19 +417,17 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             $scope.$apply(function(){
                 var motivationKeywords = facetTypes[charme.logic.constants.FACET_TYPE_MOTIVATION];
                 var motivationCategories = [{
-                        name: 'OA Motivation',
-			keywords: motivationKeywords
-		}];
-                $scope.$broadcast('motivationCategoriesForSearch', motivationCategories);
+                	name: 'OA Motivation',
+					keywords: motivationKeywords
+				}];
+        		$scope.$broadcast('motivationCategoriesForSearch', motivationCategories);
                 
-                var domainKeywords = facetTypes[charme.logic.constants.FACET_TYPE_DOMAIN];
-                var domainCategories = [{
-                        name: 'GCMD',
-			keywords: domainKeywords
-		}];
-                $scope.$broadcast('domainCategoriesForSearch', domainCategories);
-                
-                //$scope.linkTypes = facetTypes[charme.logic.constants.FACET_TYPE_DATA_TYPE];
+				var domainKeywords = facetTypes[charme.logic.constants.FACET_TYPE_DOMAIN];
+				var domainCategories = [{
+					name: 'GCMD',
+					keywords: domainKeywords
+				}];
+        		$scope.$broadcast('domainCategoriesForSearch', domainCategories);
                 $scope.organizations = facetTypes[charme.logic.constants.FACET_TYPE_ORGANIZATION];
             });
         });
@@ -530,7 +535,8 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                         function(selectedMotivation) {
                             selectedMotivations.push(selectedMotivation.value);
                         });
-                    var currentMotivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
+
+					var currentMotivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
                     currentMotivations = typeof currentMotivations === 'undefined' ? '' : currentMotivations;
                     var newMotivations = selectedMotivations.join(',');
                     if(currentMotivations !== newMotivations)

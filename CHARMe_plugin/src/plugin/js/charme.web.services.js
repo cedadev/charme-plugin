@@ -263,8 +263,6 @@ charme.web.services.factory('saveAnnotation', function () {
 				var typeInst;
 				if (typeof type !== 'function'){
 					resolver.reject('Invalid selection ' + annoModel.type);
-				} else {
-					///typeInst = new type();
 				}
 				if (annoModel.uri){
 					var linkURI = encodeURI(annoModel.uri);
