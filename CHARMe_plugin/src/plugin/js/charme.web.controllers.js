@@ -33,12 +33,17 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         /*
          * Check if already logged in
          */
+
         $scope.loggedIn=loginService.isLoggedIn();
-        var auth = loginService.getAuth();
+		if ($scope.loggedIn){
+			$scope.userName='Loading...'
+		}
+/*        var auth = loginService.getAuth();
         if (auth && auth.user){
             $scope.userName=auth.user.first_name + ' ' + auth.user.last_name;
             $scope.email=auth.user.email;
         }
+*/
 
         /*
          * Register a login listener for future login events
@@ -53,7 +58,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         });
 
         var targetId=$routeParams.targetId;
-
 		/**
 		 * Onclick functions for buttons
 		 */
@@ -158,7 +162,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
  */
 charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations',
     function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations){
-        $scope.viewAnnotationFlag=true;
+		$scope.viewAnnotationFlag=true;
         $scope.loading=true;
         var targetId=$routeParams.targetId;
         $scope.cancel = function(){
