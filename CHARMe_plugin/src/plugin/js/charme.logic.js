@@ -91,8 +91,8 @@ charme.logic.urls.fetchSearchFacets = function(criteria, facets){
 		url+='*';
 	}
 
-        if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
-		url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
+    if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
+			url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
 	}
         
 	return url;
@@ -639,7 +639,7 @@ charme.logic.fetchAnnotation = function(annotationId) {
 			type : 'GET',
 		}).then(function(data) {
 			var graph = new jsonoa.types.Graph();
-			graph.load(data).then(function(graph) {
+			graph.load(data, false).then(function(graph) {
 				resolver.fulfill(graph);
 			}, function(e) {
 				resolver.reject(e);
@@ -742,7 +742,8 @@ charme.logic.searchAnnotations = function(criteria) {
 			graphSrc[jsonoa.constants.GRAPH]=resultArr;
                         
 			var graph = new jsonoa.types.Graph();
-			graph.load(graphSrc, true).then(function(graph) {
+			//graph.load(graphSrc, false).then(function(graph) {
+			graph.load(graphSrc, false).then(function(graph) {
 				$.each(result.entries, function(index, value) {
 					var graphAnno = graph.getNode(value.id);
 					if (graphAnno)

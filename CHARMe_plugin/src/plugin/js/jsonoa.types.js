@@ -17,7 +17,7 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		ANNOTATED_BY: 'http://www.w3.org/ns/oa#annotatedBy',
 		BODY: 'http://www.w3.org/ns/oa#hasBody',
 		TARGET: 'http://www.w3.org/ns/oa#hasTarget',
-                DATE: 'http://www.w3.org/ns/oa#annotatedAt'
+		DATE: 'http://www.w3.org/ns/oa#annotatedAt'
 	}
 });
 
