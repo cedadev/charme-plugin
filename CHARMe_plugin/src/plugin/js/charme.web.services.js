@@ -41,6 +41,8 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 			loginService._auth = auth;
 	};
 	loginService.isLoggedIn=function(){
+            console.log('here isloggedin');
+            
 			return loginService._auth && !loginService.isExpired() ? true : false;
 	};
 	loginService.isExpired=function(){
@@ -125,15 +127,13 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 /**
  * Register charme.logic methods as service methods
  */
-charme.web.services.factory('fetchAnnotationsForTarget', function(){ 
-		return charme.logic.fetchAnnotationsForTarget;
-	}
-);
+charme.web.services.factory('fetchAnnotationsForTarget', function(){
+        return charme.logic.fetchAnnotationsForTarget;
+});
 
-charme.web.services.factory('fetchAnnotation', function(){ 
-	return charme.logic.fetchAnnotation;
-}
-);
+charme.web.services.factory('fetchAnnotation', function(){
+        return charme.logic.fetchAnnotation;
+});
 
 charme.web.services.factory('searchAnnotations', function(){
 	var searchService = {};
@@ -168,7 +168,7 @@ charme.web.services.factory('searchAnnotations', function(){
 
 	searchService.tellListeners = function (type, data1, data2, data3){
 		angular.forEach(searchService.listeners[type], function(listener){
-			if (typeof data1 !== 'undefined' && typeof data2 !== 'undefined' && typeof data3 !== 'undefined'){
+			if (typeof data1 !== 'undefined' || typeof data2 !== 'undefined' || typeof data3 !== 'undefined'){
 				listener(data1, data2, data3);
 			} else {
 				listener();
@@ -190,10 +190,12 @@ charme.web.services.factory('searchAnnotations', function(){
                                         var author = '';
                                         var userName = '';
                                         var organizationName = '';
-                                        var date = anno.getValue(anno.DATE)['@value'];
                                         
+                                        var date = anno.getValue(anno.DATE);
+                                        date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
+
                                         angular.forEach(person, function(detail){
-                                            if (detail instanceof jsonoa.types.Person){
+                                            if (detail instanceof jsonoa.types.Person){  
                                                 author = detail.getValue(detail.GIVEN_NAME) + ' ' + detail.getValue(detail.FAMILY_NAME);
                                                 userName = detail.getValue(detail.USER_NAME);
                                             } else if (detail instanceof jsonoa.types.Organization){
@@ -319,15 +321,16 @@ charme.web.services.factory('saveAnnotation', function () {
                     anno.addValue(anno.MOTIVATED_BY, page);
                 });
             }
-
-			var target = graph.createNode(jsonoa.types.DatasetTarget, targetId);
+			//var target = graph.createNode(jsonoa.types.DatasetTarget, targetId);
+                        var target = graph.createNode(jsonoa.types[annoModel.target], targetId);
+                        
 			anno.setValue(anno.TARGET, target);
 			charme.logic.saveGraph(graph, auth.token).then(
 				function(data){
 					resolver.fulfill(data);
 				}, 
 				function(error){
-					console.error(error)
+					console.error(error);
 					resolver.reject('Unable to save annotation');
 				}
 			);
@@ -393,6 +396,20 @@ charme.web.services.factory('fetchFabioTypes', function(){
 		});
 		return promise;
 	};
+});
+
+charme.web.services.factory('fetchTargetTypes', function(){
+    return function() {	
+        var promise = new Promise(function(resolver) {
+            charme.logic.fetchTargetTypes().then(function(types) {
+                resolver.fulfill(types);
+            });
+        }, function(error) {
+            resolver.reject(error);
+        });
+        
+        return promise;
+    };
 });
 
 charme.web.services.factory('fetchAllSearchFacets', function(){

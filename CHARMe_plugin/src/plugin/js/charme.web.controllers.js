@@ -28,12 +28,16 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
          * Check if already logged in
          */
         $scope.loggedIn=loginService.isLoggedIn();
-        var auth = loginService.getAuth();
-        if (auth && auth.user){
-            $scope.userName=auth.user.first_name + ' ' + auth.user.last_name;
-            $scope.email=auth.user.email;
+        if($scope.loggedIn) {
+            $scope.userName = 'Loading...';
+        
+            var auth = loginService.getAuth();
+            if(auth && auth.user) {
+                $scope.userName=auth.user.first_name + ' ' + auth.user.last_name;
+                $scope.email=auth.user.email;
+            }
         }
-
+        
         /*
          * Register a login listener for future login events
          */
@@ -218,8 +222,10 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     //Trim the 'doi:' from the front
                                     var doiTxt = citoURI.substring(charme.logic.constants.DOI_PREFIX.length, citoURI.length);
                                     var criteria = {};
-                                    criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
-                                    charme.logic.fetchCrossRefMetaData(criteria).then(function(citation){
+                                    //criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
+                                    //charme.logic.fetchCrossRefMetaData(criteria).then(function(citation){
+                                    criteria[charme.logic.constants.DXDOI_CRITERIA_DOI]=doiTxt;
+                                    charme.logic.fetchDxdoiMetaData(criteria).then(function(citation){
                                         $scope.$apply(function(){
                                             $scope.citation.text = citation;
                                             $scope.citation.loading=false;
@@ -232,7 +238,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                         });
                                     });
                                 } else {
-                                    $scop.link.uri = citingEntity;
+                                    $scope.link.uri = citingEntity;
                                 }
                             }
                             else if (body instanceof jsonoa.types.SemanticTag){
@@ -291,15 +297,15 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         );
 
         $scope.directSearch = function(facet, name) {
-            $rootScope.$broadcast('directSearch', facet, name);
+            $location.path(encodeURIComponent(targetId) + '/annotations/').search(facet, name);
         };
     }]);
 
 /**
  * New annotation screen.
  */
-charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchFabioTypes', 'fetchKeywords', 'fetchAllMotivations',
-    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchFabioTypes, fetchKeywords, fetchAllMotivations){
+charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchAllMotivations', 'fetchKeywords', 'fetchFabioTypes', 'fetchTargetTypes', 
+    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchAllMotivations, fetchKeywords, fetchFabioTypes, fetchTargetTypes){
         $scope.newAnnotationFlag=true;
         var targetId=$routeParams.targetId;
         $scope.targetId=targetId;
@@ -326,7 +332,19 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
                 $scope.citoTypes = options;
             });
         });
-
+        
+        $scope.anno = {};
+        fetchTargetTypes().then(function(types) {
+            var options = [];
+            angular.forEach(types, function(type){
+                options.push({text: type.label, value: type.resource});
+            });
+            $scope.$apply(function(){
+                $scope.targetTypes = options;
+                $scope.anno.target = $scope.targetTypes[0].text;
+            });
+        });
+        
         $scope.cancel = function(){
             if ($scope.loading)
                 return;
@@ -339,8 +357,10 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
             var doiVal = charme.logic.findDOI(uri);
             if (doiVal){
                 var criteria = {};
-                criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=uri;
-                charme.logic.fetchCrossRefMetaData(criteria).then(function(citation){
+                //criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=uri;
+                //charme.logic.fetchCrossRefMetaData(criteria).then(function(citation){
+                criteria[charme.logic.constants.DXDOI_CRITERIA_DOI]=uri;
+                charme.logic.fetchDxdoiMetaData(criteria).then(function(citation){    
                     $scope.$apply(function(){
                         $scope.anno.citoText = citation;
                     });
@@ -429,6 +449,8 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         
         var criteriaFromSearch = function(){
             $scope.loading = true;
+
+            // in case facets are undefined in the URL, define them here
             criteria.motivations = criteria.domainsOfInterest = criteria.organization = criteria.creator = '';
             criteria.pageNum = 1;
             criteria.resultsPerPage = $scope.resultsPerPage[0];
@@ -462,6 +484,8 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             if(typeof pageNum === 'string')
                 criteria.pageNum = parseInt(pageNum);
 
+            // selectedRPP represents the option selected in the HTML - either a number or a string ('All') - and is used for CSS styling (so that the selected option is underlined)
+            // resultsPerPage is the value that is sent to the node, and must be a number, not a string - see scope.setResultsPerPage below
             var resultsPerPage = $location.search()['resultsPerPage'];
             var selectedRPP = $location.search()['selectedRPP'];
             if(typeof resultsPerPage === 'string')
@@ -471,7 +495,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                     $scope.selectedRPP = criteria.selectedRPP = criteria.resultsPerPage;
                 else
                     $scope.selectedRPP = criteria.selectedRPP = selectedRPP;
-            }
+                }
 
             //var listOrder = $location.search()['listOrder'];
             //if(typeof listOrder === 'string')
@@ -509,14 +533,19 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                 $scope.criteria.selectedCreator = criteriaForLoad.creator;
             }
         };
- 
+
         var criteriaOnLoad = criteriaFromSearch();
         loadCriteriaIntoModel(criteriaOnLoad);
         searchAnnotations.searchAnnotations(criteriaOnLoad);
  
         var debounceHandle;
-        $scope.$watch('criteria', function(){
-            if (typeof $scope.criteria !== 'undefined') {
+        $scope.$watch('criteria', function(newVal, oldVal){
+            // after a watcher is registered with the scope, the listener function is called once, asynchronously, to initialize the watcher
+            if(newVal === oldVal) {
+                return;
+            }
+            
+            if(typeof $scope.criteria !== 'undefined') {
                 if (debounceHandle)
                     $timeout.cancel(debounceHandle);
  
@@ -565,16 +594,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         }, true);
         
         $scope.$on('$routeUpdate', function(){
-            $rootScope.$broadcast('listOptions', criteria);
             searchAnnotations.searchAnnotations(criteriaFromSearch());
-        });
-        
-        $rootScope.$on('directSearch', function(event, facet, name) {
-            $location.path(encodeURIComponent(targetId) + '/annotations/');
-            criteria.pageNum = 1;
-            criteria.motivations = criteria.domainsOfInterest = criteria.organization = criteria.creator = '';
-            $location.search(facet, name);
-            $location.search('pageNum', criteria.pageNum.toString());
         });
 
         $rootScope.$on('changePage', function(event, newPage, pages){
@@ -592,18 +612,25 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             }
         });
 
+        var maxResults, firstSearchFlag = true;
         searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, totalResults){
             $scope.$apply(function() {
                 $scope.numResults = totalResults;
                 $scope.loading = false;
+                
+                // the first search, on loading, returns all results, and we store that 'totalResults' number as 'maxResults' for future reference
+                if(firstSearchFlag) {
+                    firstSearchFlag = false;
+                    maxResults = totalResults;
+                }
             });
         });
         $scope.setResultsPerPage = function(rpp) {
             if(typeof rpp === "number")
                 criteria.resultsPerPage = rpp;
             else if(typeof rpp === "string")
-                criteria.resultsPerPage = $scope.numResults;
-            
+                criteria.resultsPerPage = maxResults;
+                  
             $scope.selectedRPP = criteria.selectedRPP = rpp;
             criteria.pageNum = 1;
             $location.search('pageNum', criteria.pageNum.toString())

@@ -88,7 +88,7 @@ jsonoa.types.register = function(typeDesc){
 			if (attrVal instanceof Array){
 				attrVal = attrVal[0];
 			}
-			
+                        
 			return this._wrapValue(attrVal);
 				
 		};
@@ -266,7 +266,7 @@ jsonoa.types.Graph = function(){
 							parentGraph.createNode(nodeType, node['@id'], node);
 						} else {
 							if (!ignoreErrors){
-								resolver.reject('Unknown node type in graph');
+								resolver.reject('Unknown node type(s) in graph');
 								return;
 							}
 						}

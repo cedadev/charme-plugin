@@ -68,7 +68,7 @@ textarea {
 .modal-body{
 	/*overflow-y: auto;*/
 	/*max-height: 300px;*/
-    min-height: 430px;
+    min-height: 400px;
     overflow: hidden;
 }
 .modal-body-new{
@@ -168,7 +168,7 @@ body {
     left:0;
     top:0;
     bottom: 0;
-    width: 360px;
+    width: 370px;
     height: 100%;
 }
 .search-title .brand {
@@ -264,7 +264,7 @@ body {
 }
 
 .search-results-open {
-    margin-left: 360px;
+    margin-left: 370px;
 }
 
 .search-results-collapsed {
@@ -277,7 +277,7 @@ body {
 
 .reset-button {
     position: absolute;
-    right: 30px;
+    right: 35px;
 }
 
 .form-horizontal .control-label {
@@ -286,6 +286,42 @@ body {
 
 .form-horizontal .controls {
     margin-left: 100px;
+}
+
+.search-question-icon {
+    margin-left: 5px !important;
+}
+
+.motivation, .domains {
+    margin-left: 0px !important;
+}
+
+.organisation, .creator {
+    font-size: 13px;
+}
+
+.select-placeholder, select option:first-child {
+    color: #999999;
+    font-size: 13px;
+}
+
+select option {
+    color: black;
+}
+
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+  font-size: 13px;
+}
+
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  font-size: 13px;
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  font-size: 13px;
 }
 
 .pagination_container {
@@ -303,7 +339,7 @@ body {
 }
 
 .pagination_padding-open {
-    margin-left: 360px;
+    margin-left: 370px;
 }
 
 .pagination_padding-collapsed {

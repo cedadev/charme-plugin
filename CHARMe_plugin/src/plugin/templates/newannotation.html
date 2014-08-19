@@ -11,14 +11,14 @@
                            class="icon-question-sign"></span></h4>
         <textarea data-ng-model="anno.comment" rows="3"></textarea>
 
-        <h4>Motivation <span title="Select tag(s) describing the motivations of this annotation"
+        <h4>Motivation <span title="Select tag(s) describing the motivation of this annotation"
                              class="icon-question-sign"></span></h4>
         <select data-motivations-to-show="motivationCategoriesForNewAnno" data-motivation-keywords multiple
                 data-ng-model="anno.motivation"
                 placeholder="Select motivations...">
         </select>
 
-        <h4>Domain Classification <span title="Select tag(s) describing the subject of this annotation"
+        <h4>Domain classification <span title="Select tag(s) describing the subject of this annotation"
                                         class="icon-question-sign"></span></h4>
         <select data-keywords-to-show="domainCategoriesForNewAnno" data-domain-keywords multiple
                 data-ng-model="anno.domain" 
@@ -28,7 +28,6 @@
         <h4>Link <span
                 title="Select type of reference (e.g. journal article) you wish to link to - a textbox will then open for the address"
                 class="icon-question-sign"></span></h4>
-
         <div class="row-fluid">
             <div class="span2">
                 <select class="input-medium" data-ng-model="anno.type" name="type"
@@ -51,6 +50,17 @@
             <div class="span1" data-ng-show="anno.citoText">
                 <span class="icon-tag" title="{{anno.citoText}}"></span>
             </div>
+        </div>
+        
+        <h4>Target classification <span title="Select type of target (e.g. dataset) you are annotating"
+                         class="icon-question-sign"></span></h4>
+        <div>
+            <select class="input-medium" data-ng-model="anno.target" name="type"
+                    title="Please select a target type"
+                    data-ng-options="target.text as target.text for target in targetTypes"
+                    data-ng-required="anno.target">
+                <!--<option value="">Select...</option>-->
+            </select>
         </div>
     </form>
 </div>

@@ -20,13 +20,16 @@ charme.logic.constants = {
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
 
-    DOI_PREFIX : 'http://dx.doi.org/',
     URL_PREFIX : 'http://',
+    //DOI_PREFIX : 'http://dx.doi.org/',
+    DXDOI_URL : 'http://dx.doi.org/',
+    DXDOI_CRITERIA_DOI : 'id',
 
     CROSSREF_URL : 'http://data.crossref.org/',
     CROSSREF_CRITERIA_DOI : 'id',
     NERC_SPARQL_EP : 'http://vocab.nerc.ac.uk/sparql/sparql',
     FABIO_URL : 'http://eelst.cs.unibo.it/apps/LODE/source?url=http://purl.org/spar/fabio',
+    TARGET_URL : 'localData/target_types.json', // use locally cached file for now
 
     SPARQL_GCMD : 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>			' +
             'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>				' +
@@ -112,7 +115,10 @@ charme.logic.urls.gcmdVocabRequest = function(sparqlQry) {
 	url += '&output=json';
 	return url;
 };
-charme.logic.urls.crossRefRequest = function(criteria) {
+charme.logic.urls.targetTypesRequest = function() {
+    return charme.logic.constants.TARGET_URL;
+};
+/*charme.logic.urls.crossRefRequest = function(criteria) {
 	var url = null;
 	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] &&
 		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI].length > 0) {
@@ -121,6 +127,18 @@ charme.logic.urls.crossRefRequest = function(criteria) {
 			doi = doi.substring(charme.logic.constants.CROSSREF_URL.length + 1);
 		}
 		url = charme.logic.constants.CROSSREF_URL + doi;
+	}
+	return url;
+};*/
+charme.logic.urls.dxdoiRequest = function(criteria) {
+	var url = null;
+	if (criteria[charme.logic.constants.DXDOI_CRITERIA_DOI] &&
+		criteria[charme.logic.constants.DXDOI_CRITERIA_DOI].length > 0) {
+		var doi = criteria[charme.logic.constants.DXDOI_CRITERIA_DOI];
+		if (doi.indexOf(charme.logic.constants.DXDOI_URL) === 0) {
+			doi = doi.substring(charme.logic.constants.DXDOI_URL.length + 1);
+		}
+		url = charme.logic.constants.DXDOI_URL + doi;
 	}
 	return url;
 };
@@ -475,11 +493,32 @@ charme.logic.fetchFabioTypes = function() {
 	return promise;
 };
 
+charme.logic.fetchTargetTypes = function() {
+    var promise = new Promise(function(resolver) {
+        var reqUrl = charme.logic.urls.targetTypesRequest(charme.logic.constants.TARGET_URL);
+        if (reqUrl === null || reqUrl.length === 0) {
+            resolver.reject();
+        }
+        
+        $.ajax(reqUrl, {
+            headers: {
+                accept: 'application/json; charset=utf-8'
+            }
+        }).then(function(jsonResp) {
+            resolver.fulfill(jsonResp);
+        }, function(e) {
+            resolver.reject(e);
+        });
+    });
+    
+    return promise;
+};
+
 /**
  * Uses the Crossref web services (available from http://www.crossref.org/ to retrieve 
  * bibliographic data for a given DOI
  */
-charme.logic.fetchCrossRefMetaData = function(criteria) {
+/*charme.logic.fetchCrossRefMetaData = function(criteria) {
 	var promise = new Promise(function(resolver) {
 		var reqUrl = charme.logic.urls.crossRefRequest(criteria);
 		if (reqUrl === null || reqUrl.length === 0) {
@@ -487,7 +526,7 @@ charme.logic.fetchCrossRefMetaData = function(criteria) {
 		}
 		$.ajax(reqUrl, {
 			headers : {
-				accept : 'text/bibliography; style=apa; locale=en-US'
+				accept : 'text/x-bibliography; style=apa; locale=en-US'
 			}
 		}).then(function(xmlResp) {
 			resolver.fulfill(xmlResp);
@@ -496,6 +535,28 @@ charme.logic.fetchCrossRefMetaData = function(criteria) {
 		});
 	});
 	return promise;
+};*/
+/**
+ * Uses the dx.doi web services (available from http://www.dx.doi.org/ to retrieve 
+ * bibliographic data for a given DOI
+ */
+charme.logic.fetchDxdoiMetaData = function(criteria) {
+    var promise = new Promise(function(resolver) {
+        var reqUrl = charme.logic.urls.dxdoiRequest(criteria);
+        if(reqUrl === null || reqUrl.length === 0) {
+            resolver.reject();
+        }
+        $.ajax(reqUrl, {
+            headers: {
+                accept: 'text/x-bibliography; style=apa; locale=en-US'
+            }
+        }).then(function(xmlResp) {
+                resolver.fulfill(xmlResp);
+        }, function(e) {
+                resolver.reject(e);
+        });
+    });
+    return promise;
 };
 
 /**
@@ -659,7 +720,7 @@ charme.logic.searchAnnotations = function(criteria) {
 		var reqUrl = charme.logic.urls.fetchAnnotations(criteria);
 		$.ajax(reqUrl, {
 			type : 'GET'
-		}).then(function(data) {
+		}).then(function(data) {          
 			// Data is returned as ATOM wrapped json-ld
 			var result = new charme.atom.Result(data);
 			// Extract json-ld from the multiple 'content' payloads returned
@@ -679,9 +740,9 @@ charme.logic.searchAnnotations = function(criteria) {
 			});
 			var graphSrc = {};
 			graphSrc[jsonoa.constants.GRAPH]=resultArr;
-
+                        
 			var graph = new jsonoa.types.Graph();
-			graph.load(graphSrc).then(function(graph) {
+			graph.load(graphSrc, true).then(function(graph) {
 				$.each(result.entries, function(index, value) {
 					var graphAnno = graph.getNode(value.id);
 					if (graphAnno)
@@ -692,7 +753,7 @@ charme.logic.searchAnnotations = function(criteria) {
 				resolver.reject(e);
 			});
 
-		}, function(jqXHR, textStatus, errorThrown) {
+		}, function(jqXHR, textStatus, errorThrown) {    
 			resolver.reject();
 		});
 	});

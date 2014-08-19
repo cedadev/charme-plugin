@@ -21,7 +21,7 @@ jsonoa.types.Annotation = jsonoa.types.register({
 	}
 });
 
-jsonoa.types.DatasetTarget = jsonoa.types.register({
+/*jsonoa.types.DatasetTarget = jsonoa.types.register({
 	template:
 		'{																							' + 
 		'	"@id": "?",																				' +
@@ -29,7 +29,10 @@ jsonoa.types.DatasetTarget = jsonoa.types.register({
 		'}																							',
 	constants: {
 	}
-});
+});*/
+jsonoa.types.Dataset    = jsonoa.types.register({template: '{"@id": "?", "@type": "http://purl.org/dc/dcmitype/Dataset"}'});
+jsonoa.types.Instrument = jsonoa.types.register({template: '{"@id": "?", "@type": "http://blah.org/blah/Instrument"}'});
+jsonoa.types.Platform   = jsonoa.types.register({template: '{"@id": "?", "@type": "http://blah.org/blah/Platform"}'});
 
 
 //Annotation types that can be created and deleted

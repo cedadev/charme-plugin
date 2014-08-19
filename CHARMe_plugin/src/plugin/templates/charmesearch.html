@@ -9,11 +9,13 @@
  -->
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
-        <div class="controls">
-            <select id="chooseMotivation" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
+        <div class="controls controls-row">
+            <select id="chooseMotivation" class="span3 motivation" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
                     data-ng-model="criteria.selectedMotivations"
                     placeholder="Select tags...">
             </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by tagged motivations"></span>
         </div>
     </div>
     <!--
@@ -28,27 +30,32 @@
     -->
     <div class="control-group">
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
-        <div class="controls">
-            <select id="chooseDomain" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
+        <div class="controls controls-row">
+            <select id="chooseDomain" class="span3 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
                     data-ng-model="criteria.selectedDomains"
                     placeholder="Select tags...">
             </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by tagged domains of interest"></span>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseLocation">Organisation</label>
-        <div class="controls">
-            <select id="chooseLocation" data-ng-model="criteria.selectedOrganization"
+        <div class="controls controls-row">
+            <select id="chooseLocation" data-ng-model="criteria.selectedOrganization" data-ng-class="['span3', 'organisation', ('select-placeholder' + criteria.selectedOrganization)]"
                     data-ng-options="organization.uri as organization.label for organization in organizations">
-                <option></option>
+                <option value="">Select author's organisation...</option>
             </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by author's organisation"></span>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseCreator">Creator</label>
-
-        <div class="controls">
-            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" type="text"/>
+        <div class="controls controls-row">
+            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" class="span3 creator" type="text" placeholder=" Enter author's username..."/>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by author's username"></span>
         </div>
     </div>
     
