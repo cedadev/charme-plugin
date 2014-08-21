@@ -41,8 +41,6 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 			loginService._auth = auth;
 	};
 	loginService.isLoggedIn=function(){
-            console.log('here isloggedin');
-            
 			return loginService._auth && !loginService.isExpired() ? true : false;
 	};
 	loginService.isExpired=function(){
