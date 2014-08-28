@@ -21,12 +21,11 @@ charme.logic.constants = {
     BODY_ID_PREFIX : 'http://localhost/',
 
     URL_PREFIX : 'http://',
-    //DOI_PREFIX : 'http://dx.doi.org/',
     DXDOI_URL : 'http://dx.doi.org/',
-    DXDOI_CRITERIA_DOI : 'id',
+    DXDOI_CRITERIA_ID : 'id',
 
     CROSSREF_URL : 'http://data.crossref.org/',
-    CROSSREF_CRITERIA_DOI : 'id',
+    CROSSREF_CRITERIA_ID : 'id',
     NERC_SPARQL_EP : 'http://vocab.nerc.ac.uk/sparql/sparql',
     FABIO_URL : 'http://eelst.cs.unibo.it/apps/LODE/source?url=http://purl.org/spar/fabio',
     TARGET_URL : 'localData/target_types.json', // use locally cached file for now
@@ -97,7 +96,6 @@ charme.logic.urls.fetchSearchFacets = function(criteria, facets){
         
 	return url;
 };
-
 charme.logic.urls.userDetailsRequest = function(id) {
 	return charme.logic.urls._baseURL() + 'token/userinfo';
 };
@@ -118,23 +116,11 @@ charme.logic.urls.gcmdVocabRequest = function(sparqlQry) {
 charme.logic.urls.targetTypesRequest = function() {
     return charme.logic.constants.TARGET_URL;
 };
-/*charme.logic.urls.crossRefRequest = function(criteria) {
-	var url = null;
-	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] &&
-		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI].length > 0) {
-		var doi = criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI];
-		if (doi.indexOf(charme.logic.constants.CROSSREF_URL) === 0) {
-			doi = doi.substring(charme.logic.constants.CROSSREF_URL.length + 1);
-		}
-		url = charme.logic.constants.CROSSREF_URL + doi;
-	}
-	return url;
-};*/
 charme.logic.urls.dxdoiRequest = function(criteria) {
 	var url = null;
-	if (criteria[charme.logic.constants.DXDOI_CRITERIA_DOI] &&
-		criteria[charme.logic.constants.DXDOI_CRITERIA_DOI].length > 0) {
-		var doi = criteria[charme.logic.constants.DXDOI_CRITERIA_DOI];
+	if (criteria[charme.logic.constants.DXDOI_CRITERIA_ID] &&
+		criteria[charme.logic.constants.DXDOI_CRITERIA_ID].length > 0) {
+		var doi = criteria[charme.logic.constants.DXDOI_CRITERIA_ID];
 		if (doi.indexOf(charme.logic.constants.DXDOI_URL) === 0) {
 			doi = doi.substring(charme.logic.constants.DXDOI_URL.length + 1);
 		}
@@ -151,10 +137,6 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
 	}
-	// need node to support search for linkType
-	//if (typeof criteria.linkTypes !== 'undefined' && criteria.linkTypes.length > 0) {
-	//	url+='&linkType=' + encodeURIComponent(criteria.linkTypes.join(' '));
-	//}
 	if (typeof criteria.domainsOfInterest !== 'undefined' && criteria.domainsOfInterest.length > 0) {
 		url+='&domainOfInterest=' + encodeURIComponent(criteria.domainsOfInterest.join(' '));
 	}
@@ -218,7 +200,8 @@ charme.logic.fabioNSResolver = function(prefix) {
  * @returns
  */
 charme.logic.findDOI = function(someString) {
-	return (/\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'])\S)+)\b/).exec(someString);
+	var result = (/\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'])\S)+)\b/).exec(someString);
+	return result && result[0] ? result[0] : result;
 };
 
 /**
@@ -515,28 +498,6 @@ charme.logic.fetchTargetTypes = function() {
 };
 
 /**
- * Uses the Crossref web services (available from http://www.crossref.org/ to retrieve 
- * bibliographic data for a given DOI
- */
-/*charme.logic.fetchCrossRefMetaData = function(criteria) {
-	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.crossRefRequest(criteria);
-		if (reqUrl === null || reqUrl.length === 0) {
-			resolver.reject();
-		}
-		$.ajax(reqUrl, {
-			headers : {
-				accept : 'text/x-bibliography; style=apa; locale=en-US'
-			}
-		}).then(function(xmlResp) {
-			resolver.fulfill(xmlResp);
-		}, function(e) {
-			resolver.reject(e);
-		});
-	});
-	return promise;
-};*/
-/**
  * Uses the dx.doi web services (available from http://www.dx.doi.org/ to retrieve 
  * bibliographic data for a given DOI
  */
@@ -638,7 +599,7 @@ charme.logic.fetchAnnotation = function(annotationId) {
 		$.ajax(reqUrl, {
 			type : 'GET',
 		}).then(function(data) {
-			var graph = new jsonoa.types.Graph();
+			var graph = new jsonoa.core.Graph();
 			graph.load(data, false).then(function(graph) {
 				resolver.fulfill(graph);
 			}, function(e) {
@@ -698,12 +659,12 @@ charme.logic.fetchAllSearchFacets = function(criteria){
 
 charme.logic.shortAnnoTitle = function(anno){
 	var out='';
-	var bodies = anno.getValues(anno.BODY);
+	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
 	angular.forEach(bodies, function(body){
-		if (body instanceof jsonoa.types.TextBody){
-			out=body.getValue(body.CONTENT_CHARS);
-		} else if (body instanceof jsonoa.types.Publication && out.length===0){
-			out=body.getValue(body.CITING_ENTITY).getValue(body.ID);
+		if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)){
+			out=body.getValue(jsonoa.types.Text.CONTENT_CHARS);
+		} else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length===0){
+			out=body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
 		}
 	});
 	return out;
@@ -741,7 +702,7 @@ charme.logic.searchAnnotations = function(criteria) {
 			var graphSrc = {};
 			graphSrc[jsonoa.constants.GRAPH]=resultArr;
                         
-			var graph = new jsonoa.types.Graph();
+			var graph = new jsonoa.core.Graph();
 			//graph.load(graphSrc, false).then(function(graph) {
 			graph.load(graphSrc, false).then(function(graph) {
 				$.each(result.entries, function(index, value) {
