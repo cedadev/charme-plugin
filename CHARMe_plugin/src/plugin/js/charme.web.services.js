@@ -104,14 +104,14 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 	};
 	
 	/**
-	 * Function to allow objects to wrapNode for login events
+	 * Function to allow objects to register for login events
 	 */
 	loginService.addLoginListener=function(listener){
 		loginService._loginListeners.push(listener);
 	};
 
 	/**
-	 * Function to allow objects to wrapNode for login events
+	 * Function to allow objects to register for login events
 	 */
 	loginService.addLogoutListener=function(listener){
 		loginService._logoutListeners.push(listener);
