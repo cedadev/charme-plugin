@@ -11,8 +11,11 @@ charme.web.app.
 			if (!input)
 				return out;
 			out = $filter('limitTo')(input, length);
-			if (out.length!=input.length)
+			if (out.length!==input.length)
 				out+='...';
 			return out;
 		};
-	}]);
+	}]).
+        filter('shortDomainLabel', function() {
+            return charme.logic.shortDomainLabel();
+        });

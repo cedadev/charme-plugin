@@ -77,20 +77,34 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 		});
 	};
 	
-	loginService._loginEvent=function(evt){
-		if (evt.data){
-			var msg = JSON.parse(evt.data);
-			try {
-				persistence.persist(charme.web.constants.CHARME_TK, msg);
-			}
-			catch (e){
-				if (console){
-					console.log('Unable to persist user credentials ');
-					console.log(e);
-				}
-			}
-			loginService._doLogin(msg);
+	loginService._loginEvent = function(evt) {
+            if(evt.origin === window.location.protocol + '//' + window.location.host && evt.data) {
+                var msg = JSON.parse(evt.data);
+                if(!msg.hasOwnProperty('token') || !msg.hasOwnProperty('expiry')) {
+                    console.error('Bad message received:');
+                    console.error(msg);
+                    return;
+                }
+                
+                if(msg.error)
+                    console.error(msg.error);
+
+                try {
+                    persistence.persist(charme.web.constants.CHARME_TK, msg);
+                }
+                catch(e) {
+                    if(console) {
+                        console.log('Unable to persist user credentials');
+                        console.log(e);
+                    }
+                }
+                
+                loginService._doLogin(msg);
 		}
+                else {
+                    console.error('Bad message received:');
+                    console.error(evt);
+                }
 	};
 	
 	loginService._logoutEvent = function(){
@@ -188,6 +202,7 @@ charme.web.services.factory('searchAnnotations', function(){
                                         var author = '';
                                         var userName = '';
                                         var organizationName = '';
+                                        var organizationUri = '';
                                         
                                         var date = anno.getValue(anno.DATE);
                                         date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
@@ -198,18 +213,20 @@ charme.web.services.factory('searchAnnotations', function(){
                                                 userName = detail.getValue(detail.USER_NAME);
                                             } else if (detail instanceof jsonoa.types.Organization){
                                                 organizationName = detail.getValue(detail.NAME);
+                                                organizationUri = detail.getValue(detail.URI);
                                             }
                                         });
                                         
 					results.push(
 						{
-                            'id': value.id,
+                                                    'id': value.id,
 						    'title': title,
 						    'updated': updated,
 						    'author': author,
-							'userName': userName,
-							'organizationName': organizationName,
-							'date': date
+                                                    'userName': userName,
+                                                    'organizationName': organizationName,
+                                                    'organizationUri': organizationUri,
+                                                    'date': date
 						}
 					);
 				});
@@ -300,7 +317,7 @@ charme.web.services.factory('saveAnnotation', function () {
 				angular.forEach(annoModel.domain, function(domain){
 					var tagId = domain.value;
 					var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
-					tag.setValue(tag.PREF_LABEL, domain.text);
+					tag.setValue(tag.PREF_LABEL, domain.textLong);
 					anno.addValue(anno.BODY, tag);
 				});
 
@@ -340,7 +357,7 @@ charme.web.services.factory('fetchKeywords', function(){
 	return function(annoModel, targetId){	
 		var promise = new Promise(function(resolver){
 			if (categories.length===0){
-				charme.logic.fetchGCMDVocab().then(function(keywords){
+				charme.logic.fetchGCMDVocab(false).then(function(keywords){
 					categories.push({
 						name: 'GCMD',
 						keywords: keywords
@@ -394,10 +411,16 @@ charme.web.services.factory('fetchFabioTypes', function(){
 	};
 });
 
-charme.web.services.factory('fetchTargetTypes', function(){
+charme.web.services.factory('fetchTargetType', function(){
+    return function(targetId) {
+        return charme.logic.fetchTargetType(targetId);
+    };
+});
+
+/*charme.web.services.factory('fetchAllTargetTypes', function(){
     return function() {	
         var promise = new Promise(function(resolver) {
-            charme.logic.fetchTargetTypes().then(function(types) {
+            charme.logic.fetchAllTargetTypes().then(function(types) {
                 resolver.fulfill(types);
             });
         }, function(error) {
@@ -406,7 +429,7 @@ charme.web.services.factory('fetchTargetTypes', function(){
         
         return promise;
     };
-});
+});*/
 
 charme.web.services.factory('fetchAllSearchFacets', function(){
     /* return charme.logic.fetchAllSearchFacets(); */

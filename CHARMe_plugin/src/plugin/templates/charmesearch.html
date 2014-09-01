@@ -1,10 +1,21 @@
 <form class="form-horizontal form-charme-search" data-ng-controller="SearchCtrl">
     <div class="control-group">
+        <label class="control-label" for="chooseTargetType">Target type</label>
+        <div class="controls controls-row">
+            <select id="chooseTargetType" class="span3 target-types" data-target-types-to-show="targetTypeCategoriesForSearch" data-target-type-keywords multiple
+                    data-ng-model="criteria.selectedTargetTypes"
+                    placeholder=" Select tags...">
+            </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by tagged target types"></span>
+        </div>
+    </div>
+    <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls controls-row">
-            <select id="chooseMotivation" class="span3 motivation" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
+            <select id="chooseMotivation" class="span3 motivations" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
                     data-ng-model="criteria.selectedMotivations"
-                    placeholder="Select tags...">
+                    placeholder=" Select tags...">
             </select>
             <span class="span1 search-question-icon icon-question-sign"
                   title="Search by tagged motivations"></span>
@@ -15,16 +26,17 @@
         <div class="controls controls-row">
             <select id="chooseDomain" class="span3 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
                     data-ng-model="criteria.selectedDomains"
-                    placeholder="Select tags...">
+                    placeholder=" Select tags...">
             </select>
             <span class="span1 search-question-icon icon-question-sign"
                   title="Search by tagged domains of interest"></span>
         </div>
     </div>
     <div class="control-group">
-        <label class="control-label" for="chooseLocation">Organisation</label>
+        <label class="control-label" for="chooseOrganisation">Organisation</label>
         <div class="controls controls-row">
-            <select id="chooseLocation" data-ng-model="criteria.selectedOrganization" data-ng-class="['span3', 'organisation', ('select-placeholder' + criteria.selectedOrganization)]"
+            <select id="chooseOrganisation" data-ng-model="criteria.selectedOrganization" class="span3 organisation select-placeholder"
+                    onchange="changeOrganisation()"
                     data-ng-options="organization.uri as organization.label for organization in organizations">
                 <option value="">Select author's organisation...</option>
             </select>
@@ -40,7 +52,7 @@
                   title="Search by author's username"></span>
         </div>
     </div>
-    
+
     <div>
         <button class="btn reset-button" data-ng-disabled="loading" data-ng-click="reset();" type="reset">Reset</button>
     </div>

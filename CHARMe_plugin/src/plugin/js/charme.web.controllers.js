@@ -5,10 +5,10 @@ charme.web.controllers = angular.module('charmeControllers', ['charmeServices'])
  */
 charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$location', '$filter', 'loginService', 'persistence', 'searchAnnotations',
     function ($scope, $routeParams, $location, $filter, loginService, persistence, searchAnnotations){
+        searchAnnotations.clearListeners();
         var targetId=$routeParams.targetId;
         loginService._loadState();
         $location.path(encodeURIComponent(targetId) + '/annotations/');
-        searchAnnotations.clearListeners();
     }
 ]);
 
@@ -25,11 +25,11 @@ function ($scope){
 /**
  * List the results of an annotation search.
  */
-charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$filter', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 
-    function ($rootScope, $scope, $routeParams, $location, $timeout, $filter, fetchAnnotationsForTarget, loginService, searchAnnotations){
+charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$filter', 'fetchTargetType', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 
+    function ($rootScope, $scope, $routeParams, $location, $timeout, $filter, fetchTargetType, fetchAnnotationsForTarget, loginService, searchAnnotations){
         $scope.listAnnotationsFlag=true;
         $scope.loading=true;
-
+        
         /*
          * Check if already logged in
          */
@@ -57,7 +57,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
             });
         });
 
-        var targetId=$routeParams.targetId;
+        var targetId=$routeParams.targetId; 
 		/**
 		 * Onclick functions for buttons
 		 */
@@ -86,6 +86,14 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 		 * Listen for search events. Searches are triggered by asynchronous events in the faceted search bar.
 		 */
         $scope.targetId=targetId;
+        $scope.targetType = {};
+        fetchTargetType(targetId).then(function(targetType) {
+            $scope.targetType.desc = targetType[0];
+        }, function(error) {
+            $scope.$apply(function() {
+                $scope.targetType.error = error;
+            });
+        });
 
         searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
             $scope.entries = [];
@@ -105,7 +113,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                 $scope.pages = pages;
                 
                 angular.forEach($scope.entries, function(entry) {
-					//Double-escape URIs embedded within a URI in order to work with Angular routing
+                    //Double-escape URIs embedded within a URI in order to work with Angular routing
                     entry.uri = '#/' + encodeURIComponent(encodeURIComponent(targetId)) + '/annotation/' 
                                      + encodeURIComponent(encodeURIComponent(entry.id)) + '/';
                 });
@@ -134,6 +142,11 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                 else
                     criteria.selectedRPP = selectedRPP;
             }
+            
+            //var listOrder = $location.search()['listOrder'];
+            //if(typeof listOrder === 'string')
+            //    criteria.listOrder = listOrder;
+            
             return criteria;
         };
         
@@ -142,12 +155,15 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         $rootScope.$on('listOptions', function(event, newResultsPerPage, newSelectedRPP) {//, newListOrder) {
             criteria.resultsPerPage = newResultsPerPage;
             criteria.selectedRPP = newSelectedRPP;
+            //criteria.listOrder = newListOrder;
         });
         
+        // Store resultsPerPage and selectedRPP in the URL so they can be retrieved if user activates $scope.directSearch when viewing annotation
         $scope.viewAnnotation = function(annoId) {
             $timeout(function() {
                 $location.search('resultsPerPage', criteria.resultsPerPage.toString())
                          .search('selectedRPP', criteria.selectedRPP.toString())
+                         //.search('listOrder', criteria.listOrder.toString())
                          .replace();
             });
         };
@@ -155,14 +171,20 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         $scope.setPage = function(newPage){
             $rootScope.$broadcast('changePage', newPage, $scope.pages);
         };
+        
+        $scope.directSearch = function(facet, name, evt) {
+            evt.preventDefault();
+            $location.path(encodeURIComponent(targetId) + '/annotations/').search(facet, name);
+        };
     }]);
 
 /**
  * View details of individual annotation.
  */
-charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations',
-    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations){
+charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetType', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations',
+    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetType, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations){
 		$scope.viewAnnotationFlag=true;
+        searchAnnotations.clearListeners();
         $scope.loading=true;
         var targetId=$routeParams.targetId;
         $scope.cancel = function(){
@@ -173,6 +195,15 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         $scope.annotationId=annoId;
         $scope.targetId=targetId;
         
+        $scope.targetType = {};
+        fetchTargetType(targetId).then(function(targetType) {
+            $scope.targetType.desc = targetType[0];
+        }, function(error) {
+            $scope.$apply(function() {
+                $scope.targetType.error = error;
+            });
+        });
+        
         Promise.every(fetchKeywords(), fetchAnnotation(annoId), fetchFabioTypes(), fetchAllMotivations()).then(
             function (results){
                 $scope.loading=false;
@@ -182,15 +213,18 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                     var fabioTypes = results[2];
                     var motivations_catagories = results[3];
                     var motivation_keywords = {};
+                    
+                    // Need these lines?
                     //Process GCMD keywords
-                    angular.forEach(categories[0].keywords, function(keyword){
-                        keywords[keyword.uri]=keyword.desc;
-                    });
+                    //angular.forEach(categories[0].keywords, function(keyword){
+                    //    keywords[keyword.uri]=keyword.desc;
+                    //});
+
                     //Process Motivation keywords
                     angular.forEach(motivations_catagories[0].keywords, function(keyword){
                         motivation_keywords[keyword.uri]=keyword.desc;
                     });
-
+                    
                     var graph = results[1];
                     //Process graph
                     var annoList = graph.getAnnotations();
@@ -249,12 +283,12 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 }
                             }
                             else if (body instanceof jsonoa.types.SemanticTag){
-                                if (!$scope.tags){
-                                    $scope.tags = [];
+                                if (!$scope.domainTags){
+                                    $scope.domainTags = [];
                                 }
                                 var tagURI = body.getValue(body.ID);
                                 var prefLabel = body.getValue(body.PREF_LABEL);
-                                $scope.tags.push({uri: tagURI, desc: prefLabel});
+                                $scope.domainTags.push({uri: tagURI, desc: prefLabel});
                             } else {
                                 //Match the citation type to a text description.
                                 var type = body.getValue(body.TYPE);
@@ -311,11 +345,26 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
 /**
  * New annotation screen.
  */
-charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchAllMotivations', 'fetchKeywords', 'fetchFabioTypes', 'fetchTargetTypes', 
-    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchAllMotivations, fetchKeywords, fetchFabioTypes, fetchTargetTypes){
+charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchTargetType', 'fetchAllMotivations', 'fetchKeywords', 'fetchFabioTypes', 'searchAnnotations', 
+    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchTargetType, fetchAllMotivations, fetchKeywords, fetchFabioTypes, searchAnnotations){
+        searchAnnotations.clearListeners();
         $scope.newAnnotationFlag=true;
         var targetId=$routeParams.targetId;
         $scope.targetId=targetId;
+        
+        $scope.anno = {};
+        $scope.targetType = {};
+        fetchTargetType(targetId).then(function(targetType) {
+            $scope.anno.target = $scope.targetType.desc = targetType[0];
+
+            if(!targetType[1])
+                $scope.errorMsg = 'Error: ' + targetType[0];
+        }, function(error) {
+            $scope.$apply(function() {
+                $scope.errorMsg = error;
+            });
+        });
+        
         $scope.loggedIn=loginService.isLoggedIn();
         
         fetchAllMotivations().then(function(categories){
@@ -340,8 +389,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
             });
         });
         
-        $scope.anno = {};
-        fetchTargetTypes().then(function(types) {
+        /*fetchAllTargetTypes().then(function(types) {
             var options = [];
             angular.forEach(types, function(type){
                 options.push({text: type.label, value: type.resource});
@@ -350,7 +398,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
                 $scope.targetTypes = options;
                 $scope.anno.target = $scope.targetTypes[0].text;
             });
-        });
+        });*/
         
         $scope.cancel = function(){
             if ($scope.loading)
@@ -395,7 +443,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
                         $scope.loading=false;
                         $location.path(encodeURIComponent(targetId) + '/annotations/');
 
-                        //Issue the  refresh message
+                        //Issue the refresh message
                         top.postMessage('refreshAnnotationCount' + ":::" + targetId, '*');
 
                     });
@@ -424,6 +472,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         //$scope.listOrderOptions = [{text: 'Newest', sortNum: -1}, {text: 'Oldest', sortNum: 1}];
 
         $scope.criteria = {
+            selectedTargetTypes: [],
             selectedMotivations: [],
             selectedDomains: []
         };
@@ -435,19 +484,27 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
 
         fetchAllSearchFacets(criteria).then(function(facetTypes){
             $scope.$apply(function(){
+                var targetTypeKeywords = facetTypes[charme.logic.constants.FACET_TYPE_TARGET_TYPE];
+                var targetTypeCategories = [{
+                	name: 'Dummy Target Type',
+                        keywords: targetTypeKeywords
+                }];
+                $scope.$broadcast('targetTypeCategoriesForSearch', targetTypeCategories);
+
                 var motivationKeywords = facetTypes[charme.logic.constants.FACET_TYPE_MOTIVATION];
                 var motivationCategories = [{
                 	name: 'OA Motivation',
-					keywords: motivationKeywords
-				}];
-        		$scope.$broadcast('motivationCategoriesForSearch', motivationCategories);
+                        keywords: motivationKeywords
+                }];
+                $scope.$broadcast('motivationCategoriesForSearch', motivationCategories);
+
+                var domainKeywords = facetTypes[charme.logic.constants.FACET_TYPE_DOMAIN];
+                var domainCategories = [{
+                        name: 'GCMD',
+                        keywords: domainKeywords
+                }];
+                $scope.$broadcast('domainCategoriesForSearch', domainCategories);
                 
-				var domainKeywords = facetTypes[charme.logic.constants.FACET_TYPE_DOMAIN];
-				var domainCategories = [{
-					name: 'GCMD',
-					keywords: domainKeywords
-				}];
-        		$scope.$broadcast('domainCategoriesForSearch', domainCategories);
                 $scope.organizations = facetTypes[charme.logic.constants.FACET_TYPE_ORGANIZATION];
             });
         });
@@ -455,14 +512,18 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         var criteriaFromSearch = function(){
             $scope.loading = true;
 
-            // in case facets are undefined in the URL, define them here
-            criteria.motivations = criteria.domainsOfInterest = criteria.organization = criteria.creator = '';
+            // In case facets are undefined in the URL, define them here
+            criteria.targetTypes = criteria.motivations = criteria.domainsOfInterest = criteria.organization = criteria.creator = '';
             criteria.pageNum = 1;
             criteria.resultsPerPage = $scope.resultsPerPage[0];
             criteria.selectedRPP = $scope.resultsPerPage[0];
             //criteria.listOrder = $scope.listOrderOptions[0].sortNum;
             $scope.selectedRPP = criteria.selectedRPP;
             //$scope.selectedOrder = criteria.listOrder;
+
+            var targetTypeParam = $location.search()[charme.web.constants.PARAM_TARGET_TYPES];
+            if(typeof targetTypeParam === 'string')
+                criteria.targetTypes = targetTypeParam.split(',');
 
             var motivationParam = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
             if(typeof motivationParam === 'string')
@@ -480,6 +541,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             if(typeof creator === 'string')
                 criteria.creator = creator;
             
+            $rootScope.$broadcast('newTargetTypes', criteria.targetTypes);
             $rootScope.$broadcast('newMotivations', criteria.motivations);
             $rootScope.$broadcast('newDomains', criteria.domainsOfInterest);
             $scope.criteria.selectedOrganization = criteria.organization;
@@ -490,7 +552,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                 criteria.pageNum = parseInt(pageNum);
 
             // selectedRPP represents the option selected in the HTML - either a number or a string ('All') - and is used for CSS styling (so that the selected option is underlined)
-            // resultsPerPage is the value that is sent to the node, and must be a number, not a string - see scope.setResultsPerPage below
+            // resultsPerPage is the value sent to the node, and must be a number, not a string - see scope.setResultsPerPage below
             var resultsPerPage = $location.search()['resultsPerPage'];
             var selectedRPP = $location.search()['selectedRPP'];
             if(typeof resultsPerPage === 'string')
@@ -513,6 +575,14 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         var loadCriteriaIntoModel = function(criteriaForLoad){
             if(typeof $scope.criteria === 'undefined')
                 $scope.criteria = {};
+            
+            if(criteriaForLoad.targetTypes instanceof Array){
+                var loadedTargetTypes = [];
+                angular.forEach(criteriaForLoad.targetTypes, function(targetType){
+                    loadedTargetTypes.push({value: targetType});
+                });
+                $scope.criteria.selectedTargetTypes = loadedTargetTypes;
+            }
             
             if(criteriaForLoad.motivations instanceof Array){
                 var loadedMotivations = [];
@@ -545,7 +615,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
  
         var debounceHandle;
         $scope.$watch('criteria', function(newVal, oldVal){
-            // after a watcher is registered with the scope, the listener function is called once, asynchronously, to initialize the watcher
+            // After a watcher is registered with the scope, the listener function is called once, asynchronously, to initialize the watcher
             if(newVal === oldVal) {
                 return;
             }
@@ -559,13 +629,23 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                 Newer versions of angular provide this out of the box, but we are stuck supporting IE8. For now...
                 */
                 debounceHandle = $timeout(function() {
+                    var selectedTargetTypes = [];
+                    angular.forEach($scope.criteria.selectedTargetTypes,
+                        function(selectedTargetType) {
+                            selectedTargetTypes.push(selectedTargetType.value);
+                        });
+                    var currentTargetTypes = $location.search()[charme.web.constants.PARAM_TARGET_TYPES];
+                    currentTargetTypes = typeof currentTargetTypes === 'undefined' ? '' : currentTargetTypes;
+                    var newTargetTypes = selectedTargetTypes.join(',');
+                    if(currentTargetTypes !== newTargetTypes)
+                        $location.search(charme.web.constants.PARAM_TARGET_TYPES, newTargetTypes);
+
                     var selectedMotivations = [];
                     angular.forEach($scope.criteria.selectedMotivations,
                         function(selectedMotivation) {
                             selectedMotivations.push(selectedMotivation.value);
                         });
-
-					var currentMotivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
+                    var currentMotivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
                     currentMotivations = typeof currentMotivations === 'undefined' ? '' : currentMotivations;
                     var newMotivations = selectedMotivations.join(',');
                     if(currentMotivations !== newMotivations)
@@ -621,9 +701,11 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         var maxResults, firstSearchFlag = true;
         searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, totalResults){
             $scope.$apply(function() {
+                $scope.numResults = totalResults;
                 $scope.loading = false;
                 
-                // the first search, on loading, returns all results, and we store that 'totalResults' number as 'maxResults' for future reference
+                // The first search, on loading, returns the total number of annotations in 'totalResults', and 
+                // we store that number as 'maxResults' for future reference
                 if(firstSearchFlag) {
                     firstSearchFlag = false;
                     maxResults = totalResults;
@@ -650,9 +732,19 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         //             .search('listOrder', criteria.listOrder.toString());
         //};
         
+        // Function to ensure correct CSS colour (grey) for placeholder text is applied immediately
+        changeOrganisation = function() {
+            var orgSelect = document.getElementById("chooseOrganisation");
+            if(orgSelect.value === "")
+                orgSelect.className += " select-placeholder";
+            else
+                orgSelect.className = orgSelect.className.replace(/\sselect-placeholder/g, '');
+        };
+        
         $scope.reset = function() {
             $rootScope.$broadcast('reset');
             criteria.pageNum = 1;
+            $scope.criteria.selectedTargetTypes = '';
             $scope.criteria.selectedMotivations = '';
             $scope.criteria.selectedDomains = '';
             $scope.criteria.selectedOrganization = '';

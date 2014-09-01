@@ -145,7 +145,7 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
  * @param activeImgSrc
  * @param inactiveImgSrc
  */
-charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc) {
+charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noConnectionImgSrc) {
 	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href), function (xmlDoc) {
 		// Success callback
 		var constants = new charme.plugin.constants();
@@ -169,10 +169,21 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 			el.style.background = 'url("' + inactiveImgSrc + '") no-repeat left top';
 		}
                 
+                // Show the annotation count next to the CHARMe icon - use the className 'charme-count' to hide the count if desired
+                var showCount = charme.plugin.getByClass('charme-count', 'exact', el.parentNode);
+                if(showCount.length > 0)
+                    showCount = showCount[0];
+                else {
+                    showCount = document.createElement('span');
+                    showCount.className = 'charme-count';
+                    el.parentNode.insertBefore(showCount, el.nextSibling);
+                }
+                showCount.innerHTML = ' (' + annoCount + ')';
+
                 charme.common.addEvent(el, 'click', charme.plugin.showPlugin);
 	}, function () {
                 el.title = 'CHARMe Plugin - Unable to fetch annotation data';
-                el.style.background = 'url("' + noconnectionImgSrc + '") no-repeat left top';
+                el.style.background = 'url("' + noConnectionImgSrc + '") no-repeat left top';
                 charme.common.addEvent(el, 'click', function(e){
                     alert('CHARMe Plugin - Unable to fetch annotation data');
                     charme.plugin.stopBubble(e);
@@ -189,50 +200,73 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 /**
  * Cross browser class selector. Defined in order to avoid add external dependencies on libraries such as JQuery.
  */
-charme.plugin.getByClass = function (className) {
-	//Default to native function if it exists
-	if (document.getElementsByClassName) {
-		return document.getElementsByClassName(className);
-	} else {
-		//Else, search exhaustively
-		var elArray = [];
-		var tmp = document.getElementsByTagName("*");
-		var regex = new RegExp("(^|\\s)" + className + "(\\s|$)");
-		for (var i = 0; i < tmp.length; i++) {
+charme.plugin.getByClass = function (className, searchType, rootElement) {
+    //Default to native function if it exists, and your search is exact (not partial)
+    if(document.getElementsByClassName && searchType === "exact") {
+        return rootElement.getElementsByClassName(className);
+    } else {
+        //Else, search exhaustively
+        var elArray = [], regex;
+        var tmp = rootElement.getElementsByTagName("*");
 
-			if (regex.test(tmp[i].className)) {
-				elArray.push(tmp[i]);
-			}
-		}
+        if(searchType === "exact")
+            regex = new RegExp("(^|\s)" + className + "(\s|$)");
+        else if(searchType === "partial")
+            regex = new RegExp(className);
 
-		return elArray;
-	}
+        for(var i = 0; i < tmp.length; i++) {
+            if(regex.test(tmp[i].className)) {
+                elArray.push(tmp[i]);
+            }
+        }
+
+        return elArray;
+    }
 };
 
-/**
- * Find CHARMe icon insertion points
- */
-charme.plugin.markupTags = function () {
+// Find CHARMe icon insertion points / refresh icon insertion point for specified targetId
+charme.plugin.markupTags = function (isFirstLoad, targetId) {
+    var activeImage = new Image();
+    activeImage.src = charme.settings.path + '/activebuttonsmall.png';
+    var inactiveImage = new Image();
+    inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
+    var noConnectionImage = new Image();
+    noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
+
+    var els = charme.plugin.getByClass('charme-', 'partial', document);
+    for(var i = 0; i < els.length; i++) {
+        if(els[i].href) {
+            if(isFirstLoad || els[i].href === targetId)
+                charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src);
+
+            if(isFirstLoad) {
+                els[i].style.display = 'inline-block';
+                els[i].style.width = '36px';
+                els[i].style.height = '26px';
+            }
+        }
+    }
+};
+
+/*charme.plugin.markupTags = function () {
 	//preload charme icon
 	var activeImage = new Image();
 	activeImage.src = charme.settings.path + '/activebuttonsmall.png';
 	var inactiveImage = new Image();
 	inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
-        var noconnectionImage = new Image();
-	noconnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
+        var noConnectionImage = new Image();
+	noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
 
-	var els = charme.plugin.getByClass('charme-dataset');
+	var els = charme.plugin.getByClass('charme-', 'partial', document);
 	for (var i = 0; i < els.length; i++) {
 		if (els[i].href) {
-			charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noconnectionImage.src);
+			charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src);
 		}
 		els[i].style.display = 'inline-block';
 		els[i].style.width = '36px';
 		els[i].style.height = '26px';
 	}
-};
-
-
+};*/
 
 /* ============================================================================================  */
 /**
@@ -244,7 +278,8 @@ function listenMessage(msg) {
     var n = _msg.lastIndexOf(':::');
     var targetId = _msg.substring(n + 3);
 
-    charme.plugin.markupTargetRefresh(targetId);
+    //charme.plugin.markupTargetRefresh(targetId);
+    charme.plugin.markupTags(false, targetId);
 }
 
 if (window.addEventListener) {
@@ -257,27 +292,22 @@ if (window.addEventListener) {
 /**
  * Refresh CHARMe icon insertion point for specified TargetId
  */
-charme.plugin.markupTargetRefresh = function (targetId) {
+/*charme.plugin.markupTargetRefresh = function (targetId) {
+        //preload charme icon
+        var activeImage = new Image();
+        activeImage.src = charme.settings.path + '/activebuttonsmall.png';
+        var inactiveImage = new Image();
+        inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
+        var noConnectionImage = new Image();
+        noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
 
-     //preload charme icon
-     var activeImage = new Image();
-     activeImage.src = charme.settings.path + '/activebuttonsmall.png';
-     var inactiveImage = new Image();
-     inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
-     var noconnectionImage = new Image();
-     noconnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
-
-
-    var els = charme.plugin.getByClass('charme-dataset');
-    for (var i = 0; i < els.length; i++) {
-        if (els[i].href && els[i].href === targetId) {
-                charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noconnectionImage.src);
+        var els = charme.plugin.getByClass('charme-', 'partial', document);
+        for (var i = 0; i < els.length; i++) {
+            if (els[i].href && els[i].href === targetId) {
+                    charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src);
+            }
         }
-    }
-
-
-
-};
+};*/
 
 /* ============================================================================================  */
 
@@ -285,26 +315,32 @@ charme.plugin.markupTargetRefresh = function (targetId) {
  * Creates the iFrame in which the plugin will be hosted. Should only be called once
  */
 charme.plugin.loadPlugin = function () {
-	/* Use an iframe to completely isolate plugin from javascript and css on the main site */
-	var plugin = document.createElement('iframe');
-	plugin.frameBorder = "no";
-	plugin.id = 'charme-plugin-frame';
-	document.lastChild.appendChild(plugin);
-	plugin.style.backgroundColor = 'transparent';
-	plugin.style.minWidth = '1040px';
-	plugin.style.display = 'none';
-	plugin.style.margin = 'auto';
-	plugin.style.position = 'fixed';
-	plugin.style.left = '0';
-	plugin.style.right = '0';
-	plugin.style.bottom = '0';
-	plugin.style.top = '0';
-	plugin.style.paddingTop = '50px';
-	plugin.style.height = '100%';
-	plugin.style.zIndex = 1000;
-	plugin.allowTransparency = true;
-	plugin.setAttribute('scrolling', 'no');
+    /* Use an iframe to completely isolate plugin from javascript and css on the main site */
+    
+    // Don't use createElement here, because in IE11 you won't be able to use input fields (weird bug)
+    //var plugin = document.createElement('iframe');
+    //document.lastChild.appendChild(plugin);
 
+    var plugin = document.getElementById('charme-placeholder');
+    plugin.innerHTML = '<iframe></iframe>';
+    plugin = plugin.firstChild;
+
+    plugin.frameBorder = "no";
+    plugin.id = 'charme-plugin-frame';
+    plugin.style.backgroundColor = 'transparent';
+    plugin.style.minWidth = '1040px';
+    plugin.style.display = 'none';
+    plugin.style.margin = 'auto';
+    plugin.style.position = 'fixed';
+    plugin.style.left = '0';
+    plugin.style.right = '0';
+    plugin.style.bottom = '0';
+    plugin.style.top = '0';
+    plugin.style.paddingTop = '50px';
+    plugin.style.height = '100%';
+    plugin.style.zIndex = 1000;
+    plugin.allowTransparency = true;
+    plugin.setAttribute('scrolling', 'no');
 };
 
 /**
@@ -406,7 +442,8 @@ charme.plugin.preInit = function () {
  * Will execute on window load (most init code should go in here)
  */
 charme.plugin.init = function () {
-	charme.plugin.markupTags();
+	//charme.plugin.markupTags();
+        charme.plugin.markupTags(true);
 	charme.plugin.loadPlugin();
 };
 

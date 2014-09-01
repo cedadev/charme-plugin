@@ -270,7 +270,7 @@ body {
 .search-results-collapsed {
     margin-left: 50px;
 }
-    
+
 .search-results a:visited {
     color: purple !important;
 }
@@ -292,8 +292,12 @@ body {
     margin-left: 5px !important;
 }
 
-.motivation, .domains {
+.target-types, .motivations, .domains {
     margin-left: 0px !important;
+}
+
+.domains .selectize-input.focus{
+    width: 850px;
 }
 
 .organisation, .creator {
@@ -301,7 +305,7 @@ body {
 }
 
 .select-placeholder, select option:first-child {
-    color: #999999;
+    color: #999999 !important;
     font-size: 13px;
 }
 
@@ -311,17 +315,20 @@ select option {
 
 input:-moz-placeholder,
 textarea:-moz-placeholder {
-  font-size: 13px;
+    color: #999999 !important;
+    font-size: 13px;
 }
 
 input:-ms-input-placeholder,
 textarea:-ms-input-placeholder {
-  font-size: 13px;
+    color: #999999 !important;
+    font-size: 13px;
 }
 
 input::-webkit-input-placeholder,
 textarea::-webkit-input-placeholder {
-  font-size: 13px;
+    color: #999999 !important;
+    font-size: 13px;
 }
 
 .pagination_container {

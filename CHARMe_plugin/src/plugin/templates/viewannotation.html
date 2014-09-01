@@ -22,10 +22,10 @@
             </div>
         </div>
 
-    <div data-ng-show="tags">
-    	<h4>Domain keywords <span title="Tag(s) describing the subject of the annotation" class="icon-question-sign"></span></h4>
+    <div data-ng-show="domainTags">
+    	<h4>Domain keywords <span title="Tag(s) describing the subject of the annotation (hover on tags for full description)" class="icon-question-sign"></span></h4>
     	<div>
-    		<span data-ng-repeat="tag in tags" class="badge badge-info semanticTag">{{tag.desc}}</span>
+    		<span title="{{tag.desc}}" data-ng-repeat="tag in domainTags" class="badge badge-info semanticTag">{{tag.desc | shortDomainLabel}}</span>
     	</div>
     </div>
 	<div data-ng-show="link">

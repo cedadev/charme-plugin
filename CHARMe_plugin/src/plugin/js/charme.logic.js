@@ -42,10 +42,11 @@ charme.logic.constants = {
 
     FABIO_XP_CLASSES : '//owl:Class',
 
+        FACET_TYPE_TARGET_TYPE: 'dataType',
 	FACET_TYPE_MOTIVATION: 'motivation',
 	FACET_TYPE_DOMAIN: 'domainOfInterest',
-	FACET_TYPE_ORGANIZATION: 'organization',
-	FACET_TYPE_DATA_TYPE: 'dataType'
+	FACET_TYPE_ORGANIZATION: 'organization'
+	//FACET_TYPE_DATA_TYPE: 'dataType'
 };
 
 /*
@@ -148,6 +149,9 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 	if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
 		url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
 	}
+        if (typeof criteria.targetTypes !== 'undefined' && criteria.targetTypes.length > 0){
+		url+='&dataType=' + encodeURIComponent(criteria.targetTypes.join(' '));
+	}
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
 	}
@@ -175,7 +179,7 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
         //if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
 	//	url += '&count=' + encodeURIComponent(criteria.count.toString());
 	//}
-
+        
 	return url;
 };
 
@@ -273,33 +277,48 @@ charme.logic.fetchUserDetails = function(authToken) {
  * 
  * @returns {Promise}
  */
-charme.logic.fetchGCMDVocab = function() {
-	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
-		if (reqUrl === null || reqUrl.length === 0) {
-			resolver.reject();
-		}
-		$.ajax(reqUrl, {
-			headers : {
-				accept : 'application/sparql-results+json; charset=utf-8'
-			}
-		}).then(function(jsonResp) {
-			var keywords = [];
-			$(jsonResp.results.bindings).each(function(index, binding) {
-				var word = binding.l.value;
-				word = word.substring(word.lastIndexOf('>') + 1);
-				word = word.trim();
-				keywords.push({
-					uri : binding.p.value,
-					desc : word
-				});
-			});
-			resolver.fulfill(keywords);
-		}, function(e) {
-			resolver.reject(e);
-		});
-	});
-	return promise;
+charme.logic.fetchGCMDVocab = function(removeDuplicates) {
+    var promise = new Promise(function(resolver) {
+        var reqUrl = charme.logic.urls.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
+        if (reqUrl === null || reqUrl.length === 0) {
+            resolver.reject();
+        }
+        $.ajax(reqUrl, {
+            headers : {
+                accept : 'application/sparql-results+json; charset=utf-8'
+            }
+        }).then(function(jsonResp) {
+            var keywords = [];
+            $(jsonResp.results.bindings).each(function(index, binding) {
+                var word = binding.l.value;
+                keywords.push({
+                    uri: binding.p.value,
+                    desc: word.trim()
+                });
+            });
+            
+            if(!removeDuplicates) {
+                resolver.fulfill(keywords);
+            } else {
+                // Remove duplicates, inspired by this: http://dreaminginjavascript.wordpress.com/2008/08/22/eliminating-duplicates/
+                var keywordsNoDuplicates = [], tempObj = {};
+                for(var i = 0; i < keywords.length; i++) {
+                    tempObj[charme.logic.shortDomainLabel(keywords[i].desc)] = keywords[i].uri;
+                }
+                for(desc in tempObj) {
+                    keywordsNoDuplicates.push({
+                        uri: tempObj[desc],
+                        desc: desc
+                    });
+                }
+                
+                resolver.fulfill(keywordsNoDuplicates);
+            }
+        }, function(e) {
+            resolver.reject(e);
+        });
+    });
+    return promise;
 };
 
 
@@ -451,27 +470,6 @@ charme.logic.fetchMotivationVocab = function() {
 
 };
 
-/*charme.logic.fetchMotivations = function() {
-	var promise = new Promise(function(resolver) {
-
-		var motivations = [ {
-			label : 'Bookmarking',
-			resource : 'Bookmarking'
-		}, {
-			label : 'Annotating',
-			resource : 'Annotating'
-		}, {
-			label : 'Commenting',
-			resource : 'Commenting'
-		}, {
-			label : 'Describing',
-			resource : 'Describing'
-		} ];
-		resolver.fulfill(motivations);
-	});
-	return promise;
-};*/
-
 charme.logic.fetchFabioTypes = function() {
 	var promise = new Promise(function(resolver) {
 
@@ -493,7 +491,44 @@ charme.logic.fetchFabioTypes = function() {
 	return promise;
 };
 
-charme.logic.fetchTargetTypes = function() {
+charme.logic.fetchTargetType = function(targetId) {
+    var promise = new Promise(function(resolver) {
+        var targetType, allTargetTypes = [];
+        var returnTargetType = ['Target type undefined', false];
+
+        charme.logic.fetchAllTargetTypes().then(function(types) {
+            for(var i = 0; i < types.length; i++) {
+                allTargetTypes[i] = types[i].label;
+            }
+
+            var els = window.parent.document.getElementsByTagName('a');
+            for(var i = 0; i < els.length; i++) {
+                if(els[i].href === targetId && els[i].className) {
+                    targetType = els[i].className.split('-');
+
+                    if(targetType.length > 1 && targetType[0] === 'charme') {
+                        for(var j = 0; j < allTargetTypes.length; j++) {
+                            var regex = new RegExp(allTargetTypes[j], 'i');
+                            if(targetType[1].match(regex)) {
+                                targetType = targetType[1];
+                                returnTargetType = [targetType[0].toUpperCase() + targetType.substr(1).toLowerCase(), true];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            resolver.fulfill(returnTargetType);
+        }, function(error) {
+            console.error('Error fetching target types');
+            resolver.reject('Error: Could not fetch target types');
+        });
+    });
+    
+    return promise;
+};
+
+charme.logic.fetchAllTargetTypes = function() {
     var promise = new Promise(function(resolver) {
         var reqUrl = charme.logic.urls.targetTypesRequest(charme.logic.constants.TARGET_URL);
         if (reqUrl === null || reqUrl.length === 0) {
@@ -682,8 +717,10 @@ charme.logic.fetchAllSearchFacets = function(criteria){
 					var facetObj = {};
 					facetObj.uri=facet[jsonoa.constants.ID];
 					if (facetType === charme.logic.constants.FACET_TYPE_ORGANIZATION)
-						facetObj.label = facet[jsonoa.constants.NAME]; else
-						facetObj.label = facet[jsonoa.constants.PREF_LABEL];
+                                            facetObj.label = facet[jsonoa.constants.NAME];
+                                        else
+                                            facetObj.label = facet[jsonoa.constants.PREF_LABEL];
+                                        
 					resultMap[facetType].push(facetObj);
 				});
 			});
@@ -707,7 +744,18 @@ charme.logic.shortAnnoTitle = function(anno){
 		}
 	});
 	return out;
-}
+};
+
+// Written this way so that can be called both from js and as HTML filter
+charme.logic.shortDomainLabel = function(label) {
+    if(label)
+        return label.substring(label.lastIndexOf('>') + 1).trim();
+    else {
+        return function(label) {
+            return label.substring(label.lastIndexOf('>') + 1).trim();
+        };
+    }
+};
 
 /**
  * Retrieve all annotations matching the supplied criteria
@@ -742,7 +790,6 @@ charme.logic.searchAnnotations = function(criteria) {
 			graphSrc[jsonoa.constants.GRAPH]=resultArr;
                         
 			var graph = new jsonoa.types.Graph();
-			//graph.load(graphSrc, false).then(function(graph) {
 			graph.load(graphSrc, false).then(function(graph) {
 				$.each(result.entries, function(index, value) {
 					var graphAnno = graph.getNode(value.id);
