@@ -207,6 +207,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         Promise.every(fetchKeywords(), fetchAnnotation(annoId), fetchFabioTypes(), fetchAllMotivations()).then(
             function (results){
                 $scope.loading=false;
+				//Create local alias to avoid having to use fully resolved name
+				var annoType = jsonoa.types.Annotation;
                 $scope.$apply(function(){
                     var categories = results[0];
                     var keywords = {};
@@ -230,7 +232,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                     var annoList = graph.getAnnotations();
                     if (annoList.length > 0) {
                         var anno = annoList[0];
-                        var motivations = anno.getValues(anno.MOTIVATED_BY);
+                        var motivations = anno.getValues(annoType.MOTIVATED_BY);
                         if (motivations && motivations.length > 0) {
                             $scope.motivationTags = [];
                         }
@@ -238,34 +240,39 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             var motivURI =  motivation.getValue(motivation.ID);
                             $scope.motivationTags.push({uri: motivURI, desc: motivation_keywords[motivURI]});
                         });
-                        var bodies = anno.getValues(anno.BODY);
+                        var bodies = anno.getValues(annoType.BODY);
+						//Create local alias to avoid having to use fully qualified name everywhere
+						var textType = jsonoa.types.Text;
+						var citoSpec = jsonoa.types.CitationAct;
                         angular.forEach(bodies, function(body){
-                            if (body instanceof jsonoa.types.TextBody){
-                                $scope.comment = body.getValue(body.CONTENT_CHARS);
+                            if (body.hasType(textType.TEXT) || body.hasType(textType.CONTENT_AS_TEXT)){
+                                $scope.comment = body.getValue(textType.CONTENT_CHARS);
                             }
-                            else if (body instanceof jsonoa.types.Publication) {
-                                var citingEntity = body.getValue(body.CITING_ENTITY);
+                            else if (body.hasType(citoSpec.TYPE)) {
+                                var citingEntity = body.getValue(citoSpec.CITING_ENTITY);
                                 //Check if the returned value is an object, or a primitive (should be an object, but some historical data might have primitives in this field)
                                 if (citingEntity.getValue){
-                                    var citoURI = citingEntity.getValue(citingEntity.ID);
+                                    var citoURI = citingEntity.getValue(jsonoa.types.Common.ID);
                                     $scope.citation = {};
                                     $scope.citation.loading=true;
                                     $scope.citation.uri = citoURI;
 
                                     //Match the citation type to a text description.
-                                    var citoTypeId = citingEntity.getValue(citingEntity.TYPE);
-                                    angular.forEach(fabioTypes, function(citoType){
-                                        if (citoTypeId === citoType.resource){
-                                            $scope.citation.citoTypeDesc = citoType.label;
+                                    var citoTypes = citingEntity.getValues(citingEntity.TYPE_ATTR_NAME);
+                                    angular.forEach(fabioTypes, function(fType){
+                                        if (citoTypes.indexOf(fType.resource)>=0){
+											if (!$scope.citation.types){
+												$scope.citation.types = [];
+											}
+											$scope.citation.types.push(fType.label);
+//                                            $scope.citation.citoTypeDesc = citoType.label;
                                         }
                                     });
 
                                     //Trim the 'doi:' from the front
-                                    var doiTxt = citoURI.substring(charme.logic.constants.DOI_PREFIX.length, citoURI.length);
+                                    var doiTxt = citoURI.substring(charme.logic.constants.DXDOI_URL.length, citoURI.length);
                                     var criteria = {};
-                                    //criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=doiTxt;
-                                    //charme.logic.fetchCrossRefMetaData(criteria).then(function(citation){
-                                    criteria[charme.logic.constants.DXDOI_CRITERIA_DOI]=doiTxt;
+                                    criteria[charme.logic.constants.DXDOI_CRITERIA_ID]=doiTxt;
                                     charme.logic.fetchDxdoiMetaData(criteria).then(function(citation){
                                         $scope.$apply(function(){
                                             $scope.citation.text = citation;
@@ -282,18 +289,18 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     $scope.link.uri = citingEntity;
                                 }
                             }
-                            else if (body instanceof jsonoa.types.SemanticTag){
-                                if (!$scope.domainTags){
-                                    $scope.domainTags = [];
+                            else if (body.hasType(jsonoa.types.SemanticTag.TYPE)){
+                                if (!$scope.tags){
+                                    $scope.tags = [];
                                 }
-                                var tagURI = body.getValue(body.ID);
-                                var prefLabel = body.getValue(body.PREF_LABEL);
-                                $scope.domainTags.push({uri: tagURI, desc: prefLabel});
+                                var tagURI = body.getValue(jsonoa.types.Common.ID);
+                                var prefLabel = body.getValue(jsonoa.types.SemanticTag.PREF_LABEL);
+                                $scope.tags.push({uri: tagURI, desc: prefLabel});
                             } else {
                                 //Match the citation type to a text description.
-                                var type = body.getValue(body.TYPE);
+                                var type = body.getValue(body.TYPE_ATTR_NAME);
                                 $scope.link = {};
-                                $scope.link.uri = body.getValue(body.ID);
+                                $scope.link.uri = body.getValue(jsonoa.types.Common.ID);
                                 angular.forEach(fabioTypes, function(fabioType){
                                     if (type === fabioType.resource){
                                         $scope.link.linkTypeDesc = fabioType.label;
@@ -303,14 +310,16 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
 
                         });
 
-                        var authorDetails = anno.getValues(anno.ANNOTATED_BY);
+                        var authorDetails = anno.getValues(annoType.ANNOTATED_BY);
+						var personSpec = jsonoa.types.Person;
+						var organizationSpec = jsonoa.types.Organization;
                         angular.forEach(authorDetails, function(authorDetail){
-                            if (authorDetail instanceof jsonoa.types.Person){
-                                $scope.author = authorDetail.getValue(authorDetail.GIVEN_NAME) + ' ' + authorDetail.getValue(authorDetail.FAMILY_NAME);
-                                $scope.userName = authorDetail.getValue(authorDetail.USER_NAME);
-                            } else if (authorDetail instanceof jsonoa.types.Organization){
-                                $scope.organizationName = authorDetail.getValue(authorDetail.NAME);
-                                $scope.organizationUri = authorDetail.getValue(authorDetail.URI);
+                            if (authorDetail.hasType(personSpec.TYPE)){
+                                $scope.author = authorDetail.getValue(personSpec.GIVEN_NAME) + ' ' + authorDetail.getValue(personSpec.FAMILY_NAME);
+                                $scope.userName = authorDetail.getValue(personSpec.USER_NAME);
+                            } else if (authorDetail.hasType(organizationSpec.TYPE)){
+                                $scope.organizationName = authorDetail.getValue(organizationSpec.NAME);
+                                $scope.organizationUri = authorDetail.getValue(organizationSpec.URI);
                             }
                         });
 
@@ -403,8 +412,6 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         $scope.cancel = function(){
             if ($scope.loading)
                 return;
-            
-            //$location.path(encodeURIComponent(targetId) + '/annotations/');
             window.history.back();
         };
         $scope.changeURI = function(uri){
@@ -412,9 +419,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
             var doiVal = charme.logic.findDOI(uri);
             if (doiVal){
                 var criteria = {};
-                //criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI]=uri;
-                //charme.logic.fetchCrossRefMetaData(criteria).then(function(citation){
-                criteria[charme.logic.constants.DXDOI_CRITERIA_DOI]=uri;
+                criteria[charme.logic.constants.DXDOI_CRITERIA_ID]=doiVal;
                 charme.logic.fetchDxdoiMetaData(criteria).then(function(citation){    
                     $scope.$apply(function(){
                         $scope.anno.citoText = citation;
