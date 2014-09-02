@@ -73,7 +73,6 @@ charme.logic.urls.fetchForTarget = function(targetId) {
 	return charme.logic.urls._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) +
 		'&status=submitted';
 };
-
 charme.logic.urls.fetchRequest = function(id) {
 	return charme.logic.urls._baseURL() +
 		'data/' +
@@ -82,7 +81,6 @@ charme.logic.urls.fetchRequest = function(id) {
 		(charme.logic.constants.ANNO_DEPTH === 0 ? '' : '&depth=' + 
 			charme.logic.constants.ANNO_DEPTH);
 };
-
 charme.logic.urls.fetchSearchFacets = function(criteria, facets){
 	var url=charme.logic.urls._baseURL() + 'suggest/atom?status=submitted&q=';
 	if (typeof facets !== 'undefined'){
@@ -129,7 +127,6 @@ charme.logic.urls.dxdoiRequest = function(criteria) {
 	}
 	return url;
 };
-
 charme.logic.urls.fetchAnnotations = function(criteria) {
 	var url= charme.logic.urls._baseURL() + 'search/atom?status=submitted';
 	if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
@@ -698,11 +695,11 @@ charme.logic.shortAnnoTitle = function(anno){
 	var out='';
 	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
 	angular.forEach(bodies, function(body){
-		if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)){
-			out=body.getValue(jsonoa.types.Text.CONTENT_CHARS);
-		} else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length===0){
-			out=body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
-		}
+            if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)){
+                    out=body.getValue(jsonoa.types.Text.CONTENT_CHARS);
+            } else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length===0){
+                    out=body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
+            }
 	});
 	return out;
 };
@@ -751,7 +748,6 @@ charme.logic.searchAnnotations = function(criteria) {
 			graphSrc[jsonoa.constants.GRAPH]=resultArr;
                         
 			var graph = new jsonoa.core.Graph();
-			//graph.load(graphSrc, false).then(function(graph) {
 			graph.load(graphSrc, false).then(function(graph) {
 				$.each(result.entries, function(index, value) {
 					var graphAnno = graph.getNode(value.id);

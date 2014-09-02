@@ -207,8 +207,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         Promise.every(fetchKeywords(), fetchAnnotation(annoId), fetchFabioTypes(), fetchAllMotivations()).then(
             function (results){
                 $scope.loading=false;
-				//Create local alias to avoid having to use fully resolved name
-				var annoType = jsonoa.types.Annotation;
+                //Create local alias to avoid having to use fully resolved name
+                var annoType = jsonoa.types.Annotation;
                 $scope.$apply(function(){
                     var categories = results[0];
                     var keywords = {};
@@ -241,9 +241,9 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             $scope.motivationTags.push({uri: motivURI, desc: motivation_keywords[motivURI]});
                         });
                         var bodies = anno.getValues(annoType.BODY);
-						//Create local alias to avoid having to use fully qualified name everywhere
-						var textType = jsonoa.types.Text;
-						var citoSpec = jsonoa.types.CitationAct;
+                        //Create local alias to avoid having to use fully qualified name everywhere
+                        var textType = jsonoa.types.Text;
+                        var citoSpec = jsonoa.types.CitationAct;
                         angular.forEach(bodies, function(body){
                             if (body.hasType(textType.TEXT) || body.hasType(textType.CONTENT_AS_TEXT)){
                                 $scope.comment = body.getValue(textType.CONTENT_CHARS);
@@ -261,10 +261,10 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     var citoTypes = citingEntity.getValues(citingEntity.TYPE_ATTR_NAME);
                                     angular.forEach(fabioTypes, function(fType){
                                         if (citoTypes.indexOf(fType.resource)>=0){
-											if (!$scope.citation.types){
-												$scope.citation.types = [];
-											}
-											$scope.citation.types.push(fType.label);
+                                            if (!$scope.citation.types){
+                                                    $scope.citation.types = [];
+                                            }
+                                            $scope.citation.types.push(fType.label);
 //                                            $scope.citation.citoTypeDesc = citoType.label;
                                         }
                                     });
@@ -290,12 +290,12 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 }
                             }
                             else if (body.hasType(jsonoa.types.SemanticTag.TYPE)){
-                                if (!$scope.tags){
-                                    $scope.tags = [];
+                                if (!$scope.domainTags){
+                                    $scope.domainTags = [];
                                 }
                                 var tagURI = body.getValue(jsonoa.types.Common.ID);
                                 var prefLabel = body.getValue(jsonoa.types.SemanticTag.PREF_LABEL);
-                                $scope.tags.push({uri: tagURI, desc: prefLabel});
+                                $scope.domainTags.push({uri: tagURI, desc: prefLabel});
                             } else {
                                 //Match the citation type to a text description.
                                 var type = body.getValue(body.TYPE_ATTR_NAME);
@@ -311,8 +311,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         });
 
                         var authorDetails = anno.getValues(annoType.ANNOTATED_BY);
-						var personSpec = jsonoa.types.Person;
-						var organizationSpec = jsonoa.types.Organization;
+                        var personSpec = jsonoa.types.Person;
+                        var organizationSpec = jsonoa.types.Organization;
                         angular.forEach(authorDetails, function(authorDetail){
                             if (authorDetail.hasType(personSpec.TYPE)){
                                 $scope.author = authorDetail.getValue(personSpec.GIVEN_NAME) + ' ' + authorDetail.getValue(personSpec.FAMILY_NAME);
@@ -410,8 +410,9 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         });*/
         
         $scope.cancel = function(){
-            if ($scope.loading)
+            if($scope.loading)
                 return;
+            
             window.history.back();
         };
         $scope.changeURI = function(uri){

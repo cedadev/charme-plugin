@@ -200,19 +200,21 @@ charme.web.services.factory('searchAnnotations', function(){
 					var author = '';
 					var userName = '';
 					var organizationName = '';
+                                        var organizationUri = '';
 
 					var date = anno.getValue(annoSpec.DATE);
 					date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
 
 					angular.forEach(person, function(detail){
-						var personType = jsonoa.types.Person; //Alias the Person type locally so that we don't need to use fully qualified path to reference constants
-						var organizationType = jsonoa.types.Organization;
-						if (detail.hasType(personType.TYPE)){
-							author = detail.getValue(personType.GIVEN_NAME) + ' ' + detail.getValue(personType.FAMILY_NAME);
-							userName = detail.getValue(personType.USER_NAME);
-						} else if (detail.hasType(organizationType.TYPE)){
-							organizationName = detail.getValue(organizationType.NAME);
-						}
+                                            var personType = jsonoa.types.Person; //Alias the Person type locally so that we don't need to use fully qualified path to reference constants
+                                            var organizationType = jsonoa.types.Organization;
+                                            if (detail.hasType(personType.TYPE)){
+                                                    author = detail.getValue(personType.GIVEN_NAME) + ' ' + detail.getValue(personType.FAMILY_NAME);
+                                                    userName = detail.getValue(personType.USER_NAME);
+                                            } else if (detail.hasType(organizationType.TYPE)){
+                                                    organizationName = detail.getValue(organizationType.NAME);
+                                                    organizationUri = detail.getValue(organizationType.URI);
+                                            }
 					});
                                         
 					results.push(
@@ -314,7 +316,7 @@ charme.web.services.factory('saveAnnotation', function () {
 				angular.forEach(annoModel.domain, function(domain){
 					var tagId = domain.value;
 					var tag = graph.createNode({type: jsonoa.types.SemanticTag, id: tagId});
-					tag.setValue(jsonoa.types.SemanticTag.PREF_LABEL, domain.text);
+					tag.setValue(jsonoa.types.SemanticTag.PREF_LABEL, domain.textLong);
 					anno.addValue(annoSpec.BODY, tag);
 				});
 
@@ -331,7 +333,7 @@ charme.web.services.factory('saveAnnotation', function () {
                     anno.addValue(annoSpec.MOTIVATED_BY, page);
                 });
             }
-			//var target = graph.createNode(jsonoa.types.DatasetTarget, targetId);
+            //var target = graph.createNode(jsonoa.types.DatasetTarget, targetId);
             var target = graph.createNode({type: jsonoa.types[annoModel.target], id: targetId});
                         
 			anno.setValue(annoSpec.TARGET, target);
