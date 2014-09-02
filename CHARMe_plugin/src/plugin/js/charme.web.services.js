@@ -217,7 +217,7 @@ charme.web.services.factory('searchAnnotations', function(){
 });
 
 charme.web.services.factory('saveAnnotation', function () {
-	return function(annoModel, targetId, auth){
+	return function(annoModel, targetId, datasetMap, auth){
 		var promise = new Promise(function(resolver){
 			
 			var graph = new jsonoa.types.Graph();
@@ -296,8 +296,16 @@ charme.web.services.factory('saveAnnotation', function () {
                 });
             }
 
-			var target = graph.createNode(jsonoa.types.DatasetTarget, targetId);
-			anno.setValue(anno.TARGET, target);
+            //// Save each of the selected targetids into the annotation target
+            for(dataset in datasetMap)
+            {
+                //var datasetTargetId = decodeURIComponent(datasetMap[dataset]);
+                var datasetTargetId = dataset;
+                var target = graph.createNode(jsonoa.types.DatasetTarget, datasetTargetId);
+                anno.addValue(anno.TARGET, target);
+            }
+
+
 			charme.logic.saveGraph(graph, auth.token).then(
 				function(data){
 					resolver.fulfill(data);
@@ -374,3 +382,15 @@ charme.web.services.factory('fetchFabioTypes', function(){
 charme.web.services.factory('fetchAllSearchFacets', function(){
 	return charme.logic.fetchAllSearchFacets;
 });
+
+
+/**
+ * This service returns the list of selected datasets.
+ */
+charme.web.services.factory('datasetService', function(){
+        return {
+            datasets: []   /* This array is initialised in the InitCtrl */
+            //datasetsHighlighted: []
+        };
+    }
+);

@@ -71,7 +71,7 @@ textarea {
     min-height: 400px;
 }
 .modal-body-new{
-	overflow-y: visible;
+	overflow-y: auto;
 }
 
 .modal-body-list{
@@ -263,6 +263,10 @@ body {
 
 .form-horizontal .controls {
     margin-left: 100px;
+}
+
+.window-controls {
+    margin-right: 5px;
 }
 
 /* ==========================================================================

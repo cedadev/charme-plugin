@@ -6,12 +6,40 @@
         </div>
 	<div data-ng-show="!loading">
 
-		<div class="popover popover-visible">
-            <h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>
-            <div class="popover-content">
-              <p data-ng-show="comment">"{{comment}}"</p>
-              <p data-ng-show="noComment">No comment</p>
-			</div>
+        <table class="table table-condensed" style="border-collapse:collapse;">
+            <tbody>
+            <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
+                <td><h4>Datasets <span title="Datasets attached to this annotation" class="icon-question-sign"></span></h4>
+                </td>
+            </tr>
+            <tr >
+                <td colspan="6" class="hiddenRow">
+                    <div class="accordian-body collapse" id="demo1">
+                        <select size="3" style="width:450px" font-size="15px"  ng-model="selectedOption">
+                            <option data-ng-repeat="dataset in datasetList" value="{{dataset.desc}}">{{dataset.desc}}</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
+        <div>
+            <table class="table">
+                <tr>
+                    <td width="100%">
+                        <h4>Comment <span title="Annotation Notes" class="icon-question-sign"></span></h4>
+                        <div class="popover popover-visible">
+                            <h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>
+                            <div class="popover-content">
+                                <p data-ng-show="comment">"{{comment}}"</p>
+                                <p data-ng-show="noComment">No comment</p>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
         <div data-ng-show="motivationTags">
             <h4>Motivation Keywords <span title="Tag(s) describing the motivation of the annotation" class="icon-question-sign"></span></h4>

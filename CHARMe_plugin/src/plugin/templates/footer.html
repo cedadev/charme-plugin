@@ -2,6 +2,9 @@
 	<div class="pluginVersion">v0.3 BETA</div>
         
         <div data-ng-show="listAnnotationsFlag">
+
+            <div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="viewDatasets()">View Target Datasets</div>
+
             <div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="newAnnotation()">New Annotation</div>
             <div data-ng-show="loggedIn" class="btn-group userMenu">
                 <button class="btn">{{userName}}</button>
@@ -20,6 +23,10 @@
         </div>
 	
         <div data-ng-show="viewAnnotationFlag">
+            <button class="btn" data-ng-click="cancel()">Back</button>
+        </div>
+
+        <div data-ng-show="viewDatasetsFlag">
             <button class="btn" data-ng-click="cancel()">Back</button>
         </div>
 </div>

@@ -564,7 +564,7 @@ charme.logic.fetchAnnotation = function(annotationId) {
 			type : 'GET',
 		}).then(function(data) {
 			var graph = new jsonoa.types.Graph();
-			graph.load(data).then(function(graph) {
+			graph.load(data, true).then(function(graph) {
 				resolver.fulfill(graph);
 			}, function(e) {
 				resolver.reject(e);
@@ -666,7 +666,7 @@ charme.logic.searchAnnotations = function(criteria) {
 			graphSrc[jsonoa.constants.GRAPH]=resultArr;
 
 			var graph = new jsonoa.types.Graph();
-			graph.load(graphSrc).then(function(graph) {
+			graph.load(graphSrc, true).then(function(graph) {
 				$.each(result.entries, function(index, value) {
 					var graphAnno = graph.getNode(value.id);
 					if (graphAnno)

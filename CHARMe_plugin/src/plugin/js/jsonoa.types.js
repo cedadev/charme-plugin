@@ -10,7 +10,7 @@ jsonoa.types.Annotation = jsonoa.types.register({
 		'	"@type": ["http://www.w3.org/ns/oa#Annotation"],										' +
 		'	"http://www.w3.org/ns/oa#motivatedBy": [],												' +
 		'	"http://www.w3.org/ns/oa#hasBody": [],													' +
-		'	"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}										' +
+        '   "http://www.w3.org/ns/oa#hasTarget": []                                                 ' +
 		'}																							',
 	constants: {
 		MOTIVATED_BY: 'http://www.w3.org/ns/oa#motivatedBy',

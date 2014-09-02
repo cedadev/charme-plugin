@@ -18,6 +18,83 @@
             <input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">
         </form> -->
         <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+
+
+
+        <table class="table table-condensed" style="border-collapse:collapse;">
+            <tbody>
+                <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
+                    <td><i>Viewing Annotations for : </i></td>
+                    <td><b>{{ targetIdKey }}</b></td>
+                </tr>
+                <tr >
+                    <td colspan="6" class="hiddenRow">
+                        <div class="accordian-body collapse" id="demo1">
+                            <select size="3" style="width:450px" font-size="15px"  ng-model="selectedOption">
+
+                                <option data-ng-click="refreshDatasetSelection(key)" data-ng-repeat="(key, value) in datasets" value="{{key}}">{{value}}</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th></th>
+                </tr>
+
+            </tbody>
+        </table>
+
+<!--
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                                Datasets
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <select size="3" style="width:400px" font-size="15px" multiple>
+                                <option data-ng-repeat="(key, value) in datasets" value="{{key}}">{{key}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+-->
+
+<!--
+        <div>
+            <table class="table">
+                <tr>
+                    <td>
+                        <label><b>Datasets</b></label>
+                    </td>
+                    <td>
+                        <select size="3" style="width:400px" font-size="15px" multiple>
+                            <option data-ng-repeat="(key, value) in datasets" value="{{key}}">{{key}}</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        </div>
+-->
+
+<!--
+ <div class="control-group" >
+     <label class="control-label" >Dataset(s)</label>
+
+     <div class="controls" ng-controller="DatasetCtrl">
+         <select ng-model="selectedDatasets" ng-options="dataset.name for dataset in selectedDatasets"
+                 placeholder="Selected datasets...">
+         </select>
+     </div>
+ </div>
+ -->
+
         
         <table class="table">
             <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>

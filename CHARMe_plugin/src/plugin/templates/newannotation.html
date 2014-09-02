@@ -8,9 +8,37 @@
     <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
     <form name="newAnnoForm">
 
-        <h4>Comments <span title="Free text comments go here; a link may be included below"
-                           class="icon-question-sign"></span></h4>
-        <textarea data-ng-model="anno.comment" rows="3"></textarea>
+        <table class="table table-condensed" style="border-collapse:collapse;">
+            <tbody>
+            <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
+                <td><h4>Datasets <span title="Datasets attached to this annotation" class="icon-question-sign"></span></h4>
+                </td>
+            </tr>
+            <tr >
+                <td colspan="6" class="hiddenRow">
+                    <div class="accordian-body collapse" id="demo1">
+                        <select size="3" style="width:450px" font-size="15px"  ng-model="selectedOption">
+
+                            <option data-ng-repeat="(key, value) in datasets" value="{{key}}">{{value}}</option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
+
+        <div>
+            <table class="table">
+                <tr>
+                    <td width="100%">
+                        <h4>Comments <span title="Free text comments go here; a link may be included below" class="icon-question-sign"></span></h4>
+                        <textarea data-ng-model="anno.comment" rows="4"></textarea>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
         <h4>Motivation <span title="Select tag(s) describing the motivations of this annotation"
                              class="icon-question-sign"></span></h4>

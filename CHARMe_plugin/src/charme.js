@@ -6,6 +6,12 @@ if (!charme) {
 //Define an object that will provide scope for charme-specific functions and fields
 charme.plugin = {};
 
+//Map to hold selected dataset names as keys and the target hrefs as corresponding values
+charme.plugin.selectedDatasets = {};
+
+//variable to hold the currently highlighted dataset from the set of selected datasets
+charme.plugin.selectedDatasetsHighlighted = {};
+
 charme.plugin.constants = function () {
 	this.XPATH_BASE = '//atm:feed';
 	this.XPATH_TOTAL_RESULTS = this.XPATH_BASE + '/os:totalResults';
@@ -188,6 +194,140 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 };
 
 /**
+ * Adds a click event to a passed in checkbox element
+ * @param dscb
+ */
+charme.plugin.setSelectionEventOnTarget = function (dscb) {
+    charme.common.addEvent(dscb, 'click', charme.plugin.refreshSelectedDSList);
+};
+
+/**
+ * Defines the function that executes when a checkbox on a dataset is clicked.
+ * The event ensures that the charme.plugin.selectedDatasets map is kept up-to-date
+ * @param dscb
+ */
+charme.plugin.refreshSelectedDSList = function (dscb) {
+
+    var targetHref = '';
+    var targetHrefEncoded = '';
+    var targetName = '';
+
+    //alert('event fired : checked status = ' + dscb.target.checked + " " + dscb.target.id);
+
+    targetHref = dscb.target.id;
+    targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
+    //targetHrefEncoded = encodeURIComponent(targetHref);
+    //targetHrefEncoded = targetHref;
+
+    if(dscb.target.checked)
+    {
+        if (!(targetHref in charme.plugin.selectedDatasets))
+        {
+            //Add the dataset in the list
+            charme.plugin.selectedDatasets[targetHref] = targetName ;
+
+            //alert('added : ' + targetName);
+        }
+
+    }
+    else
+    {
+        if (targetHref in charme.plugin.selectedDatasets)
+        {
+            // remove from the charme.plugin.selectedDatasets
+            delete charme.plugin.selectedDatasets[targetHref];
+
+            //alert('removed : ' + targetName);
+        }
+    }
+
+};
+
+/**
+ * This function programmatically sets the selection checkbox to the checked state
+ * and also inserts it in the selectedDataset map. This is specifically used when
+ * a charme icon that is not in the set of selected datsets already, is clicked to
+ * invoke the plugin on the main data provider page.
+ * @param targetHref
+*/
+charme.plugin.setAsSelected = function (targetHref) {
+
+    var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
+    //var targetHrefEncoded = encodeURIComponent(targetHref);
+    //var targetHrefEncoded = targetHref;
+
+    //Load the clicked dataset into teh selected list, if not in a clicked state.
+    if (!(targetHref in charme.plugin.selectedDatasets))
+    {
+        //Add the dataset in the list
+        charme.plugin.selectedDatasets[targetHref] =  targetName;
+
+        //Set the checkbox to 'checked' state
+        var dscbs = charme.plugin.getByClass('charme-select');
+        for (var i = 0; i < dscbs.length; i++) {
+            if (dscbs[i].id === targetHref) {
+                dscbs[i].checked = true;
+            }
+        }
+
+    }
+
+    //Save the clicked dataset into the "highlighted" list.
+    //charme.plugin.selectedDatasetsHighlighted = {};
+    //charme.plugin.selectedDatasetsHighlighted[targetName] = targetHrefEncoded;
+
+}
+
+
+
+charme.plugin.getSelectedDatasets = function () {
+
+    return charme.plugin.selectedDatasets;
+}
+
+
+//charme.plugin.getSelectedDatasetsHighlighted = function () {
+//
+//    return charme.plugin.selectedDatasetsHighlighted;
+//}
+
+
+
+//charme.plugin.populateDatasetList = function (){
+//
+//
+//    var array_keys = new Array();
+//    var keys = '';
+//
+//    var count = 0;
+//
+//    for (var key in charme.plugin.selectedDatasets) {
+//        array_keys.push(key);
+//        keys = keys + '\n' + key;
+//        count++;
+//    }
+//
+//    //alert('Current Selections : \n' + array_keys);
+//    alert('Current Selections : \n' + keys);
+//
+//
+//    for (var i=0; i<count; i++) {
+//        //var tempOpt = new Option(charme.plugin.selectedDatasets[i], charme.plugin.selectedDatasets[i]);
+//
+//        //charme.plugin.getByClass('datasetMultiList')[0].options.add(tempOpt);
+//
+//        var tempOpt =  document.createElement('Option');
+//        tempOpt.value = charme.plugin.selectedDatasets[i];
+//        tempOpt.innerHTML = charme.plugin.selectedDatasets[i];
+//        charme.plugin.getByClass('datasetMultiList')[0].appendChild(tempOpt);
+//
+//    }
+//
+//}
+
+
+
+/**
  * Cross browser class selector. Defined in order to avoid add external dependencies on libraries such as JQuery.
  */
 charme.plugin.getByClass = function (className) {
@@ -231,6 +371,15 @@ charme.plugin.markupTags = function () {
 		els[i].style.width = '36px';
 		els[i].style.height = '26px';
 	}
+
+    //Get the tickboxes and attach a selection events
+    var dscbs = charme.plugin.getByClass('charme-select');
+    for (var i = 0; i < dscbs.length; i++) {
+        if (dscbs[i].id) {
+            charme.plugin.setSelectionEventOnTarget(dscbs[i]);
+        }
+    }
+
 };
 
 
@@ -316,12 +465,36 @@ charme.plugin.closeFunc = function () {
 	plugin.style.display = 'none';
 };
 
+charme.plugin.miniaturiseFunc = function () {
+    var plugin = document.getElementById('charme-plugin-frame');
+    plugin.style.height = '40%';
+    plugin.style.minWidth = '720px';
+    //plugin.style.paddingTop = '300px';
+
+};
+
+charme.plugin.maximiseFunc = function () {
+    var plugin = document.getElementById('charme-plugin-frame');
+    plugin.style.height = '100%';
+    plugin.style.minWidth = '1040px';
+    //plugin.style.paddingTop = '50px';
+};
+
 /**
- * Registers the close function listeners with the plugin itself. The close buttons exist within the plugin, so the event will be fired from there.
+ * Registers the close and minituarise function listeners with the plugin itself. The close buttons exist within the plugin, so the event will be fired from there.
  */
 charme.plugin.loadFunc = function () {
+
+    //Close listeners
 	this.contentWindow.charme.web.removeCloseListener(charme.plugin.closeFunc);
 	this.contentWindow.charme.web.addCloseListener(charme.plugin.closeFunc);
+
+    //Minimise & Maximise listeners
+    this.contentWindow.charme.web.removeMiniaturiseListener(charme.plugin.miniaturiseFunc);
+    this.contentWindow.charme.web.addMiniaturiseListener(charme.plugin.miniaturiseFunc);
+
+    this.contentWindow.charme.web.removeMaximiseListener(charme.plugin.maximiseFunc);
+    this.contentWindow.charme.web.addMaximiseListener(charme.plugin.maximiseFunc);
 };
 
 charme.plugin.stopBubble = function(e){
@@ -340,7 +513,6 @@ charme.plugin.stopBubble = function(e){
             }
     }
 }
-
 /**
  * Renders the plugin visible
  * @param e event object. This is used
@@ -361,6 +533,9 @@ charme.plugin.showPlugin = function (e) {
 	plugin.contentWindow.location.href = charme.settings.path + '/plugin/plugin.html#/' +
 		encodeURIComponent(encodeURIComponent(targetHref)) + '/init';
 	plugin.style.display = 'block'; // Only show the iFrame once the content has loaded in order to minimize flicker
+
+    //charme.plugin.populateDatasetList();
+    charme.plugin.setAsSelected(targetHref);
 };
 
 charme.plugin.preInit = function () {

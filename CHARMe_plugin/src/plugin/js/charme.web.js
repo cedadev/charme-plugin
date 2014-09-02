@@ -10,6 +10,12 @@ charme.web.constants = {
 
 charme.web._closeListeners = [];
 
+charme.web._miniaturiseListeners = [];
+charme.web._maximiseListeners = [];
+
+//charme.web._dsSelectionListeners = [];
+//charme.web._dsDeselectionListeners = [];
+
 /**
  * Register CHARMe app, and define its modular dependencies
  */
@@ -63,3 +69,53 @@ charme.web.postMessageProxy = function(msgStr, originStr){
 	var loginService = injector.get('loginService');
 	loginService._loginEvent({data: msgStr});
 };
+
+
+
+charme.web.miniaturise = function(){
+    angular.forEach(charme.web._miniaturiseListeners, function(miniaturiseFunc, key){
+        miniaturiseFunc();
+    });
+};
+
+charme.web.maximise = function(){
+    angular.forEach(charme.web._maximiseListeners, function(maximiseFunc, key){
+        maximiseFunc();
+    });
+};
+
+
+charme.web.removeMiniaturiseListener = function (miniaturiseFunc){
+    charme.web._miniaturiseListeners.splice(charme.web._miniaturiseListeners.indexOf(miniaturiseFunc),1);
+};
+
+charme.web.addMiniaturiseListener = function (miniaturiseFunc){
+    charme.web._miniaturiseListeners.push(miniaturiseFunc);
+};
+
+charme.web.removeMaximiseListener = function (maximiseFunc){
+    charme.web._maximiseListeners.splice(charme.web._maximiseListeners.indexOf(maximiseFunc),1);
+};
+
+charme.web.addMaximiseListener = function (maximiseFunc){
+    charme.web._maximiseListeners.push(maximiseFunc);
+};
+
+
+
+////Listeners for updating dataset selections on the dataprovider's page
+//charme.web.registerDatasetSelectedListener = function (dsSelectionAddFunc){
+//    charme.web._dsSelectionListeners.push(dsSelectionAddFunc);
+//};
+//
+//charme.web.registerDatasetDeselectedListener = function (dsSelectionRemoveFunc){
+//    charme.web._dsDeselectionListeners.push(dsSelectionRemoveFunc);
+//};
+//
+//charme.web.unregisterDatasetSelectedListener = function (dsSelectionAddFunc){
+//    charme.web._dsSelectionListeners.splice(charme.web._dsSelectionListeners.indexOf(dsSelectionAddFunc),1);
+//};
+//
+//charme.web.unregisterDatasetDeselectedListener = function (dsSelectionRemoveFunc){
+//    charme.web._dsDeselectionListeners.splice(charme.web._dsDeselectionListeners.indexOf(dsSelectionRemoveFunc),1);
+//};
