@@ -200,48 +200,61 @@ charme.web.services.factory('searchAnnotations', function(){
 					var author = '';
 					var userName = '';
 					var organizationName = '';
+                    var organizationUri = '';
 
 					var date = anno.getValue(annoSpec.DATE);
 					date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
 
 					angular.forEach(person, function(detail){
-						var personType = jsonoa.types.Person; //Alias the Person type locally so that we don't need to use fully qualified path to reference constants
-						var organizationType = jsonoa.types.Organization;
-						if (detail.hasType(personType.TYPE)){
-							author = detail.getValue(personType.GIVEN_NAME) + ' ' + detail.getValue(personType.FAMILY_NAME);
-							userName = detail.getValue(personType.USER_NAME);
-						} else if (detail.hasType(organizationType.TYPE)){
-							organizationName = detail.getValue(organizationType.NAME);
-						}
+                        var personType = jsonoa.types.Person; //Alias the Person type locally so that we don't need to use fully qualified path to reference constants
+                        var organizationType = jsonoa.types.Organization;
+                        if (detail.hasType(personType.TYPE)){
+                                author = detail.getValue(personType.GIVEN_NAME) + ' ' + detail.getValue(personType.FAMILY_NAME);
+                                userName = detail.getValue(personType.USER_NAME);
+                        } else if (detail.hasType(organizationType.TYPE)){
+                                organizationName = detail.getValue(organizationType.NAME);
+                                organizationUri = detail.getValue(organizationType.URI);
+                        }
 					});
-                                        
-                                        angular.forEach(person, function(detail){
-                                            if (detail instanceof jsonoa.types.Person){
-                                                author = detail.getValue(detail.GIVEN_NAME) + ' ' + detail.getValue(detail.FAMILY_NAME);
-                                            } else if (detail instanceof jsonoa.types.Organization){
-                                                organization = detail.getValue(detail.NAME);
-                                            }
-                                        });
                                         
 					results.push(
 						{
-							'id': value.id,
-							'title': title,
-							'updated': updated,
-							'author': author,
-                                                        'organization': organization
+                                                    'id': value.id,
+						    'title': title,
+						    'updated': updated,
+						    'author': author,
+                                                    'userName': userName,
+                                                    'organizationName': organizationName,
+                                                    'organizationUri': organizationUri,
+                                                    'date': date
 						}
 					);
 				});
-				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results);
-				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
+                                
+				// date sorting on client side
+				//results.sort(function(a, b) {return (Date.parse(a.date) - Date.parse(b.date)) * criteria.listOrder;});
+				//results.splice(0, criteria.resultsPerPage * (criteria.pageNum - 1));
+				//results.splice(criteria.resultsPerPage, results.length - criteria.resultsPerPage);
+
+				var pages = [];
+				for(var i = 1; i <= Math.ceil(feed.totalResults / criteria.resultsPerPage); i++) {
+					if(i === criteria.pageNum)
+						pages.push({status: 'current'});
+					else
+						pages.push({status: 'notCurrent'});
+				}
+                                
+				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, feed.totalResults);
+				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);   
 			},
 			function(error){
 				searchService.tellListeners(searchService.listenerTypes.ERROR, 'Error: ' + error);
 				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
 			}
-		);
-
+		, function(error){
+				searchService.tellListeners(searchService.listenerTypes.ERROR, 'Error: ' + error);
+				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
+		});
 	};
 
 	return searchService;
@@ -303,7 +316,7 @@ charme.web.services.factory('saveAnnotation', function () {
 				angular.forEach(annoModel.domain, function(domain){
 					var tagId = domain.value;
 					var tag = graph.createNode({type: jsonoa.types.SemanticTag, id: tagId});
-					tag.setValue(jsonoa.types.SemanticTag.PREF_LABEL, domain.text);
+					tag.setValue(jsonoa.types.SemanticTag.PREF_LABEL, domain.textLong);
 					anno.addValue(annoSpec.BODY, tag);
 				});
 
