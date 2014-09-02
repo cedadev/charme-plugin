@@ -20,13 +20,15 @@ charme.logic.constants = {
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
 
-    DOI_PREFIX : 'http://dx.doi.org/',
     URL_PREFIX : 'http://',
+    DXDOI_URL : 'http://dx.doi.org/',
+    DXDOI_CRITERIA_ID : 'id',
 
     CROSSREF_URL : 'http://data.crossref.org/',
-    CROSSREF_CRITERIA_DOI : 'id',
+    CROSSREF_CRITERIA_ID : 'id',
     NERC_SPARQL_EP : 'http://vocab.nerc.ac.uk/sparql/sparql',
     FABIO_URL : 'http://eelst.cs.unibo.it/apps/LODE/source?url=http://purl.org/spar/fabio',
+    TARGET_URL : 'localData/target_types.json', // use locally cached file for now
 
     SPARQL_GCMD : 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>			' +
             'PREFIX skos: <http://www.w3.org/2004/02/skos/core#>				' +
@@ -39,10 +41,11 @@ charme.logic.constants = {
 
     FABIO_XP_CLASSES : '//owl:Class',
 
+    FACET_TYPE_TARGET_TYPE: 'dataType',
 	FACET_TYPE_MOTIVATION: 'motivation',
 	FACET_TYPE_DOMAIN: 'domainOfInterest',
-	FACET_TYPE_ORGANIZATION: 'organization',
-	FACET_TYPE_DATA_TYPE: 'dataType'
+	FACET_TYPE_ORGANIZATION: 'organization'
+	//FACET_TYPE_DATA_TYPE: 'dataType'
 };
 
 /*
@@ -80,16 +83,20 @@ charme.logic.urls.fetchRequest = function(id) {
 			charme.logic.constants.ANNO_DEPTH);
 };
 
-charme.logic.urls.fetchSearchFacets = function(facets){
+charme.logic.urls.fetchSearchFacets = function(criteria, facets){
 	var url=charme.logic.urls._baseURL() + 'suggest/atom?status=submitted&q=';
 	if (typeof facets !== 'undefined'){
 		url+=facets.join(',');
 	} else {
 		url+='*';
 	}
+
+    if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
+			url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
+	}
+        
 	return url;
 };
-
 charme.logic.urls.userDetailsRequest = function(id) {
 	return charme.logic.urls._baseURL() + 'token/userinfo';
 };
@@ -107,15 +114,18 @@ charme.logic.urls.gcmdVocabRequest = function(sparqlQry) {
 	url += '&output=json';
 	return url;
 };
-charme.logic.urls.crossRefRequest = function(criteria) {
+charme.logic.urls.targetTypesRequest = function() {
+    return charme.logic.constants.TARGET_URL;
+};
+charme.logic.urls.dxdoiRequest = function(criteria) {
 	var url = null;
-	if (criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI] &&
-		criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI].length > 0) {
-		var doi = criteria[charme.logic.constants.CROSSREF_CRITERIA_DOI];
-		if (doi.indexOf(charme.logic.constants.CROSSREF_URL) === 0) {
-			doi = doi.substring(charme.logic.constants.CROSSREF_URL.length + 1);
+	if (criteria[charme.logic.constants.DXDOI_CRITERIA_ID] &&
+		criteria[charme.logic.constants.DXDOI_CRITERIA_ID].length > 0) {
+		var doi = criteria[charme.logic.constants.DXDOI_CRITERIA_ID];
+		if (doi.indexOf(charme.logic.constants.DXDOI_URL) === 0) {
+			doi = doi.substring(charme.logic.constants.DXDOI_URL.length + 1);
 		}
-		url = charme.logic.constants.CROSSREF_URL + doi;
+		url = charme.logic.constants.DXDOI_URL + doi;
 	}
 	return url;
 };
@@ -125,13 +135,12 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 	if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
 		url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
 	}
+        if (typeof criteria.targetTypes !== 'undefined' && criteria.targetTypes.length > 0){
+		url+='&dataType=' + encodeURIComponent(criteria.targetTypes.join(' '));
+	}
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
 	}
-	// need node to support search for linkType
-	//if (typeof criteria.linkTypes !== 'undefined' && criteria.linkTypes.length > 0) {
-	//	url+='&linkType=' + encodeURIComponent(criteria.linkTypes.join(' '));
-	//}
 	if (typeof criteria.domainsOfInterest !== 'undefined' && criteria.domainsOfInterest.length > 0) {
 		url+='&domainOfInterest=' + encodeURIComponent(criteria.domainsOfInterest.join(' '));
 	}
@@ -143,7 +152,16 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
 		criteria.creator.length > 0) {
 		url += '&userName=' + encodeURIComponent(criteria.creator);
 	}
-
+        if (typeof criteria.pageNum !== 'undefined' && criteria.pageNum !== null) {
+		url += '&startPage=' + encodeURIComponent(criteria.pageNum.toString());
+	}
+        if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
+		url += '&count=' + encodeURIComponent(criteria.resultsPerPage.toString());
+	}
+        //if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
+	//	url += '&count=' + encodeURIComponent(criteria.count.toString());
+	//}
+        
 	return url;
 };
 
@@ -186,7 +204,8 @@ charme.logic.fabioNSResolver = function(prefix) {
  * @returns
  */
 charme.logic.findDOI = function(someString) {
-	return (/\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'])\S)+)\b/).exec(someString);
+	var result = (/\b(10[.][0-9]{3,}(?:[.][0-9]+)*\/(?:(?!["&\'])\S)+)\b/).exec(someString);
+	return result && result[0] ? result[0] : result;
 };
 
 /**
@@ -241,33 +260,48 @@ charme.logic.fetchUserDetails = function(authToken) {
  * 
  * @returns {Promise}
  */
-charme.logic.fetchGCMDVocab = function() {
-	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
-		if (reqUrl === null || reqUrl.length === 0) {
-			resolver.reject();
-		}
-		$.ajax(reqUrl, {
-			headers : {
-				accept : 'application/sparql-results+json; charset=utf-8'
-			}
-		}).then(function(jsonResp) {
-			var keywords = [];
-			$(jsonResp.results.bindings).each(function(index, binding) {
-				var word = binding.l.value;
-				word = word.substring(word.lastIndexOf('>') + 1);
-				word = word.trim();
-				keywords.push({
-					uri : binding.p.value,
-					desc : word
-				});
-			});
-			resolver.fulfill(keywords);
-		}, function(e) {
-			resolver.reject(e);
-		});
-	});
-	return promise;
+charme.logic.fetchGCMDVocab = function(removeDuplicates) {
+    var promise = new Promise(function(resolver) {
+        var reqUrl = charme.logic.urls.gcmdVocabRequest(charme.logic.constants.SPARQL_GCMD);
+        if (reqUrl === null || reqUrl.length === 0) {
+            resolver.reject();
+        }
+        $.ajax(reqUrl, {
+            headers : {
+                accept : 'application/sparql-results+json; charset=utf-8'
+            }
+        }).then(function(jsonResp) {
+            var keywords = [];
+            $(jsonResp.results.bindings).each(function(index, binding) {
+                var word = binding.l.value;
+                keywords.push({
+                    uri: binding.p.value,
+                    desc: word.trim()
+                });
+            });
+            
+            if(!removeDuplicates) {
+                resolver.fulfill(keywords);
+            } else {
+                // Remove duplicates, inspired by this: http://dreaminginjavascript.wordpress.com/2008/08/22/eliminating-duplicates/
+                var keywordsNoDuplicates = [], tempObj = {};
+                for(var i = 0; i < keywords.length; i++) {
+                    tempObj[charme.logic.shortDomainLabel(keywords[i].desc)] = keywords[i].uri;
+                }
+                for(desc in tempObj) {
+                    keywordsNoDuplicates.push({
+                        uri: tempObj[desc],
+                        desc: desc
+                    });
+                }
+                
+                resolver.fulfill(keywordsNoDuplicates);
+            }
+        }, function(e) {
+            resolver.reject(e);
+        });
+    });
+    return promise;
 };
 
 
@@ -419,27 +453,6 @@ charme.logic.fetchMotivationVocab = function() {
 
 };
 
-charme.logic.fetchMotivations = function() {
-	var promise = new Promise(function(resolver) {
-
-		var motivations = [ {
-			label : 'Bookmarking',
-			resource : 'Bookmarking'
-		}, {
-			label : 'Annotating',
-			resource : 'Annotating'
-		}, {
-			label : 'Commenting',
-			resource : 'Commenting'
-		}, {
-			label : 'Describing',
-			resource : 'Describing'
-		} ];
-		resolver.fulfill(motivations);
-	});
-	return promise;
-};
-
 charme.logic.fetchFabioTypes = function() {
 	var promise = new Promise(function(resolver) {
 
@@ -461,27 +474,85 @@ charme.logic.fetchFabioTypes = function() {
 	return promise;
 };
 
+charme.logic.fetchTargetType = function(targetId) {
+    var promise = new Promise(function(resolver) {
+        var targetType, allTargetTypes = [];
+        var returnTargetType = ['Target type undefined', false];
+
+        charme.logic.fetchAllTargetTypes().then(function(types) {
+            for(var i = 0; i < types.length; i++) {
+                allTargetTypes[i] = types[i].label;
+            }
+
+            var els = window.parent.document.getElementsByTagName('a');
+            for(var i = 0; i < els.length; i++) {
+                if(els[i].href === targetId && els[i].className) {
+                    targetType = els[i].className.split('-');
+
+                    if(targetType.length > 1 && targetType[0] === 'charme') {
+                        for(var j = 0; j < allTargetTypes.length; j++) {
+                            var regex = new RegExp(allTargetTypes[j], 'i');
+                            if(targetType[1].match(regex)) {
+                                targetType = targetType[1];
+                                returnTargetType = [targetType[0].toUpperCase() + targetType.substr(1).toLowerCase(), true];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            resolver.fulfill(returnTargetType);
+        }, function(error) {
+            console.error('Error fetching target types');
+            resolver.reject('Error: Could not fetch target types');
+        });
+    });
+    
+    return promise;
+};
+
+charme.logic.fetchAllTargetTypes = function() {
+    var promise = new Promise(function(resolver) {
+        var reqUrl = charme.logic.urls.targetTypesRequest(charme.logic.constants.TARGET_URL);
+        if (reqUrl === null || reqUrl.length === 0) {
+            resolver.reject();
+        }
+        
+        $.ajax(reqUrl, {
+            headers: {
+                accept: 'application/json; charset=utf-8'
+            }
+        }).then(function(jsonResp) {
+            resolver.fulfill(jsonResp);
+        }, function(e) {
+            resolver.reject(e);
+        });
+    });
+    
+    return promise;
+};
+
 /**
- * Uses the Crossref web services (available from http://www.crossref.org/ to retrieve 
+ * Uses the dx.doi web services (available from http://www.dx.doi.org/ to retrieve 
  * bibliographic data for a given DOI
  */
-charme.logic.fetchCrossRefMetaData = function(criteria) {
-	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.crossRefRequest(criteria);
-		if (reqUrl === null || reqUrl.length === 0) {
-			resolver.reject();
-		}
-		$.ajax(reqUrl, {
-			headers : {
-				accept : 'text/bibliography; style=apa; locale=en-US'
-			}
-		}).then(function(xmlResp) {
-			resolver.fulfill(xmlResp);
-		}, function(e) {
-			resolver.reject(e);
-		});
-	});
-	return promise;
+charme.logic.fetchDxdoiMetaData = function(criteria) {
+    var promise = new Promise(function(resolver) {
+        var reqUrl = charme.logic.urls.dxdoiRequest(criteria);
+        if(reqUrl === null || reqUrl.length === 0) {
+            resolver.reject();
+        }
+        $.ajax(reqUrl, {
+            headers: {
+                accept: 'text/x-bibliography; style=apa; locale=en-US'
+            }
+        }).then(function(xmlResp) {
+                resolver.fulfill(xmlResp);
+        }, function(e) {
+                resolver.reject(e);
+        });
+    });
+    return promise;
 };
 
 /**
@@ -563,8 +634,8 @@ charme.logic.fetchAnnotation = function(annotationId) {
 		$.ajax(reqUrl, {
 			type : 'GET',
 		}).then(function(data) {
-			var graph = new jsonoa.types.Graph();
-			graph.load(data, true).then(function(graph) {
+			var graph = new jsonoa.core.Graph();
+			graph.load(data, false).then(function(graph) {
 				resolver.fulfill(graph);
 			}, function(e) {
 				resolver.reject(e);
@@ -576,11 +647,12 @@ charme.logic.fetchAnnotation = function(annotationId) {
 	return promise;
 };
 
-charme.logic.fetchAllSearchFacets = function(){
+charme.logic.fetchAllSearchFacets = function(criteria){
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.fetchSearchFacets();
+		var reqUrl = charme.logic.urls.fetchSearchFacets(criteria);
+                
 		$.ajax(reqUrl, {
-			type : 'GET',
+			type : 'GET'
 		}).then(function(data) {
 			// Data is returned as ATOM wrapped json-ld
 			var result = new charme.atom.Result(data);
@@ -606,10 +678,12 @@ charme.logic.fetchAllSearchFacets = function(){
 					var facetObj = {};
 					facetObj.uri=facet[jsonoa.constants.ID];
 					if (facetType === charme.logic.constants.FACET_TYPE_ORGANIZATION)
-						facetObj.label = facet[jsonoa.constants.NAME]; else
-						facetObj.label = facet[jsonoa.constants.PREF_LABEL];
+                        facetObj.label = facet[jsonoa.constants.NAME];
+                    else
+                         facetObj.label = facet[jsonoa.constants.PREF_LABEL];
+                                        
 					resultMap[facetType].push(facetObj);
-				})
+				});
 			});
 			resolver.fulfill(resultMap);
 		}), function(jqXHR, textStatus, errorThrown) {
@@ -622,16 +696,27 @@ charme.logic.fetchAllSearchFacets = function(){
 
 charme.logic.shortAnnoTitle = function(anno){
 	var out='';
-	var bodies = anno.getValues(anno.BODY);
+	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
 	angular.forEach(bodies, function(body){
-		if (body instanceof jsonoa.types.TextBody){
-			out=body.getValue(body.CONTENT_CHARS);
-		} else if (body instanceof jsonoa.types.Publication && out.length===0){
-			out=body.getValue(body.CITING_ENTITY).getValue(body.ID);
+		if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)){
+			out=body.getValue(jsonoa.types.Text.CONTENT_CHARS);
+		} else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length===0){
+			out=body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
 		}
 	});
 	return out;
-}
+};
+
+// Written this way so that can be called both from js and as HTML filter
+charme.logic.shortDomainLabel = function(label) {
+    if(label)
+        return label.substring(label.lastIndexOf('>') + 1).trim();
+    else {
+        return function(label) {
+            return label.substring(label.lastIndexOf('>') + 1).trim();
+        };
+    }
+};
 
 /**
  * Retrieve all annotations matching the supplied criteria
@@ -644,7 +729,7 @@ charme.logic.searchAnnotations = function(criteria) {
 		var reqUrl = charme.logic.urls.fetchAnnotations(criteria);
 		$.ajax(reqUrl, {
 			type : 'GET'
-		}).then(function(data) {
+		}).then(function(data) {          
 			// Data is returned as ATOM wrapped json-ld
 			var result = new charme.atom.Result(data);
 			// Extract json-ld from the multiple 'content' payloads returned
@@ -664,9 +749,9 @@ charme.logic.searchAnnotations = function(criteria) {
 			});
 			var graphSrc = {};
 			graphSrc[jsonoa.constants.GRAPH]=resultArr;
-
-			var graph = new jsonoa.types.Graph();
-			graph.load(graphSrc, true).then(function(graph) {
+                        
+			var graph = new jsonoa.core.Graph();
+			graph.load(graphSrc, false).then(function(graph) {
 				$.each(result.entries, function(index, value) {
 					var graphAnno = graph.getNode(value.id);
 					if (graphAnno)
@@ -677,7 +762,7 @@ charme.logic.searchAnnotations = function(criteria) {
 				resolver.reject(e);
 			});
 
-		}, function(jqXHR, textStatus, errorThrown) {
+		}, function(jqXHR, textStatus, errorThrown) {    
 			resolver.reject();
 		});
 	});

@@ -3,5 +3,8 @@
     <button type="button" class="close window-controls" data-ng-click="miniaturise()"><i class="icon-zoom-out"></i></button>
     <button type="button" class="close window-controls" data-ng-click="maximise()"><i class="icon-move"></i></button>
    	<h3><a href="http://www.charme.org.uk/" title="CHARMe Plugin BETA VERSION" target="_blank"><img src="img/CHARMe_title_small.png" id="charmeTitle" /></a>Annotations</h3>
-   	<h3 id="targetTitle"><small></small></h3>
+        <h3 id="targetTitle"><small>{{targetId}} 
+                <span data-ng-show="!loading && targetType.desc">({{targetType.desc}})</span>
+                <span class="text-warning" data-ng-show="targetType.error">({{targetType.error}})</span>
+                </small></h3>
 </div>

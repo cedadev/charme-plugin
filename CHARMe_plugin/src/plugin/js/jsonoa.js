@@ -1,5 +1,6 @@
 var jsonoa = {};
 jsonoa.types = {};
+jsonoa.core = {};
 jsonoa.graph = {};
 jsonoa.constants = {
 	ID:'@id',
@@ -27,32 +28,32 @@ jsonoa.util.isNode = function(test){
 	return test && test['@id'] ? true : false;
 };
 
-jsonoa.types.registry = [];
+jsonoa.core.registry = [];
 
 /**
- * Registers a new node type with the library. This should not be called from anywhere other than jsonoa.types.js where node types are defined.
+ * Wraps a json-ld node with some accessor functions.
  * @param The description object of the new node type.
  * @returns {typeDef}
  */
-jsonoa.types.register = function(typeDesc){
-	var typeTemplate = JSON.parse(typeDesc.template);
-	var nodeObj = JSON.parse(typeDesc.template);
-	
+jsonoa.core.wrapNode = function(typeDesc){
 	/**
 	 * An object is returned that wraps the underlying node, providing accessor and mutator methods for modification.
-	 * ALL node objects returned by this library are wrapped with the object structure below. Returned object has a runtime type defined by its jsono.types type. (eg. jsonoa.types.Annotation). 
+	 * ALL node objects returned by this library are wrapped with the object structure below. Returned object has a runtime type defined by its jsono.types type. (eg. jsonoa.types.Annotation).
 	 * This means that operations such as (node instanceof jsonoa.types.Annotation) will evaluate to true.
 	 */
 	var typeDef = function(){
 		//Fields
 		this.ID='@id';
-		this.TYPE='@type';
+		this.TYPE_ATTR_NAME='@type';
 		this.node = undefined;
-		this.template = typeTemplate;
+		this.template = typeDesc.template;
 		this.graph = [];
-		
+		this.types = [];
+
 		this._init = function(){
-			this.node = JSON.parse(typeDesc.template);
+			//Do a deep copy, don't want to modify the underlying template
+			this.node = $.extend(true, {}, this.template);
+			this.types = this.node['@type'];
 		};
 		
 		this._isInit = function(){
@@ -71,7 +72,7 @@ jsonoa.types.register = function(typeDesc){
 				var linkedNode = this.graph.getNode(attrVal['@id']);
 				if (!linkedNode){
 					//Basically, node is unknown, but return the node wrapped in a stub object to allow for get/set functionality
-					var stub = this.graph.createNode(jsonoa.types.Stub, attrVal['@id'], attrVal, true);
+					var stub = this.graph.createNode({template: jsonoa.core.Stub, id: attrVal['@id'], wrappedData: attrVal, graphLess: true});
 					return stub;
 				}
 				return linkedNode ? linkedNode : attrVal;
@@ -79,7 +80,12 @@ jsonoa.types.register = function(typeDesc){
 				return attrVal;
 			}
 		};
-		
+
+		this.hasType = function(type){
+			var types = this.getValues('@type');
+			return types.indexOf(type) >= 0;
+		};
+
 		//Accessor Methods
 		this.getValue=function(attr){
 			this._isInit();
@@ -88,14 +94,16 @@ jsonoa.types.register = function(typeDesc){
 			if (attrVal instanceof Array){
 				attrVal = attrVal[0];
 			}
-			
+                        
 			return this._wrapValue(attrVal);
 				
 		};
 		this.getValues=function(attr){
 			this._isInit();
 			var attrVal = this.node[attr];
-			if (attrVal instanceof Array){
+			if (typeof attrVal==='undefined')
+				return [];
+			else if (attrVal instanceof Array){
 				var wrappedArr = [];
 				for (var i=0; i < attrVal.length; i++){
 					wrappedArr.push(this._wrapValue(attrVal[i]));
@@ -160,57 +168,71 @@ jsonoa.types.register = function(typeDesc){
 		};
 	};
 	
-	var types = nodeObj['@type'];
+	var types = typeDesc.template['@type'];
 	if (!types){
-		if (jsonoa.types.Stub)
+		if (jsonoa.core.Stub)
 			throw 'Registered node type must specify an @type attribute';
 		types = [];
 	}
 	if (!(types instanceof Array)){
 		types = [types];
 	}
-	jsonoa.types.registry.push({'matchTypes': types.sort(), 'typeDef': typeDef});
+	jsonoa.core.registry.push({'matchTypes': types.sort(), 'typeDef': typeDef});
 	
 	return typeDef;
 };
 
-jsonoa.types._createBasicNode = function(){
+jsonoa.core._createBasicNode = function(){
 	return {'@id': '?'};
 };
 
 /**
  * Defines a basic node type for graphs, and some functions for accessing the graph. A graph is first instantiated via
- * var graph = new jsonoa.types.Graph(). It can then be built programatically by adding nodes to it, via createNode, or a node
+ * var graph = new jsonoa.core.Graph(). It can then be built programatically by adding nodes to it, via createNode, or a node
  * structure can be loaded from a string or json object source via Graph.load()
  */
-jsonoa.types.Graph = function(){
+jsonoa.core.Graph = function(){
 	this.nodes = [];
 	this.idMap = [];
 	
 	/**
 	 * Creates a new node of the requested type. The wrapped node will be returned, and also saved into the graph. The 'wrappedData' is the basic json-ld node underlying it (not required for new nodes)
-	 * 
+	 * options:
+	 *  id (required): An identifier for the new node
+	 *  wrappedData (optional): If representing existing data, the data to wrap
+	 * 	template (optional): If creating from scratch, a template to follow
+	 * 	graphLess (optional: Create the node, but don't add it to the graph.
 	 */
-	this.createNode = function(nodeType, id, wrappedData, graphLess){
-		var node = new nodeType();
+	this.createNode = function(options){
+		var node;
+
+		/*if (options.type){
+			node = (new options.type()).TEMPLATE;
+		} else{*/
+		node = new jsonoa.core.Stub();
+		if (options.type) {
+			node.template = (new options.type()).TEMPLATE;
+		}
+
+		/*}*/
 		node._init();
 		
-		if (wrappedData){
-			node.node = wrappedData;
+		if (options.wrappedData){
+			node.node = options.wrappedData;
 		}
 		
-		node.node['@id']=id;
+		node.node['@id']=options.id;
 		
 		node.graph = this;
-		if (!graphLess){
+		if (!options.graphLess){
 			this.nodes.push(node);
-			this.idMap[id]=node;
+			this.idMap[options.id]=node;
 		}
 		return node;
 	};
 	
 	this.createStub = function(id){
-		return this.createNode(jsonoa.types.Stub, id, undefined, true);
+		return this.createNode({type: jsonoa.core.Stub, id: id, graphLess: true});
 	};
 	
 	/**
@@ -227,7 +249,7 @@ jsonoa.types.Graph = function(){
 		var wrappedNodes = [];
 		for (var i=0; i<this.nodes.length; i++){
 			var thisNode = this.nodes[i];
-			if (thisNode instanceof type){
+			if (thisNode.hasType(type)){
 				wrappedNodes.push(thisNode);
 			}
 		}
@@ -235,7 +257,7 @@ jsonoa.types.Graph = function(){
 	};
 	
 	this.getAnnotations = function(){
-		return this.getNodesOfType(jsonoa.types.Annotation);
+		return this.getNodesOfType(jsonoa.types.Annotation.TYPE);
 	};
 	
 	//Traverse the graph, decorate nodes with utility functions and identifiers, then stitch them together.
@@ -260,13 +282,20 @@ jsonoa.types.Graph = function(){
 				}
 				for (var i=0; i < graphArr.length;i++){
 					var node = graphArr[i];
-					if (jsonoa.types.hasType(node)){
-						var nodeType = jsonoa.types.identifyFromNode(node);
-						if (nodeType){
-							parentGraph.createNode(nodeType, node['@id'], node);
+					if (jsonoa.util._hasTypeAttribute(node)){
+						var nodeTypes = node['@type'];
+						var unknownType = nodeTypes.length == 0;
+						if (!(nodeTypes instanceof Array)){
+							nodeTypes = [nodeTypes];
+						}
+						for (var j=0; j<nodeTypes.length && !unknownType; j++){
+							unknownType = !jsonoa.util.isKnownType(nodeTypes[j]);
+						}
+						if (!unknownType){
+							parentGraph.createNode({id: node['@id'], wrappedData:node });
 						} else {
 							if (!ignoreErrors){
-								resolver.reject('Unknown node type in graph');
+								resolver.reject('Unknown node type(s) in graph');
 								return;
 							}
 						}
@@ -290,37 +319,54 @@ jsonoa.types.Graph = function(){
 	};
 };
 
-jsonoa.types.Stub = jsonoa.types.register({
-	template:
-		'{																							' + 
-		'	"@id": "?"																				' +
-		'}																							',
-	constants: {
-	}
-});
-
-jsonoa.types.identifyFromType = function(typeArr){
-	if (!(typeArr instanceof Array)){
-		typeArr = [typeArr];
-	}
-	typeArr = typeArr.sort();
-	for (var i=0; i < jsonoa.types.registry.length; i++){
-		var registeredTypes = jsonoa.types.registry[i].matchTypes;
-		if (jsonoa.util.arraysEqual(registeredTypes, typeArr)){
-			return jsonoa.types.registry[i].typeDef;
+/**
+ * Given a string representation of a known type, return the type definition from jsonoa.types.
+ * @param type
+ * @returns {*}
+ */
+jsonoa.util.templateFromType = function(type){
+	for (var nodeType in jsonoa.types){
+		var nodeTypeSpec = jsonoa.types[nodeType];
+		if (nodeTypeSpec.TYPE===type) {
+			return nodeTypeSpec;
 		}
 	}
 	return null;
 };
 
-jsonoa.types.identifyFromNode = function(node){
-	var typeArr = node['@type'];
-	if (!(typeArr instanceof Array)){
-		typeArr = [typeArr];
+/**
+ * Given a string type, will return true if the type is defined in jsonoa.types.js. Otherwise, false.
+ * @param typeToTest A string representation of a jsonoa node type (defined in jsonoa.types.js)
+ * @returns {boolean}
+ */
+jsonoa.util.isKnownType = function(typeToTest){
+	for (var type in jsonoa.types){
+		var typeObj = jsonoa.types[type];
+		if (typeof typeObj.TYPE!=='undefined'){
+			if (typeObj.TYPE instanceof Array && typeObj.TYPE.indexOf(typeToTest) >=0){
+				return true;
+			} else if (typeObj.TYPE===typeToTest) {
+				return true;
+			}
+		}
 	}
-	return jsonoa.types.identifyFromType(typeArr);
+	return false;
 };
 
-jsonoa.types.hasType = function(node){
+jsonoa.util._hasTypeAttribute = function(node){
 	return node['@type'] ? true : false;
 };
+
+jsonoa.types.Common = new function(){
+	this.ID = '@id';
+	this.TYPE = '@type';
+};
+
+jsonoa.core.Stub = jsonoa.core.wrapNode({
+	template:
+	{
+		"@id": "?"
+	},
+	constants: {
+	}
+});

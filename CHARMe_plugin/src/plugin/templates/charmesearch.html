@@ -1,57 +1,75 @@
 <form class="form-horizontal form-charme-search" data-ng-controller="SearchCtrl">
-    <!--
-     <div class="control-group">
-         <label class="control-label" for="chooseText">Text</label>
-         <div class="controls">
-             <input id="chooseText" type="text"/>
-         </div>
-     </div>
- -->
+    <div class="control-group">
+        <label class="control-label" for="chooseTargetType">Target type</label>
+        <div class="controls controls-row">
+            <select id="chooseTargetType" class="span3 target-types" data-target-types-to-show="targetTypeCategoriesForSearch" data-target-type-keywords multiple
+                    data-ng-model="criteria.selectedTargetTypes"
+                    placeholder=" Select tags...">
+            </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by tagged target types"></span>
+        </div>
+    </div>
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
-        <div class="controls">
-            <!--<select id="chooseMotivation" data-ng-model="criteria.selectedMotivation"
-                    data-ng-options="motivation.uri as motivation.label for motivation in motivations | orderBy: 'uri'">
-                <option></option>
-            </select>-->
-            <select id="chooseMotivation" data-motivation-keywords multiple
+        <div class="controls controls-row">
+            <select id="chooseMotivation" class="span3 motivations" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
                     data-ng-model="criteria.selectedMotivations"
-                    placeholder="Select tags...">
+                    placeholder=" Select tags...">
             </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by tagged motivations"></span>
         </div>
     </div>
-    <!--
-        <div class="control-group"><label class="control-label" for="chooseLink">Link type</label>
-            <div class="controls">
-                <select id="chooseLink" style="width:185px" data-ng-model="criteria.selectedLinkType" ng-options=
-                        "linkType.uri as linkType.label for linkType in linkTypes">
-                    <option></option>
-                </select>
-            </div>
-        </div>
-    -->
     <div class="control-group">
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
-        <div class="controls">
-            <select id="chooseDomain" data-domain-keywords multiple
+        <div class="controls controls-row">
+            <select id="chooseDomain" class="span3 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
                     data-ng-model="criteria.selectedDomains"
-                    placeholder="Select tags..."></select>
+                    placeholder=" Select tags...">
+            </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by tagged domains of interest"></span>
         </div>
     </div>
     <div class="control-group">
-        <label class="control-label" for="chooseLocation">Organisation</label>
-        <div class="controls">
-            <select id="chooseLocation" data-ng-model="criteria.selectedOrganization"
+        <label class="control-label" for="chooseOrganisation">Organisation</label>
+        <div class="controls controls-row">
+            <select id="chooseOrganisation" data-ng-model="criteria.selectedOrganization" class="span3 organisation select-placeholder"
+                    onchange="changeOrganisation()"
                     data-ng-options="organization.uri as organization.label for organization in organizations">
-                <option></option>
+                <option value="">Select author's organisation...</option>
             </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by author's organisation"></span>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseCreator">Creator</label>
-
-        <div class="controls">
-            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" type="text"/>
+        <div class="controls controls-row">
+            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" class="span3 creator" type="text" placeholder=" Enter author's username..."/>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by author's username"></span>
         </div>
+    </div>
+
+    <div>
+        <button class="btn reset-button" data-ng-disabled="loading" data-ng-click="reset();" type="reset">Reset</button>
+    </div>
+    
+    <div class="annoListOptions">
+        <div>
+            Results per page:
+            <span data-ng-repeat="rpp in resultsPerPage" data-ng-click="setResultsPerPage(rpp)">
+                &nbsp;&nbsp;<a data-ng-class="rpp === selectedRPP ? 'selected' : 'notSelected'" href="">{{rpp}}</a>
+            </span>
+            <span data-ng-show="!loading && numResults > 0">({{numResults}})</span>
+        </div>
+        <!-- waiting for node to support date sorting <div> 
+            Sort by:
+            <span data-ng-repeat="option in listOrderOptions" data-ng-click="setListOrder(option.sortNum)">
+                &nbsp;&nbsp;<a data-ng-class="option.sortNum === selectedOrder ? 'selected' : 'notSelected'" href="">{{option.text}}</a>
+            </span>
+        </div>-->
     </div>
 </form>

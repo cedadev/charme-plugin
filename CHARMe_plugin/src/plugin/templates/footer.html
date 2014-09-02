@@ -1,5 +1,5 @@
 <div class="modal-footer">
-	<div class="pluginVersion">v0.3 BETA</div>
+	<div class="pluginVersion">v0.4.1 BETA</div>
         
         <div data-ng-show="listAnnotationsFlag">
 
@@ -18,7 +18,7 @@
         </div>
         
         <div data-ng-show="newAnnotationFlag">
-            <button class="btn btn-primary" data-ng-disabled="newAnnoForm.$invalid || loading" data-ng-click="save(anno)">Save</button>
+            <button class="btn btn-primary" data-ng-disabled="newAnnoForm.$invalid || loading || errorMsg" data-ng-click="save(anno)">Save</button>
             <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
         </div>
 	

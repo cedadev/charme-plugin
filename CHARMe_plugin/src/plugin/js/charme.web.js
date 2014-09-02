@@ -1,11 +1,11 @@
 var charme;
 charme.web={};
 charme.web.constants = {
-	CHARME_TK: 'CHARME_AT',
-	PARAM_MOTIVATIONS: 'motivations',
-	PARAM_DOMAINS: 'domains',
-	PARAM_ORGANIZATION: 'organization',
-	PARAM_CREATOR: 'creator'
+    CHARME_TK: 'CHARME_AT',
+ 	PARAM_MOTIVATIONS: 'motivations',
+ 	PARAM_DOMAINS: 'domains',
+ 	PARAM_ORGANIZATION: 'organization',
+ 	PARAM_CREATOR: 'userName'
 };
 
 charme.web._closeListeners = [];
@@ -29,26 +29,22 @@ charme.web.app=angular.module('charmePlugin', [
  */
 charme.web.app.config(['$routeProvider',
     function($routeProvider){
-		$routeProvider.when('/:targetId/init', {
-			templateUrl: 'templates/init.html',
-			controller: 'InitCtrl'
-		}).
-		when('/:targetId/annotations/new/', {
-			templateUrl: 'templates/newannotation.html',
-			controller: 'NewAnnotationCtrl'
-		}).when('/:targetId/annotations/', {
-			templateUrl: 'templates/listannotations.html',
-			controller: 'ListAnnotationsCtrl',
-			reloadOnSearch: false
-			}
-		).when('/:targetId/annotation/:annotationId/', {
-			templateUrl: 'templates/viewannotation.html',
-			controller: 'ViewAnnotationCtrl'			
-			}
-		);
-	}
-]
-);
+            $routeProvider.when('/:targetId/init', {
+                    templateUrl: 'templates/init.html',
+                    controller: 'InitCtrl'
+            }).when('/:targetId/annotations/new/', {
+                    templateUrl: 'templates/newannotation.html',
+                    controller: 'NewAnnotationCtrl'
+            }).when('/:targetId/annotations/', {
+                    templateUrl: 'templates/listannotations.html',
+                    controller: 'ListAnnotationsCtrl',
+                    reloadOnSearch: false
+            }).when('/:targetId/annotation/:annotationId/', {
+                    templateUrl: 'templates/viewannotation.html',
+                    controller: 'ViewAnnotationCtrl'
+            });
+    }
+]);
 
 charme.web.close = function(){
 	angular.forEach(charme.web._closeListeners, function(closeFunc, key){
@@ -67,7 +63,7 @@ charme.web.addCloseListener = function (closeFunc){
 charme.web.postMessageProxy = function(msgStr, originStr){
 	var injector = angular.element(document).injector();
 	var loginService = injector.get('loginService');
-	loginService._loginEvent({data: msgStr});
+	loginService._loginEvent({data: msgStr, origin: originStr});
 };
 
 
@@ -100,22 +96,3 @@ charme.web.removeMaximiseListener = function (maximiseFunc){
 charme.web.addMaximiseListener = function (maximiseFunc){
     charme.web._maximiseListeners.push(maximiseFunc);
 };
-
-
-
-////Listeners for updating dataset selections on the dataprovider's page
-//charme.web.registerDatasetSelectedListener = function (dsSelectionAddFunc){
-//    charme.web._dsSelectionListeners.push(dsSelectionAddFunc);
-//};
-//
-//charme.web.registerDatasetDeselectedListener = function (dsSelectionRemoveFunc){
-//    charme.web._dsDeselectionListeners.push(dsSelectionRemoveFunc);
-//};
-//
-//charme.web.unregisterDatasetSelectedListener = function (dsSelectionAddFunc){
-//    charme.web._dsSelectionListeners.splice(charme.web._dsSelectionListeners.indexOf(dsSelectionAddFunc),1);
-//};
-//
-//charme.web.unregisterDatasetDeselectedListener = function (dsSelectionRemoveFunc){
-//    charme.web._dsDeselectionListeners.splice(charme.web._dsDeselectionListeners.indexOf(dsSelectionRemoveFunc),1);
-//};

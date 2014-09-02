@@ -40,16 +40,17 @@
             </table>
         </div>
 
-        <h4>Motivation <span title="Select tag(s) describing the motivations of this annotation"
+        <h4>Motivation <span title="Select tag(s) describing the motivation of this annotation"
                              class="icon-question-sign"></span></h4>
-        <select data-ng-model="anno.motivation" data-motivation-keywords multiple
+        <select data-motivations-to-show="motivationCategoriesForNewAnno" data-motivation-keywords multiple
+                data-ng-model="anno.motivation"
                 placeholder="Select motivations...">
         </select>
 
-        <h4>Domain Classification <span
-                title="Select tag(s) describing the subject of this annotation"
-                class="icon-question-sign"></span></h4>
-        <select data-ng-model="anno.domain" data-domain-keywords multiple
+        <h4>Domain classification <span title="Select tag(s) describing the subject of this annotation"
+                                        class="icon-question-sign"></span></h4>
+        <select data-keywords-to-show="domainCategoriesForNewAnno" data-domain-keywords multiple
+                data-ng-model="anno.domain" 
                 placeholder="Select tags...">
         </select>
 
@@ -80,6 +81,16 @@
                 <span class="icon-tag" title="{{anno.citoText}}"></span>
             </div>
         </div>
+        
+        <!--<h4>Target classification <span title="Select type of target (e.g. dataset) you are annotating"
+                         class="icon-question-sign"></span></h4>
+        <div>
+            <select class="input-medium" data-ng-model="anno.target" name="type"
+                    title="Please select a target type"
+                    data-ng-options="target.text as target.text for target in targetTypes"
+                    data-ng-required="anno.target">
+            </select>
+        </div>-->
     </form>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

@@ -102,6 +102,4 @@ charme.common.removeEvent = function(el, ev, fn){
 /**
  * Function that will be executed automatically upon script include
  */
-(function(){
-	charme.common._scriptPath();
-})();
+charme.common._scriptPath();
