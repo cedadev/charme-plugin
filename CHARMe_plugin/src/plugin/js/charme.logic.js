@@ -44,8 +44,8 @@ charme.logic.constants = {
     FACET_TYPE_TARGET_TYPE: 'dataType',
 	FACET_TYPE_MOTIVATION: 'motivation',
 	FACET_TYPE_DOMAIN: 'domainOfInterest',
-	FACET_TYPE_ORGANIZATION: 'organization'
-	//FACET_TYPE_DATA_TYPE: 'dataType'
+	FACET_TYPE_ORGANIZATION: 'organization',
+	STATE_DELETE: 'retired'
 };
 
 /*
@@ -193,6 +193,15 @@ charme.logic.fabioNSResolver = function(prefix) {
 	};
 	return ns[prefix] || null;
 };
+
+
+charme.logic.shortAnnoId = function(longformId){
+	var matches = longformId.match(/([^\/]+)\/?$/g);
+	var shortId = longformId;
+	if (matches)
+		shortId = matches[0];
+	return shortId;
+}
 
 /**
  * A utility function that will find a DOI within a given string
@@ -621,10 +630,7 @@ charme.logic.saveGraph = function(graph, token) {
  */
 charme.logic.fetchAnnotation = function(annotationId) {
 	// Isolate the annotation ID from a full URI
-	var matches = annotationId.match(/([^\/]+)\/?$/g);
-	var shortId = annotationId;
-	if (matches)
-		shortId = matches[0];
+	var shortId = charme.logic.shortAnnoId(annotationId);
 
 	var promise = new Promise(function(resolver) {
 		var reqUrl = charme.logic.urls.fetchRequest(shortId);
@@ -764,4 +770,44 @@ charme.logic.searchAnnotations = function(criteria) {
 		});
 	});
 	return promise;
+};
+
+/*
+ * Deletes the given annotation by changing its state to 'retired'.
+ * @param annotationId
+ */
+charme.logic.deleteAnnotation=function(annotationId, token){
+	//return charme.logic.advanceState(annotationId, charme.logic.constants.STATE_DELETE, token)
+	return charme.logic.advanceState(annotationId, 'stable', token)
+}
+
+/*
+ * Change the status of the given annotation. All transitions between states are allowed.
+ *
+ * Parameters:
+ * 		annotationId: The annotation to modify
+ * 		newState: The state to advance to
+ * 		successCB: a callback to be invoked on successful completion.
+ * 		errorCB: a callback to be invoked on error
+ */
+charme.logic.advanceState=function(annotationId, newState, token){
+	var shortId = charme.logic.shortAnnoId(annotationId);
+
+	var url = charme.logic.urls.stateRequest(newState);
+	return new Promise(function(resolver) {
+		$.ajax(url, {
+			dataType: 'text',
+			type: 'POST',
+			headers : {
+				'Authorization' : ' Bearer ' + token
+			},
+			contentType: 'application/ld+json',
+			data: {annotation: shortId, toState: newState}
+		}).then(function(result){
+			resolver.fulfill(result);
+		},
+		function(error){
+			resolver.reject(error);
+		});
+	});
 };

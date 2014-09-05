@@ -260,6 +260,10 @@ charme.web.services.factory('searchAnnotations', function(){
 	return searchService;
 });
 
+charme.web.services.factory('deleteAnnotation', function(){
+	return charme.logic.deleteAnnotation;
+});
+
 charme.web.services.factory('saveAnnotation', function () {
 	return function(annoModel, targetId, datasetMap, auth){
 		var promise = new Promise(function(resolver){

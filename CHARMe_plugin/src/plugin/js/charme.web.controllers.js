@@ -205,8 +205,8 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 /**
  * View details of individual annotation.
  */
-charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetType', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations',
-    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetType, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations){
+charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetType', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService',
+    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetType, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService){
 		$scope.viewAnnotationFlag=true;
         searchAnnotations.clearListeners();
         $scope.loading=true;
@@ -356,6 +356,20 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
 
                         });
 
+						/*
+						 Annotation deletion.
+						 */
+						var auth = loginService.getAuth();
+						if (loginService.isLoggedIn() && auth && $scope.userName === auth.user.username) {
+							$scope.deleteAnnotationFlag = true;
+							$scope.deleteAnnotation = function () {
+								deleteAnnotation(annoId, auth.token).then(function (response) {
+
+									}, function (error) {
+
+									});
+							}
+						}
 
                         if (!$scope.comment){
                             $scope.noComment=true;
