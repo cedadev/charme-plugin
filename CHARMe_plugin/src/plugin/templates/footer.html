@@ -24,8 +24,13 @@
 
         <div data-ng-show="viewAnnotationFlag">
             <button class="btn btn-danger"
-                    data-ng-show="deleteAnnotationFlag" data-ng-click="deleteAnnotation()">Delete</button>
-            <button class="btn" data-ng-click="cancel()">Back</button>
+                    data-ng-show="deleteAnnotationFlag && !confirmDelete" data-ng-click="confirmDelete=true">Delete</button>
+            <button class="btn btn-danger"
+                    data-ng-show="confirmDelete" data-ng-click="confirmDelete=false; deleteAnnotation()">Delete this
+                annotation?</button>
+            <button class="btn btn-default"
+                    data-ng-show="confirmDelete" data-ng-click="confirmDelete = false">Cancel</button>
+            <button class="btn" data-ng-show="!confirmDelete" data-ng-click="cancel()">Back</button>
         </div>
 
         <div data-ng-show="viewDatasetsFlag">

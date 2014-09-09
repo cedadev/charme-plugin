@@ -227,6 +227,23 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             }
     };
 })
+
+.directive('confirm', ['deleteAnnotation', function(deleteAnnotation){
+	return {
+		restrict: 'A',
+		scope: {
+			annoId: '='
+		},
+		link: function(scope, element){
+			scope.onConfirm = function(){
+				scope.confirm=true;
+			};
+			scope.onDelete = function(){
+				deleteAnnotation(scope.annoId);
+			}
+		}
+	}
+}]);
         
 /*.directive('charmeCito', ['fetchFabioTypes', function (fetchFabioTypes) {
     return {

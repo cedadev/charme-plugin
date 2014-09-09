@@ -355,7 +355,6 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                            // }
 
                         });
-
 						/*
 						 Annotation deletion.
 						 */
@@ -364,10 +363,15 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
 							$scope.deleteAnnotationFlag = true;
 							$scope.deleteAnnotation = function () {
 								deleteAnnotation(annoId, auth.token).then(function (response) {
-
-									}, function (error) {
-
+									$scope.$apply(function() {
+										$location.path(encodeURIComponent(targetId) +
+											'/annotations/');
 									});
+								}, function (error) {
+									$scope.$apply(function() {
+										$scope.errorMsg='Unable to delete annotation';
+									});
+								});
 							}
 						}
 
