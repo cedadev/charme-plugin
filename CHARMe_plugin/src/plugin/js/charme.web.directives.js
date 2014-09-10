@@ -8,7 +8,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                 var optgroups = [];
                 var options = [];
                 angular.forEach(categories, function (cat) {
-                    optgroups.push({value: cat.name, label: cat.name + ' Keywords'});
+                    optgroups.push({value: cat.name, label: cat.name});
                         angular.forEach(cat.keywords, function (kword) {
                             if(kword.hasOwnProperty('desc')) {
                                 options.push({text: kword.desc, value: kword.uri, optgroup: cat.name, $order: kword.desc});
@@ -98,6 +98,29 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                             options: options,
                             optgroups: optgroups,
                             maxOptions: options.length,
+                            // These two functions *almost* enable the desired overflow behaviour in the plugin search window, 
+                            // but not well enough. What we really want are onFocus/onBlur API methods, but there aren't any (yet) 
+                            // so instead we insert our code directly into the onFocus and onBlur methods within selectize.js
+                            /*onDropdownOpen: function() {
+                                var searchContainer = document.getElementById("searchContainer");
+                                searchContainer.className = searchContainer.className.replace(/\ssearch-overflow-y/g, '');
+                            },
+                            onDropdownClose: function() {
+                                var searchContainer = document.getElementById("searchContainer");
+                                searchContainer.className += " search-overflow-y";
+                                
+                                if(el.getValue().length === options.length)
+                                    el.blur();
+                                    
+                                // Here for temporary reference... doesn't work
+                                //var searchContainer = document.querySelectorAll(".domains .selectize-input");
+                                //searchContainer[0].addEventListener('click', function() {
+                                //    var searchContainer = document.getElementById("searchContainer");
+                                //    searchContainer.className = searchContainer.className.replace(/\ssearch-overflow-y/g, '');
+                                //});
+                            },*/
+                            // We $.extend() into a new, empty object, rather than modify this.options directly, because Brian 'Selectize' Reavis says: 
+                            // "It's not a good idea to modify this.items or this.options—it could lead to unexpected behavior"
                             onItemAdd: function(value) {
                                 var updatedObj = $.extend({}, this.options[value], {text: this.options[value].textShort});
                                 this.updateOption(value, updatedObj);
@@ -106,8 +129,6 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                                 var updatedObj = $.extend({}, this.options[value], {text: this.options[value].textLong});
                                 this.updateOption(value, updatedObj);
                             }
-                            // We $.extend() into a new, empty object, rather than modify this.options directly, because Brian 'Selectize' Reavis says: 
-                            // "It's not a good idea to modify this.items or this.options—it could lead to unexpected behavior"
                     })[0].selectize;
                     
                     function applyChange() {
@@ -143,7 +164,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                             el.clear();  // Input box reset here with .clear(), view value reset in the controller
                         });
                     });
-
+                    
                     //Load initial values
                     if ($ngModel.$modelValue instanceof Array){
                         angular.forEach($ngModel.$modelValue, function(value){
@@ -163,7 +184,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                     var optgroups = [];
                     var options = [];
                     angular.forEach(categories, function (cat) {
-                            optgroups.push({value: cat.name, label: cat.name + ' Keywords'});
+                            optgroups.push({value: cat.name, label: cat.name});
                             angular.forEach(cat.keywords, function (kword) {
                                     if(kword.hasOwnProperty('desc')) {
                                         options.push({text: kword.desc, value: kword.uri, optgroup: cat.name, $order: kword.desc});

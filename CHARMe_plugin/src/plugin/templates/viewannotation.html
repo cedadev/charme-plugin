@@ -1,70 +1,65 @@
 <div data-ng-include="'templates/header.html'"></div>
 <div class="modal-body">
-	<div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-        <div data-ng-hide="!loading" class="spinner spinner-small">
-            <img src ="img/ajaxspinner.gif"/>
-        </div>
-	<div data-ng-show="!loading && !errorMsg">
-        <table class="table table-condensed" style="border-collapse:collapse;">
-            <tbody>
-            <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
-                <td><h4>Datasets <span title="Datasets attached to this annotation" class="icon-question-sign"></span></h4>
-                </td>
-            </tr>
-            <tr >
-                <td colspan="6" class="hiddenRow">
-                    <div class="accordian-body collapse" id="demo1">
-                        <select size="3" style="width:450px" font-size="15px"  ng-model="selectedOption">
-                            <option data-ng-repeat="dataset in datasetList" value="{{dataset.desc}}">{{dataset.desc}}</option>
-                        </select>
-                    </div>
-                </td>
-            </tr>
+    <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
+    <div data-ng-hide="!loading" class="spinner spinner-small">
+        <img src ="img/ajaxspinner.gif"/>
+    </div>
+    <div data-ng-show="!loading && !errorMsg">
+        <h4>Target<span data-ng-show="multipleTargets">s</span> <span title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
+        <select id="targetList" class="span7 targetList" data-ng-model="targetListDisplay">
+            <option disabled data-ng-repeat="target in targetList" value="{{target.uri}}">{{target.name}} ({{target.desc}})</option>
+        </select>
 
-            </tbody>
-        </table>
-		<div class="popover popover-visible">
+        <div class="popover popover-visible">
+            <br>
             <!--<h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>-->
-            <h3 class="popover-title"><a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a>, 
-                                      <a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a></h3>
+            <h3 class="popover-title"><a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
+                                      <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a></h3>
             <div class="popover-content">
-              <p data-ng-show="comment">"{{comment}}"</p>
-              <p data-ng-show="noComment">No comment</p>
-			</div>
+                <p data-ng-show="comment">"{{comment}}"</p>
+                <p data-ng-show="noComment">No comment</p>
+            </div>
         </div>
+        
         <div data-ng-show="motivationTags">
-            <h4>Motivation<span title="Tag(s) describing the motivation of the annotation" class="icon-question-sign"></span></h4>
+            <br>
+            <h4>Motivation <span title="Tag(s) describing the motivation of the annotation" class="icon-question-sign"></span></h4>
             <div>
                 <span data-ng-repeat="tag in motivationTags" class="badge badge-info semanticTag">{{tag.desc}}</span>
             </div>
         </div>
 
-    <div data-ng-show="domainTags">
-    	<h4>Domain(s) of interest <span title="Tag(s) describing the subject of the annotation (hover on tags for full description)" 
-                                        class="icon-question-sign"></span></h4>
-    	<div>
-    		<span title="{{tag.desc}}" data-ng-repeat="tag in domainTags" class="badge badge-info semanticTag">{{tag.desc | shortDomainLabel}}</span>
-    	</div>
-    </div>
+        <div data-ng-show="domainTags">
+            <br>
+            <h4>Domain(s) of interest <span title="Tag(s) describing the subject of the annotation (hover on tags for full description)" 
+                                            class="icon-question-sign"></span></h4>
+            <div>
+                    <span title="{{tag.desc}}" data-ng-repeat="tag in domainTags" class="badge badge-info semanticTag">{{tag.desc | shortDomainLabel}}</span>
+            </div>
+        </div>
+        
 	<div data-ng-show="link">
-        <h4>{{link.linkTypeDesc}} <span title="This link is relevant to the dataset/item that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
-        <p><a href="{{link.uri}}" target="_blank">{{link.uri | truncate:100 }}</a></p>
+            <br>
+            <h4>{{link.linkTypeDesc}} <span title="This link is relevant to the dataset/item that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
+            <p><a href="{{link.uri}}" target="_blank">{{link.uri | truncate:100 }}</a></p>
 	</div>    
 	<div data-ng-show="citation">
-        <h4>Citation<span
+            <br>
+        <h4>Citation <span
                 title="This link is relevant to the dataset/item that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
-        <div data-ng-show="citation.types"><p><strong>Classified as: </strong><span
-                data-ng-repeat="citoType in citation.types"
-                class="badge badge-info semanticTag">{{citoType}}</span></p></div>
-        <div data-ng-show="citation.loading" class="spinner spinner-small">
-            <img src="img/ajaxspinner.gif"/> Fetching bibliographic information...
-		</div>
+            <div data-ng-show="citation.types"><p><strong>Classified as: &nbsp;</strong><span
+                    data-ng-repeat="citoType in citation.types"
+                    class="badge badge-info semanticTag">{{citoType}}</span></p>
+            </div>
+            <div data-ng-show="citation.loading" class="spinner spinner-small">
+                <img src="img/ajaxspinner.gif"/> Fetching bibliographic information...
+            </div>
         <p>
         	{{citation.text}}
         </p>
         <a href="{{citation.uri}}" target="_blank">{{citation.uri | truncate:100}}</a>
         <div class="text-warning" data-ng-show="citation.error">{{citation.error}}</div>
         </div>
-</div>
+    </div>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

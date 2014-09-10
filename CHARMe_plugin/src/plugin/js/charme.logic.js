@@ -476,7 +476,7 @@ charme.logic.fetchTargetType = function(targetId) {
         var targetType, allTargetTypes = [];
         var returnTargetType = ['Target type undefined', false];
 
-        charme.logic.fetchAllTargetTypes().then(function(types) {
+        charme.logic.fetchTargetTypeVocab().then(function(types) {
             for(var i = 0; i < types.length; i++) {
                 allTargetTypes[i] = types[i].label;
             }
@@ -508,7 +508,7 @@ charme.logic.fetchTargetType = function(targetId) {
     return promise;
 };
 
-charme.logic.fetchAllTargetTypes = function() {
+charme.logic.fetchTargetTypeVocab = function() {
     var promise = new Promise(function(resolver) {
         var reqUrl = charme.logic.urls.targetTypesRequest(charme.logic.constants.TARGET_URL);
         if (reqUrl === null || reqUrl.length === 0) {
@@ -521,8 +521,9 @@ charme.logic.fetchAllTargetTypes = function() {
             }
         }).then(function(jsonResp) {
             resolver.fulfill(jsonResp);
-        }, function(e) {
-            resolver.reject(e);
+        }, function(error) {
+            console.error('Error fetching target types');
+            resolver.reject('Error: Could not fetch target types');
         });
     });
     

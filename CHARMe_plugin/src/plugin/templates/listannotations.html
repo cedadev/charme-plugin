@@ -1,6 +1,6 @@
 <div data-ng-include="'templates/header.html'"></div>
 <div class="modal-body modal-body-list" data-ng-init="searchOpen=true" >
-    <div data-ng-class="['search-container', 'search-' + (searchOpen ? 'open' : 'collapsed')]" >
+    <div id="searchContainer" data-ng-class="['search-container', 'search-' + (searchOpen ? 'open' : 'collapsed'), 'search-overflow-y']" >
        <div class="btn search-button-holder" data-ng-click="searchOpen = !searchOpen" style="float:right;">
            <span data-ng-class="searchOpen ? 'icon-chevron-left' : 'icon-search'"></span>
        </div>
@@ -20,31 +20,13 @@
         </form> -->
         <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
 
-
-
-        <table class="table table-condensed" style="border-collapse:collapse;">
-            <tbody>
-                <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
-                    <td><i>Viewing Annotations for : </i></td>
-                    <td><b>{{ targetIdKey }}</b></td>
-                </tr>
-                <tr >
-                    <td colspan="6" class="hiddenRow">
-                        <div class="accordian-body collapse" id="demo1">
-                            <select size="3" style="width:450px" font-size="15px"  ng-model="selectedOption">
-
-                                <option data-ng-click="refreshDatasetSelection(key)" data-ng-repeat="(key, value) in datasets" value="{{key}}">{{value}}</option>
-                            </select>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <th></th>
-                </tr>
-
-            </tbody>
-        </table>
+        <div class="target-list">
+            <span>&nbsp; Viewing annotations for: </span>
+            <select id="chooseTarget" class="span7" data-ng-model="selectedTarget" data-ng-change="refreshTargetSelection();">
+                <option data-ng-repeat="(key, value) in targets" value="{{key}}">{{value[0]}} ({{value[2]}})</option>
+            </select>
+            <hr />
+        </div>
 
 <!--
             <div class="panel-group" id="accordion">
@@ -52,14 +34,14 @@
                     <div class="panel-heading">
                         <h4 class="panel-title">
                             <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-                                Datasets
+                                Targets
                             </a>
                         </h4>
                     </div>
                     <div id="collapseOne" class="panel-collapse collapse in">
                         <div class="panel-body">
                             <select size="3" style="width:400px" font-size="15px" multiple>
-                                <option data-ng-repeat="(key, value) in datasets" value="{{key}}">{{key}}</option>
+                                <option data-ng-repeat="(key, value) in targets" value="{{key}}">{{key}}</option>
                             </select>
                         </div>
                     </div>
@@ -72,11 +54,11 @@
             <table class="table">
                 <tr>
                     <td>
-                        <label><b>Datasets</b></label>
+                        <label><b>Targets</b></label>
                     </td>
                     <td>
                         <select size="3" style="width:400px" font-size="15px" multiple>
-                            <option data-ng-repeat="(key, value) in datasets" value="{{key}}">{{key}}</option>
+                            <option data-ng-repeat="(key, value) in targets" value="{{key}}">{{key}}</option>
                         </select>
                     </td>
                 </tr>
@@ -86,11 +68,11 @@
 
 <!--
  <div class="control-group" >
-     <label class="control-label" >Dataset(s)</label>
+     <label class="control-label" >Target(s)</label>
 
-     <div class="controls" ng-controller="DatasetCtrl">
-         <select ng-model="selectedDatasets" ng-options="dataset.name for dataset in selectedDatasets"
-                 placeholder="Selected datasets...">
+     <div class="controls" ng-controller="TargetCtrl">
+         <select ng-model="selectedTargets" ng-options="target.name for target in selectedTargets"
+                 placeholder="Selected targets...">
          </select>
      </div>
  </div>

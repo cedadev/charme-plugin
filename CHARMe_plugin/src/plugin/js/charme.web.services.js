@@ -74,6 +74,29 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 			loginService.logout();
 		});
 	};
+        
+        loginService.handshake = function(evt) {
+            if(evt.origin === window.location.protocol + '//' + window.location.host && evt.data) {
+                if(evt.data === 'charme-handshake-request') {
+                    window.removeEventListener('message', loginService.handshake, false);
+                    window.addEventListener('message', loginService._loginEvent, false);
+                    
+                    var msgStr = 'charme-handshake-established';
+                    if (charme.common.isIE11orLess)
+                        evt.source.charme.web.postMessageProxy(msgStr, evt.origin);
+                    else // Else use HTML5 standard method
+                        evt.source.postMessage(msgStr, evt.origin);
+                }
+                else {
+                    console.error('Bad message received:');
+                    console.error(evt);
+                }
+            }
+            else {
+                console.error('Bad message received:');
+                console.error(evt);
+                }
+        };
 	
 	loginService._loginEvent = function(evt) {
             if(evt.origin === window.location.protocol + '//' + window.location.host && evt.data) {
@@ -261,7 +284,7 @@ charme.web.services.factory('searchAnnotations', function(){
 });
 
 charme.web.services.factory('saveAnnotation', function () {
-	return function(annoModel, targetId, datasetMap, auth){
+	return function(annoModel, targetId, targetMap, auth){
 		var promise = new Promise(function(resolver){
 			var annoSpec = jsonoa.types.Annotation;
 			var graph = new jsonoa.core.Graph();
@@ -334,16 +357,21 @@ charme.web.services.factory('saveAnnotation', function () {
                 });
             }
 
-            //// Save each of the selected targetids into the annotation target
-            for(dataset in datasetMap)
+            // Save each of the selected targetids into the annotation target
+            for(target in targetMap)
             {
-                //var datasetTargetId = decodeURIComponent(datasetMap[dataset]);
-                var datasetTargetId = dataset;
-                var target = graph.createNode({type: jsonoa.types[annoModel.target], id: targetId});
-                anno.addValue(anno.TARGET, target);
+                //var targetTargetId = decodeURIComponent(targetMap[target]);
+                var targetTargetId = target;
+                var targetDesc = targetMap[target][1];
+                
+                //var target = graph.createNode({type: jsonoa.types[annoModel.target], id: targetId});
+                var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetId});
+                
+                //anno.addValue(annoModel.TARGET, target);
+                anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
             }
                         
-			anno.setValue(annoSpec.TARGET, target);
+			//anno.setValue(annoSpec.TARGET, target);
 			charme.logic.saveGraph(graph, auth.token).then(
 				function(data){
 					resolver.fulfill(data);
@@ -423,10 +451,10 @@ charme.web.services.factory('fetchTargetType', function(){
     };
 });
 
-/*charme.web.services.factory('fetchAllTargetTypes', function(){
+charme.web.services.factory('fetchTargetTypeVocab', function(){
     return function() {	
         var promise = new Promise(function(resolver) {
-            charme.logic.fetchAllTargetTypes().then(function(types) {
+            charme.logic.fetchTargetTypeVocab().then(function(types) {
                 resolver.fulfill(types);
             });
         }, function(error) {
@@ -435,7 +463,7 @@ charme.web.services.factory('fetchTargetType', function(){
         
         return promise;
     };
-});*/
+});
 
 charme.web.services.factory('fetchAllSearchFacets', function(){
     /* return charme.logic.fetchAllSearchFacets(); */
@@ -453,14 +481,13 @@ charme.web.services.factory('fetchAllSearchFacets', function(){
     };
 });
 
-
 /**
- * This service returns the list of selected datasets.
+ * This service returns the list of selected targets.
  */
-charme.web.services.factory('datasetService', function(){
+charme.web.services.factory('targetService', function(){
         return {
-            datasets: []   /* This array is initialised in the InitCtrl */
-            //datasetsHighlighted: []
+            targets: []   /* This array is initialised in the InitCtrl */
+            //targetsHighlighted: []
         };
     }
 );

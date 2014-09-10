@@ -7,38 +7,13 @@
     </div>
     <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
     <form name="newAnnoForm">
-
-        <table class="table table-condensed" style="border-collapse:collapse;">
-            <tbody>
-            <tr data-toggle="collapse" data-target="#demo1" class="accordion-toggle">
-                <td><h4>Datasets <span title="Datasets attached to this annotation" class="icon-question-sign"></span></h4>
-                </td>
-            </tr>
-            <tr >
-                <td colspan="6" class="hiddenRow">
-                    <div class="accordian-body collapse" id="demo1">
-                        <select size="3" style="width:450px" font-size="15px"  ng-model="selectedOption">
-
-                            <option data-ng-repeat="(key, value) in datasets" value="{{key}}">{{value}}</option>
-                        </select>
-                    </div>
-                </td>
-            </tr>
-
-            </tbody>
-        </table>
-
-
-        <div>
-            <table class="table">
-                <tr>
-                    <td width="100%">
-                        <h4>Comments <span title="Free text comments go here; a link may be included below" class="icon-question-sign"></span></h4>
-                        <textarea data-ng-model="anno.comment" rows="4"></textarea>
-                    </td>
-                </tr>
-            </table>
-        </div>
+        <h4>Target<span data-ng-show="multipleTargets">s</span> <span title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
+        <select id="selectedTarget" class="span7 targetList" data-ng-model="selectedTarget">
+            <option disabled class="target-type-{{value[3]}}" data-ng-repeat="(key, value) in targetList" value="{{key}}">{{value[0]}} ({{value[2]}})</option>
+        </select>
+        
+        <h4>Comments <span title="Free text comments (&le;{{commentMaxLength}} characters) go here; a link may be included below" class="icon-question-sign"></span></h4>
+        <textarea data-ng-model="anno.comment" maxlength="{{commentMaxLength}}" rows="2"></textarea>
 
         <h4>Motivation <span title="Select tag(s) describing the motivation of this annotation"
                              class="icon-question-sign"></span></h4>
@@ -59,8 +34,8 @@
                 class="icon-question-sign"></span></h4>
 
         <div class="row-fluid">
-            <div class="span2">
-                <select class="input-medium" data-ng-model="anno.type" name="type"
+            <div class="span3">
+                <select class="input-large" data-ng-model="anno.type" name="type"
                         title="Please select a link subtype"
                         data-ng-options="type.value as type.text for type in citoTypes"
                         data-ng-required="anno.type">

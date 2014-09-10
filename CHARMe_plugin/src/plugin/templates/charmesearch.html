@@ -2,7 +2,7 @@
     <div class="control-group">
         <label class="control-label" for="chooseTargetType">Target type</label>
         <div class="controls controls-row">
-            <select id="chooseTargetType" class="span3 target-types" data-target-types-to-show="targetTypeCategoriesForSearch" data-target-type-keywords multiple
+            <select id="chooseTargetType" class="span5 target-types" data-target-types-to-show="targetTypeCategoriesForSearch" data-target-type-keywords multiple
                     data-ng-model="criteria.selectedTargetTypes"
                     placeholder=" Select tags...">
             </select>
@@ -11,9 +11,20 @@
         </div>
     </div>
     <div class="control-group">
+        <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
+        <div class="controls controls-row">
+            <select id="chooseDomain" class="span5 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
+                    data-ng-model="criteria.selectedDomains" 
+                    placeholder=" Select tags...">
+            </select>
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by tagged domains of interest"></span>
+        </div>
+    </div>
+    <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls controls-row">
-            <select id="chooseMotivation" class="span3 motivations" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
+            <select id="chooseMotivation" class="span5 motivations" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
                     data-ng-model="criteria.selectedMotivations"
                     placeholder=" Select tags...">
             </select>
@@ -22,39 +33,28 @@
         </div>
     </div>
     <div class="control-group">
-        <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
-        <div class="controls controls-row">
-            <select id="chooseDomain" class="span3 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
-                    data-ng-model="criteria.selectedDomains"
-                    placeholder=" Select tags...">
-            </select>
-            <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by tagged domains of interest"></span>
-        </div>
-    </div>
-    <div class="control-group">
         <label class="control-label" for="chooseOrganisation">Organisation</label>
         <div class="controls controls-row">
-            <select id="chooseOrganisation" data-ng-model="criteria.selectedOrganization" class="span3 organisation select-placeholder"
-                    onchange="changeOrganisation()"
+            <select id="chooseOrganisation" data-ng-model="criteria.selectedOrganization" class="span5 organisation select-placeholder"
+                    data-ng-change="changeOrganisation();" 
                     data-ng-options="organization.uri as organization.label for organization in organizations">
-                <option value="">Select author's organisation...</option>
+                <option value="">Select data provider...</option>
             </select>
             <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by author's organisation"></span>
+                  title="Search by data provider"></span>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseCreator">Creator</label>
         <div class="controls controls-row">
-            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" class="span3 creator" type="text" placeholder=" Enter author's username..."/>
+            <input id="chooseCreator" data-ng-model="criteria.selectedCreator" class="span5 creator" type="text" placeholder=" Enter author's username..."/>
             <span class="span1 search-question-icon icon-question-sign"
                   title="Search by author's username"></span>
         </div>
     </div>
 
     <div>
-        <button class="btn reset-button" data-ng-disabled="loading" data-ng-click="reset();" type="reset">Reset</button>
+        <button class="btn reset-button" data-ng-disabled="loading" data-ng-click="reset(false);" type="reset">Reset</button>
     </div>
     
     <div class="annoListOptions">

@@ -6,11 +6,11 @@ if (!charme) {
 //Define an object that will provide scope for charme-specific functions and fields
 charme.plugin = {};
 
-//Map to hold selected dataset names as keys and the target hrefs as corresponding values
-charme.plugin.selectedDatasets = {};
+//Map to hold selected target names as keys and the target hrefs as corresponding values
+charme.plugin.selectedTargets = {};
 
-//variable to hold the currently highlighted dataset from the set of selected datasets
-charme.plugin.selectedDatasetsHighlighted = {};
+//variable to hold the currently highlighted target from the set of selected targets
+charme.plugin.selectedTargetsHighlighted = {};
 
 charme.plugin.constants = (function constants() {
 	constants.XPATH_BASE = '//atm:feed';
@@ -165,8 +165,8 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 				XPathResult.NUMBER_TYPE);
 		} else {
 			//Internet explorer
-			annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc,
-				XPathResult.ANY_TYPE);
+			annoCount = charme.plugin.xpathQuery(constants.XPATH_TOTAL_RESULTS, xmlDoc
+				/*,XPathResult.ANY_TYPE*/);
 			if (typeof annoCount === 'object' && annoCount.text) {
 				annoCount = parseInt(annoCount.text);
 			}
@@ -209,36 +209,61 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 
 /**
  * Adds a click event to a passed in checkbox element
- * @param dscb
+ * @param targetCheckbox
  */
-charme.plugin.setSelectionEventOnTarget = function (dscb) {
-    charme.common.addEvent(dscb, 'click', charme.plugin.refreshSelectedDSList);
+charme.plugin.setSelectionEventOnTarget = function (checkbox, boxType) {
+    if(boxType === 'all')
+        charme.common.addEvent(checkbox, 'click', charme.plugin.setWholeTargetList);
+    if(boxType === 'target')
+        charme.common.addEvent(checkbox, 'click', charme.plugin.refreshSelectedTargetList);
+};
+
+// Select/unselect all targets
+charme.plugin.setWholeTargetList = function(checkbox) {
+    var els = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+    for(var i = 0 ; i < els.length; i++) {
+        els[i].checked = !checkbox.target.checked;
+        els[i].click();
+    }
 };
 
 /**
- * Defines the function that executes when a checkbox on a dataset is clicked.
- * The event ensures that the charme.plugin.selectedDatasets map is kept up-to-date
- * @param dscb
+ * Defines the function that executes when a checkbox on a target is clicked.
+ * The event ensures that the charme.plugin.selectedTargets map is kept up-to-date
+ * @param targetCheckbox
  */
-charme.plugin.refreshSelectedDSList = function (dscb) {
+charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
 
-    var targetHref = '';
+    var targetHref = targetCheckbox.target.id;
     var targetHrefEncoded = '';
-    var targetName = '';
+    var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
+    var targetTypeLabel = targetCheckbox.target.name;
+    
+    var targetTypeDesc = targetTypeLabel.split('-');
+    var tempArr = [];
+    for(var i = 0; i < targetTypeDesc.length; i++) {
+        var descFrag = targetTypeDesc[i];
+        descFrag = descFrag[0].toUpperCase() + descFrag.substr(1).toLowerCase();
+        tempArr.push(descFrag);
+    }
+    
+    targetTypeDesc = tempArr.join(' ');
+    targetTypeLabel = targetTypeLabel.replace('-', '').toLowerCase();
+        
+    //alert('event fired : checked status = ' + targetCheckbox.target.checked + " " + targetCheckbox.target.id);
 
-    //alert('event fired : checked status = ' + dscb.target.checked + " " + dscb.target.id);
-
-    targetHref = dscb.target.id;
-    targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
+    //targetHref = targetCheckbox.target.id;
+    //targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
+    
     //targetHrefEncoded = encodeURIComponent(targetHref);
     //targetHrefEncoded = targetHref;
 
-    if(dscb.target.checked)
+    if(targetCheckbox.target.checked)
     {
-        if (!(targetHref in charme.plugin.selectedDatasets))
+        if (!(targetHref in charme.plugin.selectedTargets))
         {
-            //Add the dataset in the list
-            charme.plugin.selectedDatasets[targetHref] = targetName ;
+            //Add the target in the list
+            charme.plugin.selectedTargets[targetHref] = [targetName, targetTypeLabel, targetTypeDesc];
 
             //alert('added : ' + targetName);
         }
@@ -246,10 +271,10 @@ charme.plugin.refreshSelectedDSList = function (dscb) {
     }
     else
     {
-        if (targetHref in charme.plugin.selectedDatasets)
+        if (targetHref in charme.plugin.selectedTargets)
         {
-            // remove from the charme.plugin.selectedDatasets
-            delete charme.plugin.selectedDatasets[targetHref];
+            // remove from the charme.plugin.selectedTargets
+            delete charme.plugin.selectedTargets[targetHref];
 
             //alert('removed : ' + targetName);
         }
@@ -259,55 +284,62 @@ charme.plugin.refreshSelectedDSList = function (dscb) {
 
 /**
  * This function programmatically sets the selection checkbox to the checked state
- * and also inserts it in the selectedDataset map. This is specifically used when
+ * and also inserts it in the selectedTarget map. This is specifically used when
  * a charme icon that is not in the set of selected datsets already, is clicked to
  * invoke the plugin on the main data provider page.
  * @param targetHref
 */
-charme.plugin.setAsSelected = function (targetHref) {
+charme.plugin.setAsSelected = function (targetHref, targetType) {
 
     var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
     //var targetHrefEncoded = encodeURIComponent(targetHref);
     //var targetHrefEncoded = targetHref;
 
-    //Load the clicked dataset into teh selected list, if not in a clicked state.
-    if (!(targetHref in charme.plugin.selectedDatasets))
+    //Load the clicked target into the selected list, if not in a clicked state.
+    if (!(targetHref in charme.plugin.selectedTargets))
     {
-        //Add the dataset in the list
-        charme.plugin.selectedDatasets[targetHref] =  targetName;
+        var targetTypeDesc = targetType.split('-');
+        var tempArr = [];
+        for(var i = 0; i < targetTypeDesc.length; i++) {
+            var descFrag = targetTypeDesc[i];
+            descFrag = descFrag[0].toUpperCase() + descFrag.substr(1).toLowerCase();
+            tempArr.push(descFrag);
+        }
+        targetTypeDesc = tempArr.join(' ');
+        
+        //Add the target in the list
+        charme.plugin.selectedTargets[targetHref] =  [targetName, targetType, targetTypeDesc];
 
         //Set the checkbox to 'checked' state
-        var dscbs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
-        for (var i = 0; i < dscbs.length; i++) {
-            if (dscbs[i].id === targetHref) {
-                dscbs[i].checked = true;
+        var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+        for (var i = 0; i < targetCheckboxs.length; i++) {
+            if (targetCheckboxs[i].id === targetHref) {
+                targetCheckboxs[i].checked = true;
             }
         }
-
     }
 
-    //Save the clicked dataset into the "highlighted" list.
-    //charme.plugin.selectedDatasetsHighlighted = {};
-    //charme.plugin.selectedDatasetsHighlighted[targetName] = targetHrefEncoded;
-
+    //Save the clicked target into the "highlighted" list.
+    //charme.plugin.selectedTargetsHighlighted = {};
+    //charme.plugin.selectedTargetsHighlighted[targetName] = targetHrefEncoded;
 }
 
 
 
-charme.plugin.getSelectedDatasets = function () {
+charme.plugin.getSelectedTargets = function () {
 
-    return charme.plugin.selectedDatasets;
+    return charme.plugin.selectedTargets;
 }
 
 
-//charme.plugin.getSelectedDatasetsHighlighted = function () {
+//charme.plugin.getSelectedTargetsHighlighted = function () {
 //
-//    return charme.plugin.selectedDatasetsHighlighted;
+//    return charme.plugin.selectedTargetsHighlighted;
 //}
 
 
 
-//charme.plugin.populateDatasetList = function (){
+//charme.plugin.populateTargetList = function (){
 //
 //
 //    var array_keys = new Array();
@@ -315,7 +347,7 @@ charme.plugin.getSelectedDatasets = function () {
 //
 //    var count = 0;
 //
-//    for (var key in charme.plugin.selectedDatasets) {
+//    for (var key in charme.plugin.selectedTargets) {
 //        array_keys.push(key);
 //        keys = keys + '\n' + key;
 //        count++;
@@ -326,14 +358,14 @@ charme.plugin.getSelectedDatasets = function () {
 //
 //
 //    for (var i=0; i<count; i++) {
-//        //var tempOpt = new Option(charme.plugin.selectedDatasets[i], charme.plugin.selectedDatasets[i]);
+//        //var tempOpt = new Option(charme.plugin.selectedTargets[i], charme.plugin.selectedTargets[i]);
 //
-//        //charme.plugin.getByClass('datasetMultiList')[0].options.add(tempOpt);
+//        //charme.plugin.getByClass('targetMultiList')[0].options.add(tempOpt);
 //
 //        var tempOpt =  document.createElement('Option');
-//        tempOpt.value = charme.plugin.selectedDatasets[i];
-//        tempOpt.innerHTML = charme.plugin.selectedDatasets[i];
-//        charme.plugin.getByClass('datasetMultiList')[0].appendChild(tempOpt);
+//        tempOpt.value = charme.plugin.selectedTargets[i];
+//        tempOpt.innerHTML = charme.plugin.selectedTargets[i];
+//        charme.plugin.getByClass('targetMultiList')[0].appendChild(tempOpt);
 //
 //    }
 //
@@ -377,8 +409,20 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
     inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
     var noConnectionImage = new Image();
     noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
+    
+    if(isFirstLoad) {
+        var selectAllContainer = document.getElementById('charme-placeholder');
+        var selectAllBox = document.createElement('input');
+        selectAllBox.type = 'checkbox';
+        selectAllContainer.parentNode.insertBefore(selectAllBox, selectAllContainer);
+        charme.plugin.setSelectionEventOnTarget(selectAllBox, 'all');
+        
+        var text = document.createElement('span');
+        text.innerHTML = 'Select/unselect all';
+        selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
+    }
 
-    var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL, document);
+    var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL);
     for(var i = 0; i < els.length; i++) {
         if(els[i].href) {
             if(isFirstLoad || els[i].href === targetId)
@@ -388,51 +432,37 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
                 els[i].style.display = 'inline-block';
                 els[i].style.width = '36px';
                 els[i].style.height = '26px';
-            }
-        }
-    }
-    if(isFirstLoad) {
-        //Get the tickboxes and attach a selection events
-        var dscbs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
-        for (var i = 0; i < dscbs.length; i++) {
-            if (dscbs[i].id) {
-                charme.plugin.setSelectionEventOnTarget(dscbs[i]);
+                
+                // Insert checkboxes and attach selection events
+                var targetCheckbox = document.createElement('input');
+                targetCheckbox.type = 'checkbox';
+                targetCheckbox.className = 'charme-select';
+                targetCheckbox.id = els[i].href;
+                targetCheckbox.name = charme.plugin.extractTargetType(els[i].className);
+                els[i].parentNode.insertBefore(targetCheckbox, els[i]);
+                charme.plugin.setSelectionEventOnTarget(targetCheckbox, 'target');
             }
         }
     }
 };
 
-/*charme.plugin.markupTags = function () {
-	//preload charme icon
-	var activeImage = new Image();
-	activeImage.src = charme.settings.path + '/activebuttonsmall.png';
-	var inactiveImage = new Image();
-	inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
-        var noConnectionImage = new Image();
-	noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
-
-	var els = charme.plugin.getByClass('charme-', 'partial', document);
-	for (var i = 0; i < els.length; i++) {
-		if (els[i].href) {
-			charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src);
-		}
-		els[i].style.display = 'inline-block';
-		els[i].style.width = '36px';
-		els[i].style.height = '26px';
-	}
-
-    //Get the tickboxes and attach a selection events
-    var dscbs = charme.plugin.getByClass('charme-select');
-    for (var i = 0; i < dscbs.length; i++) {
-        if (dscbs[i].id) {
-            charme.plugin.setSelectionEventOnTarget(dscbs[i]);
-        }
+charme.plugin.extractTargetType = function(className) {
+    var targetType = className.substring('charme-'.length);
+    if(targetType.length > 0)
+        return(targetType);
+    else
+        return('Type undefined');
+    
+    /*var targetType = className.split('-');
+    
+    if(targetType.length > 1 && targetType[1].length > 0) {
+        targetType = targetType[1];
+        targetType = targetType[0].toUpperCase() + targetType.substr(1).toLowerCase();
+        return(targetType[0].toUpperCase() + targetType.substr(1).toLowerCase());
     }
-
+    else
+        return('Type undefined');*/
 };
-};*/
-
-
 
 /* ============================================================================================  */
 /**
@@ -444,7 +474,6 @@ function listenMessage(msg) {
     var n = _msg.lastIndexOf(':::');
     var targetId = _msg.substring(n + 3);
 
-    //charme.plugin.markupTargetRefresh(targetId);
     charme.plugin.markupTags(false, targetId);
 }
 
@@ -453,27 +482,6 @@ if (window.addEventListener) {
 } else {
     window.attachEvent("onmessage", listenMessage);
 }
-
-
-/**
- * Refresh CHARMe icon insertion point for specified TargetId
- */
-/*charme.plugin.markupTargetRefresh = function (targetId) {
-        //preload charme icon
-        var activeImage = new Image();
-        activeImage.src = charme.settings.path + '/activebuttonsmall.png';
-        var inactiveImage = new Image();
-        inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
-        var noConnectionImage = new Image();
-        noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
-
-        var els = charme.plugin.getByClass('charme-', 'partial', document);
-        for (var i = 0; i < els.length; i++) {
-            if (els[i].href && els[i].href === targetId) {
-                    charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src);
-            }
-        }
-};*/
 
 /* ============================================================================================  */
 
@@ -488,13 +496,13 @@ charme.plugin.loadPlugin = function () {
     //document.lastChild.appendChild(plugin);
 
     var plugin = document.getElementById('charme-placeholder');
-    plugin.innerHTML = '<iframe></iframe>';
-    plugin = plugin.firstChild;
+    plugin.innerHTML += '<iframe></iframe>';
+    plugin = plugin.lastChild;
 
     plugin.frameBorder = "no";
     plugin.id = 'charme-plugin-frame';
     plugin.style.backgroundColor = 'transparent';
-    plugin.style.minWidth = '1040px';
+    plugin.style.minWidth = '1350px';
     plugin.style.display = 'none';
     plugin.style.margin = 'auto';
     plugin.style.position = 'fixed';
@@ -503,6 +511,7 @@ charme.plugin.loadPlugin = function () {
     plugin.style.bottom = '0';
     plugin.style.top = '0';
     plugin.style.paddingTop = '50px';
+    plugin.style.paddingLeft = '25px';
     plugin.style.height = '100%';
     plugin.style.zIndex = 1000;
     plugin.allowTransparency = true;
@@ -514,7 +523,9 @@ charme.plugin.loadPlugin = function () {
  */
 charme.plugin.closeFunc = function () {
 	var plugin = document.getElementById('charme-plugin-frame');
-	plugin.style.display = 'none';
+	//plugin.style.display = 'none';
+        plugin.parentNode.removeChild(plugin);
+        charme.plugin.loadPlugin();
 };
 
 charme.plugin.miniaturiseFunc = function () {
@@ -528,7 +539,8 @@ charme.plugin.miniaturiseFunc = function () {
 charme.plugin.maximiseFunc = function () {
     var plugin = document.getElementById('charme-plugin-frame');
     plugin.style.height = '100%';
-    plugin.style.minWidth = '1040px';
+    plugin.style.minWidth = '1350px';
+    plugin.style.paddingLeft = '25px';
     //plugin.style.paddingTop = '50px';
 };
 
@@ -538,14 +550,14 @@ charme.plugin.maximiseFunc = function () {
 charme.plugin.loadFunc = function () {
 
     //Close listeners
-	this.contentWindow.charme.web.removeCloseListener(charme.plugin.closeFunc);
+	//this.contentWindow.charme.web.removeCloseListener(charme.plugin.closeFunc);
 	this.contentWindow.charme.web.addCloseListener(charme.plugin.closeFunc);
 
     //Minimise & Maximise listeners
-    this.contentWindow.charme.web.removeMiniaturiseListener(charme.plugin.miniaturiseFunc);
+    //this.contentWindow.charme.web.removeMiniaturiseListener(charme.plugin.miniaturiseFunc);
     this.contentWindow.charme.web.addMiniaturiseListener(charme.plugin.miniaturiseFunc);
 
-    this.contentWindow.charme.web.removeMaximiseListener(charme.plugin.maximiseFunc);
+    //this.contentWindow.charme.web.removeMaximiseListener(charme.plugin.maximiseFunc);
     this.contentWindow.charme.web.addMaximiseListener(charme.plugin.maximiseFunc);
 };
 
@@ -571,23 +583,25 @@ charme.plugin.stopBubble = function(e){
  */
 charme.plugin.showPlugin = function (e) {
 	var plugin = document.getElementById('charme-plugin-frame');
-	charme.common.removeEvent(plugin, 'load', charme.plugin.loadFunc);
+	//charme.common.removeEvent(plugin, 'load', charme.plugin.loadFunc);
 	charme.common.addEvent(plugin, 'load', charme.plugin.loadFunc);
 
         charme.plugin.stopBubble(e);
-	var targetHref = '';
+	var targetHref = '', targetType = '';
 	if (typeof e.target === 'undefined') {
 		targetHref = e.srcElement.href;
+                targetType = charme.plugin.extractTargetType(e.srcElement.className);
 	} else {
 		targetHref = e.target.href;
+                targetType = charme.plugin.extractTargetType(e.target.className);
 	}
-
+        
 	plugin.contentWindow.location.href = charme.settings.path + '/plugin/plugin.html#/' +
 		encodeURIComponent(encodeURIComponent(targetHref)) + '/init';
 	plugin.style.display = 'block'; // Only show the iFrame once the content has loaded in order to minimize flicker
 
-    //charme.plugin.populateDatasetList();
-    charme.plugin.setAsSelected(targetHref);
+    //charme.plugin.populateTargetList();
+    charme.plugin.setAsSelected(targetHref, targetType);
 };
 
 charme.plugin.preInit = function () {
@@ -634,7 +648,6 @@ charme.plugin.preInit = function () {
  * Will execute on window load (most init code should go in here)
  */
 charme.plugin.init = function () {
-	//charme.plugin.markupTags();
         charme.plugin.markupTags(true);
 	charme.plugin.loadPlugin();
 };
