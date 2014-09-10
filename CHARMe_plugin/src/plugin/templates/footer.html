@@ -1,5 +1,5 @@
 <div class="modal-footer">
-	<div class="pluginVersion">v0.4.1 BETA</div>
+	<div class="pluginVersion">v0.5 BETA</div>
         
         <div data-ng-show="listAnnotationsFlag">
             <!--<div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="viewTargets()">View Target(s)</div>-->
@@ -19,13 +19,20 @@
             <button class="btn btn-primary" data-ng-disabled="newAnnoForm.$invalid || loading || errorMsg" data-ng-click="save(anno)">Save</button>
             <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
         </div>
-	
+
         <div data-ng-show="viewAnnotationFlag">
-            <button class="btn" title="Flag this annotation as inappropriate" data-ng-click="flag()">Flag</button>
-            <button class="btn" data-ng-click="cancel()">Back</button>
+            <button class="btn btn-danger"
+                    data-ng-show="deleteAnnotationFlag && !confirmDelete" data-ng-click="confirmDelete=true">Delete</button>
+            <button class="btn btn-danger"
+                    data-ng-show="confirmDelete" data-ng-click="confirmDelete=false; deleteAnnotation()">Delete this
+                annotation?</button>
+            <button class="btn btn-default"
+                    data-ng-show="confirmDelete" data-ng-click="confirmDelete = false">Cancel</button>
+            <button class="btn" data-ng-show="!confirmDelete" data-ng-click="cancel()">Back</button>
         </div>
 
         <div data-ng-show="viewTargetsFlag">
             <button class="btn" data-ng-click="cancel()">Back</button>
         </div>
+
 </div>
