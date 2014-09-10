@@ -21,6 +21,7 @@
         </div>
 
         <div data-ng-show="viewAnnotationFlag">
+            <button class="btn" title="Flag this annotation as inappropriate" data-ng-click="flag()">Flag</button>
             <button class="btn btn-danger"
                     data-ng-show="deleteAnnotationFlag && !confirmDelete" data-ng-click="confirmDelete=true">Delete</button>
             <button class="btn btn-danger"

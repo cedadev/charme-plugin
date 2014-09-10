@@ -371,25 +371,37 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 $scope.targetList.push({uri: targetHref, name: targetName, desc: targetType});
                             //}
                         });
-						/*
-						 Annotation deletion.
-						 */
-						var auth = loginService.getAuth();
-						if (loginService.isLoggedIn() && auth && $scope.userName === auth.user.username) {
-							$scope.deleteAnnotationFlag = true;
-							$scope.deleteAnnotation = function () {
-								deleteAnnotation(annoId, auth.token).then(function (response) {
-									$scope.$apply(function() {
-										$location.path(encodeURIComponent(targetId) +
-											'/annotations/');
-									});
-								}, function (error) {
-									$scope.$apply(function() {
-										$scope.errorMsg='Unable to delete annotation';
-									});
-								});
-							}
-						}
+                        // Remove the empty option from the dropdown by initialising the model value
+                        $scope.targetListDisplay = targetId;
+                        
+                        $timeout(function() {
+                            var targetDropdown = document.getElementById('targetList');
+                            // Avoid first option being shown twice (doesn't happen in IE, but don't need to check if browser is IE here)
+                            targetDropdown.options[0].style.display = 'none';
+                            
+                            if($scope.targetList.length > 1)
+                                $scope.multipleTargets = true;
+                        });
+                        
+                        /*
+                         Annotation deletion.
+                         */
+                        var auth = loginService.getAuth();
+                        if (loginService.isLoggedIn() && auth && $scope.userName === auth.user.username) {
+                                $scope.deleteAnnotationFlag = true;
+                                $scope.deleteAnnotation = function () {
+                                        deleteAnnotation(annoId, auth.token).then(function (response) {
+                                                $scope.$apply(function() {
+                                                        $location.path(encodeURIComponent(targetId) +
+                                                                '/annotations/');
+                                                });
+                                        }, function (error) {
+                                                $scope.$apply(function() {
+                                                        $scope.errorMsg='Unable to delete annotation';
+                                                });
+                                        });
+                                }
+                        }
 
                         if (!$scope.comment){
                             $scope.noComment=true;
