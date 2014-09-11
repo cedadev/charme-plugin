@@ -5,13 +5,7 @@
         <img src ="img/ajaxspinner.gif"/>
     </div>
     <div data-ng-show="!loading && !errorMsg">
-        <h4>Target<span data-ng-show="multipleTargets">s</span> <span title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
-        <select id="targetList" class="span7 targetList" data-ng-model="targetListDisplay">
-            <option disabled data-ng-repeat="target in targetList" value="{{target.uri}}">{{target.name}} ({{target.desc}})</option>
-        </select>
-
         <div class="popover popover-visible">
-            <br>
             <!--<h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>-->
             <h3 class="popover-title"><a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
                                       <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a></h3>
@@ -20,9 +14,12 @@
                 <p data-ng-show="noComment">No comment</p>
             </div>
         </div>
-        
+        <h4>Target<span data-ng-show="multipleTargets">s</span> of this Annotation<span
+                title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
+        <select id="targetList" class="span7 targetList" data-ng-model="targetListDisplay">
+            <option disabled data-ng-repeat="target in targetList" value="{{target.uri}}">{{target.name}} ({{target.desc}})</option>
+        </select>
         <div data-ng-show="motivationTags">
-            <br>
             <h4>Motivation <span title="Tag(s) describing the motivation of the annotation" class="icon-question-sign"></span></h4>
             <div>
                 <span data-ng-repeat="tag in motivationTags" class="badge badge-info semanticTag">{{tag.desc}}</span>
