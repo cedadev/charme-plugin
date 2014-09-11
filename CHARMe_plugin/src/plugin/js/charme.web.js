@@ -46,9 +46,9 @@ charme.web.app.config(['$routeProvider',
     }
 ]);
 
-charme.web.close = function(){
+charme.web.close = function(isOneTarget, targetId){
 	angular.forEach(charme.web._closeListeners, function(closeFunc, key){
-		closeFunc();
+		closeFunc(isOneTarget, targetId);
 	});
 };
 

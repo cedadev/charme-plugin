@@ -666,29 +666,38 @@ charme.logic.fetchAllSearchFacets = function(criteria){
 			 * Collect all entries so that they can be processed at the same
 			 * time
 			 */
-			$.each(result.entries, function(index, entry) {
-				var facetGraphStr = entry.content;
-				var facetGraphObj = JSON.parse(facetGraphStr);
-				var facetType = entry.id;
-				resultMap[facetType]=[];
-				var facets = [];
-				if (typeof facetGraphObj[jsonoa.constants.GRAPH]!=='undefined'){
-					facets = facetGraphObj[jsonoa.constants.GRAPH];
-				} else {
-					facets.push(facetGraphObj);
-				}
+                        
+                        // If I fetch target type vocab here, it breaks the code. Why? Do it in the ctrl instead.
+                        /*var validTargetTypeLabels = {};
+                        charme.logic.fetchTargetTypeVocab().then(function(types) {
+                            for(var i = 0; i < types.length; i++) {
+                               var label = types[i].label.replace(" ", "");
+                               validTargetTypeLabels[label] = types[i].label;
+                            }*/
+                            $.each(result.entries, function(index, entry) {
+                                    var facetGraphStr = entry.content;
+                                    var facetGraphObj = JSON.parse(facetGraphStr);
+                                    var facetType = entry.id;
+                                    resultMap[facetType]=[];
+                                    var facets = [];
+                                    if (typeof facetGraphObj[jsonoa.constants.GRAPH]!=='undefined'){
+                                            facets = facetGraphObj[jsonoa.constants.GRAPH];
+                                    } else {
+                                            facets.push(facetGraphObj);
+                                    }
+                                    
+                                    $.each(facets, function (index, facet){
+                                            var facetObj = {};
+                                            facetObj.uri=facet[jsonoa.constants.ID];
+                                            if (facetType === charme.logic.constants.FACET_TYPE_ORGANIZATION)
+                                                facetObj.label = facet[jsonoa.constants.NAME];
+                                            else
+                                                facetObj.label = facet[jsonoa.constants.PREF_LABEL];
 
-				$.each(facets, function (index, facet){
-					var facetObj = {};
-					facetObj.uri=facet[jsonoa.constants.ID];
-					if (facetType === charme.logic.constants.FACET_TYPE_ORGANIZATION)
-                        facetObj.label = facet[jsonoa.constants.NAME];
-                    else
-                         facetObj.label = facet[jsonoa.constants.PREF_LABEL];
-                                        
-					resultMap[facetType].push(facetObj);
-				});
-			});
+                                            resultMap[facetType].push(facetObj);
+                                    });
+                            });
+                        //});
 			resolver.fulfill(resultMap);
 		}), function(jqXHR, textStatus, errorThrown) {
 			resolver.reject();

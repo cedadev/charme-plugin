@@ -205,7 +205,7 @@ jsonoa.core.Graph = function(){
 	 */
 	this.createNode = function(options){
 		var node;
-
+                
 		/*if (options.type){
 			node = (new options.type()).TEMPLATE;
 		} else{*/
@@ -360,6 +360,7 @@ jsonoa.util._hasTypeAttribute = function(node){
 jsonoa.types.Common = new function(){
 	this.ID = '@id';
 	this.TYPE = '@type';
+        //this.DESC = '@desc'; // xxxdesc
 };
 
 jsonoa.core.Stub = jsonoa.core.wrapNode({
