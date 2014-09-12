@@ -21,18 +21,7 @@ charme.web.controllers.controller('HeaderCtrl', ['$scope', '$routeParams', 'targ
 function ($scope, $routeParams, targetService){
     $scope.close = function(){
         var targetId = $routeParams.targetId;
-        $scope.targets = targetService.targets;
-
-        var numSelectedTargets = 0;
-        var isOneTarget = true;
-        for(target in $scope.targets) { // Would use Object.keys(obj).length method, but not supported in IE8
-            if(++numSelectedTargets > 1) {
-                isOneTarget = false;
-                break;
-            }
-        }
-        
-        charme.web.close(isOneTarget, targetId);
+		charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
     };
 
     $scope.size = 'max';
@@ -54,6 +43,10 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         $scope.listAnnotationsFlag=true;
         $scope.loading=true;
         $scope.targets = targetService.targets;
+		$scope.close = function(){
+			var targetId = $routeParams.targetId;
+			charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
+		};
         /*
          * Check if already logged in
          */
