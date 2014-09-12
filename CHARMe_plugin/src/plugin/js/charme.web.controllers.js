@@ -21,7 +21,7 @@ charme.web.controllers.controller('HeaderCtrl', ['$scope', '$routeParams', 'targ
 function ($scope, $routeParams, targetService){
     $scope.close = function() {
         var targetId = $routeParams.targetId;
-		charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
+        charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
     };
 
     $scope.size = 'max';
@@ -43,6 +43,10 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         $scope.listAnnotationsFlag=true;
         $scope.loading=true;
         $scope.targets = targetService.targets;
+        $scope.close = function() {
+            var targetId = $routeParams.targetId;
+            charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
+        };
         
         $scope.isSearchOpen = searchBarService.isSearchOpen;
         $scope.searchOpen = $scope.isSearchOpen ? 'opened' : 'collapsed';
