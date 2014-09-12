@@ -21,18 +21,7 @@ charme.web.controllers.controller('HeaderCtrl', ['$scope', '$routeParams', 'targ
 function ($scope, $routeParams, targetService){
     $scope.close = function() {
         var targetId = $routeParams.targetId;
-        $scope.targets = targetService.targets;
-
-        var numSelectedTargets = 0;
-        var isOneTarget = true;
-        for(target in $scope.targets) { // Would use Object.keys(obj).length method, but not supported in IE8
-            if(++numSelectedTargets > 1) {
-                isOneTarget = false;
-                break;
-            }
-        }
-        
-        charme.web.close(isOneTarget, targetId);
+		charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
     };
 
     $scope.size = 'max';
@@ -113,21 +102,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         /**
          * Onclick functions for buttons
          */
-        $scope.close = function() {
-            var targetId = $routeParams.targetId;
-            $scope.targets = targetService.targets;
-
-            var numSelectedTargets = 0;
-            var isOneTarget = true;
-            for(target in $scope.targets) { // Would use Object.keys(obj).length method, but not supported in IE8
-                if(++numSelectedTargets > 1) {
-                    isOneTarget = false;
-                    break;
-                }
-            }
-
-            charme.web.close(isOneTarget, targetId);
-        };
 
         $scope.viewTargets = function() {
             $location.path(encodeURIComponent(targetId) + '/annotations/datasets/');
@@ -424,13 +398,20 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         if (loginService.isLoggedIn() && auth && $scope.userName === auth.user.username) {
                                 $scope.deleteAnnotationFlag = true;
                                 $scope.deleteAnnotation = function () {
+									$scope.processing=true;
                                         deleteAnnotation(annoId, auth.token).then(function (response) {
                                                 $scope.$apply(function() {
+														$scope.processing=false;
+														angular.forEach($scope.targetList, function(thisTarget) {
+															window.top.postMessage('refreshAnnotationCount' +
+																":::" + thisTarget.uri, '*');
+														});
                                                         $location.path(encodeURIComponent(targetId) +
                                                                 '/annotations/');
                                                 });
                                         }, function (error) {
                                                 $scope.$apply(function() {
+														$scope.processing=false;
                                                         $scope.errorMsg='Unable to delete annotation';
                                                 });
                                         });

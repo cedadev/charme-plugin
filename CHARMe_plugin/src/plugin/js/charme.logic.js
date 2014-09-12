@@ -65,7 +65,7 @@ charme.logic.urls.createRequest = function() {
 	return charme.logic.urls._baseURL() + 'insert/annotation';
 };
 charme.logic.urls.stateRequest = function(newState) {
-	return charme.logic.urls._baseURL() + 'advance_status';
+	return charme.logic.urls._baseURL() + 'advance_status/';
 };
 
 charme.logic.urls.fetchForTarget = function(targetId) {
@@ -788,7 +788,7 @@ charme.logic.searchAnnotations = function(criteria) {
  */
 charme.logic.deleteAnnotation=function(annotationId, token){
 	//return charme.logic.advanceState(annotationId, charme.logic.constants.STATE_DELETE, token)
-	return charme.logic.advanceState(annotationId, 'stable', token)
+	return charme.logic.advanceState(annotationId, 'retired', token)
 }
 
 /*
@@ -806,13 +806,13 @@ charme.logic.advanceState=function(annotationId, newState, token){
 	var url = charme.logic.urls.stateRequest(newState);
 	return new Promise(function(resolver) {
 		$.ajax(url, {
-			dataType: 'text',
+			dataType: 'xml',
 			type: 'POST',
 			headers : {
 				'Authorization' : ' Bearer ' + token
 			},
-			contentType: 'application/ld+json',
-			data: {annotation: shortId, toState: newState}
+			contentType: 'application/json',
+			data: JSON.stringify({annotation: annotationId, toState: newState})
 		}).then(function(result){
 			resolver.fulfill(result);
 		},
