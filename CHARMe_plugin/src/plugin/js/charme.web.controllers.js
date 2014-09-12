@@ -366,7 +366,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 var targetName = targetHref.substring(targetHref.lastIndexOf('/') + 1);
                                 
                                 var targetType = (target.getValue(jsonoa.types.Common.TYPE));
-                                targetType = targetType.substring(targetType.lastIndexOf('/') + 1)
+                               // targetType = targetType.substring(targetType.lastIndexOf('/') + 1)
                                 
                                 $scope.targetList.push({uri: targetHref, name: targetName, desc: targetType});
                             //}
@@ -390,13 +390,20 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         if (loginService.isLoggedIn() && auth && $scope.userName === auth.user.username) {
                                 $scope.deleteAnnotationFlag = true;
                                 $scope.deleteAnnotation = function () {
+									$scope.processing=true;
                                         deleteAnnotation(annoId, auth.token).then(function (response) {
                                                 $scope.$apply(function() {
+														$scope.processing=false;
+														angular.forEach($scope.targetList, function(thisTarget) {
+															window.top.postMessage('refreshAnnotationCount' +
+																":::" + thisTarget.uri, '*');
+														});
                                                         $location.path(encodeURIComponent(targetId) +
                                                                 '/annotations/');
                                                 });
                                         }, function (error) {
                                                 $scope.$apply(function() {
+														$scope.processing=false;
                                                         $scope.errorMsg='Unable to delete annotation';
                                                 });
                                         });
