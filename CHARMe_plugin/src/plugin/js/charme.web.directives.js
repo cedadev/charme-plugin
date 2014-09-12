@@ -5,6 +5,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
         scope: {targetTypesToShow: '@'},
         link: function ($scope, element, attrs, $ngModel) {
             $scope.$on($scope.targetTypesToShow, function(event, categories) {
+                $(element)[0].multiple = true;
                 var optgroups = [];
                 var options = [];
                 angular.forEach(categories, function (cat) {
@@ -77,6 +78,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             scope: {keywordsToShow: '@'},
             link: function ($scope, element, attrs, $ngModel) {
                 $scope.$on($scope.keywordsToShow, function(event, categories){
+                    $(element)[0].multiple = true;
                     var optgroups = [];
                     var options = [];
                     angular.forEach(categories, function (cat) {
@@ -181,6 +183,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             scope: {motivationsToShow: '@'},
             link: function ($scope, element, attrs, $ngModel) {
                 $scope.$on($scope.motivationsToShow, function(event, categories){
+                    $(element)[0].multiple = true;
                     var optgroups = [];
                     var options = [];
                     angular.forEach(categories, function (cat) {

@@ -1,11 +1,12 @@
 <div data-ng-include="'templates/header.html'"></div>
-<div class="modal-body modal-body-list" data-ng-init="searchOpen=true" >
-    <div id="searchContainer" data-ng-class="['search-container', 'search-' + (searchOpen ? 'open' : 'collapsed'), 'search-overflow-y']" >
-       <div class="btn search-button-holder" data-ng-click="searchOpen = !searchOpen" style="float:right;">
-           <span data-ng-class="searchOpen ? 'icon-chevron-left' : 'icon-search'"></span>
+<div class="modal-body modal-body-list">
+    <div id="searchContainer" data-ng-class="['search-container', 'search-' + searchOpen, 'search-overflow-y']" >
+       <div class="btn search-button-holder" data-ng-click="setSearchOpen()" style="float:right;">
+           <!--<span data-ng-class="searchOpen ? 'icon-chevron-left' : 'icon-search'"></span>-->
+           <span data-ng-class="isSearchOpen ? 'icon-chevron-left' : 'icon-search'"></span>
        </div>
        <div class="search-content">
-           <div data-ng-show="searchOpen">
+           <div data-ng-show="isSearchOpen">
                <h5>Search Annotations</h5>
                <hr />
                <div data-ng-include="'templates/charmesearch.html'"></div>
@@ -13,7 +14,7 @@
        </div>
     </div>
 
-    <div data-ng-class="['search-results', 'search-results-' + (searchOpen ? 'open' : 'collapsed')]">
+    <div data-ng-class="['search-results', 'search-results-' + searchOpen]">
         <!--
         <form class="form-search">
             <input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">
@@ -102,7 +103,7 @@
         </table>
     </div>
     
-    <div data-ng-class="['pagination_container', 'pagination_padding-' + (searchOpen ? 'open' : 'collapsed')]">
+    <div data-ng-class="['pagination_container', 'pagination_padding-' + searchOpen]">
         <div data-ng-include="'templates/pagination.html'"></div>
     </div>
 </div>

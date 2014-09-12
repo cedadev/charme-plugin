@@ -2,10 +2,10 @@
     <div class="control-group">
         <label class="control-label" for="chooseTargetType">Target type</label>
         <div class="controls controls-row">
-            <select id="chooseTargetType" class="span5 target-types" data-target-types-to-show="targetTypeCategoriesForSearch" data-target-type-keywords multiple
+            <select id="chooseTargetType" class="span5 target-types" data-target-types-to-show="targetTypeCategoriesForSearch" data-target-type-keywords 
                     data-ng-model="criteria.selectedTargetTypes"
                     placeholder=" Select tags...">
-            </select>
+            </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving targetTypeCategoriesForSearch -->
             <span class="span1 search-question-icon icon-question-sign"
                   title="Search by type of the annotation’s target"></span>
         </div>
@@ -13,10 +13,10 @@
     <div class="control-group">
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
         <div class="controls controls-row">
-            <select id="chooseDomain" class="span5 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords multiple
+            <select id="chooseDomain" class="span5 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords 
                     data-ng-model="criteria.selectedDomains" 
                     placeholder=" Select tags...">
-            </select>
+            </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving domainCategoriesForSearch -->
             <span class="span1 search-question-icon icon-question-sign"
                   title="Search by tagged domains of interest"></span>
         </div>
@@ -24,10 +24,10 @@
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls controls-row">
-            <select id="chooseMotivation" class="span5 motivations" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords multiple
+            <select id="chooseMotivation" class="span5 motivations" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords 
                     data-ng-model="criteria.selectedMotivations"
                     placeholder=" Select tags...">
-            </select>
+            </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving motivationCategoriesForSearch -->
             <span class="span1 search-question-icon icon-question-sign"
                   title="Search by tagged motivations"></span>
         </div>

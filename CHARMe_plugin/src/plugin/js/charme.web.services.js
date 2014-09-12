@@ -289,12 +289,13 @@ charme.web.services.factory('deleteAnnotation', function(){
 
 charme.web.services.factory('saveAnnotation', function () {
 	return function(annoModel, targetId, targetMap, auth){
+            $('.ajaxModal').height($('.modal-body-new')[0].scrollHeight);
 		var promise = new Promise(function(resolver){
 			var annoSpec = jsonoa.types.Annotation;
 			var graph = new jsonoa.core.Graph();
 			var anno = graph.createNode({type: jsonoa.types.Annotation, id: charme.logic.constants.ATN_ID_PREFIX + 'annoID'});
 			var bodyId = charme.logic.constants.BODY_ID_PREFIX + 'bodyID';
-			var commentId = bodyId; 
+			var commentId = bodyId;
 			
 			if (annoModel.comment){
 				var comment = graph.createNode({type: jsonoa.types.Text, id: commentId});
@@ -369,10 +370,7 @@ charme.web.services.factory('saveAnnotation', function () {
                 var targetDesc = targetMap[target][1];
                 
                 //var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetId});
-                var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId}); // xxxid
-                
-                // xxxdesc
-                //var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId, desc: jsonoa.types[targetDesc]});
+                var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
                 
                 //anno.addValue(annoModel.TARGET, target);
                 anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
@@ -452,11 +450,11 @@ charme.web.services.factory('fetchFabioTypes', function(){
 	};
 });
 
-charme.web.services.factory('fetchTargetType', function() {
+/*charme.web.services.factory('fetchTargetType', function() {
     return function(targetId) {
         return charme.logic.fetchTargetType(targetId);
     };
-});
+});*/
 
 charme.web.services.factory('fetchTargetTypeVocab', function() {
     return function() {	
@@ -495,6 +493,13 @@ charme.web.services.factory('targetService', function(){
         return {
             targets: []   /* This array is initialised in the InitCtrl */
             //targetsHighlighted: []
+        };
+    }
+);
+
+charme.web.services.factory('searchBarService', function(){
+        return {
+            isSearchOpen: screen.width <= 1280 ? false : true
         };
     }
 );

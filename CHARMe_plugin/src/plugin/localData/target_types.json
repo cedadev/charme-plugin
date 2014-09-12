@@ -8,15 +8,7 @@
   "resource": "http://purl.org/spar/fabio/TechnicalReport"
  },
  {
-  "label": "Dataset Collection",
-  "resource": "http://purl.org/spar/fabio/MetadataDocument"
- },
-  {
-  "label": "Discovery Metadata",
-  "resource": "http://purl.org/spar/fabio/MetadataDocument"
- },
-  {
-  "label": "Browse Metadata",
+  "label": "Metadata Document",
   "resource": "http://purl.org/spar/fabio/MetadataDocument"
  }
 ]

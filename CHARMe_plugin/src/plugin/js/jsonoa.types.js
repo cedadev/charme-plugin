@@ -98,19 +98,15 @@ jsonoa.types.Organization=(function Organization(){
 })();
 jsonoa.types.Dataset=(function Dataset(){
 	Dataset.TYPE = 'http://purl.org/dc/dcmitype/Dataset';
-        //Dataset.DESC = 'Dataset'; // xxxdesc
         Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE]};
-	//Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE], "@desc": [Dataset.DESC]}; // xxxdesc
 	return Dataset;
 })();
 jsonoa.types.TechnicalReport=(function TechnicalReport(){
 	TechnicalReport.TYPE='http://purl.org/spar/fabio/TechnicalReport';
-        //TechnicalReport.DESC = 'Technical Report'; // xxxdesc
         TechnicalReport.TEMPLATE = {"@id": "?", "@type": [TechnicalReport.TYPE]};
-	//TechnicalReport.TEMPLATE = {"@id": "?", "@type": [TechnicalReport.TYPE], "@desc": [TechnicalReport.DESC]}; // xxxdesc
 	return TechnicalReport;
 })();
-jsonoa.types.DatasetCollection=(function DatasetCollection(){
+/*jsonoa.types.DatasetCollection=(function DatasetCollection(){
 	DatasetCollection.TYPE='http://purl.org/spar/fabio/MetadataDocument';
 	DatasetCollection.TEMPLATE={"@id": "?", "@type": [DatasetCollection.TYPE]};
 	return DatasetCollection;
@@ -124,7 +120,7 @@ jsonoa.types.BrowseMetadata=(function BrowseMetadata(){
 	BrowseMetadata.TYPE='http://purl.org/spar/fabio/MetadataDocument';
 	BrowseMetadata.TEMPLATE={"@id": "?", "@type": [BrowseMetadata.TYPE]};
 	return BrowseMetadata;
-})();
+})();*/
 jsonoa.types.ConferencePaper=(function ConferencePaper(){
 	ConferencePaper.TYPE='http://purl.org/spar/fabio/ConferencePaper';
 	ConferencePaper.TEMPLATE = {"@id": "?", "@type": [ConferencePaper.TYPE]};

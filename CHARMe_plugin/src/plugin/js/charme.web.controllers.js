@@ -19,9 +19,9 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
  */
 charme.web.controllers.controller('HeaderCtrl', ['$scope', '$routeParams', 'targetService',
 function ($scope, $routeParams, targetService){
-    $scope.close = function(){
+    $scope.close = function() {
         var targetId = $routeParams.targetId;
-		charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
+        charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
     };
 
     $scope.size = 'max';
@@ -38,15 +38,29 @@ function ($scope, $routeParams, targetService){
 /**
  * List the results of an annotation search.
  */
-charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$filter', '$timeout', 'fetchTargetType', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 'targetService',
-    function ($rootScope, $scope, $routeParams, $location, $filter, $timeout, fetchTargetType, fetchAnnotationsForTarget, loginService, searchAnnotations, targetService){
+charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$filter', '$timeout', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 'targetService', 'searchBarService',
+    function ($rootScope, $scope, $routeParams, $location, $filter, $timeout, fetchAnnotationsForTarget, loginService, searchAnnotations, targetService, searchBarService){
         $scope.listAnnotationsFlag=true;
         $scope.loading=true;
         $scope.targets = targetService.targets;
-		$scope.close = function(){
-			var targetId = $routeParams.targetId;
-			charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
-		};
+        $scope.close = function() {
+            var targetId = $routeParams.targetId;
+            charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
+        };
+        
+        $scope.isSearchOpen = searchBarService.isSearchOpen;
+        $scope.searchOpen = $scope.isSearchOpen ? 'opened' : 'collapsed';
+        $scope.setSearchOpen = function() {
+            if($scope.searchOpen === 'open' || $scope.searchOpen === 'opened') {
+                $scope.searchOpen = 'collapse';
+                searchBarService.isSearchOpen = $scope.isSearchOpen = false;
+            }
+            else {
+                $scope.searchOpen = 'open';
+                searchBarService.isSearchOpen = $scope.isSearchOpen = true;
+            }
+        };
+
         /*
          * Check if already logged in
          */
@@ -99,6 +113,8 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 
         $scope.refreshTargetSelection = function() {
             //var targetSelect = document.getElementById("chooseTarget");
+
+            searchBarService.isSearchOpen = $scope.isSearchOpen;
             $location.path(encodeURIComponent($scope.selectedTarget) + '/annotations/');
         };
 
@@ -124,14 +140,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 		 * Listen for search events. Searches are triggered by asynchronous events in the faceted search bar.
 		 */
         $scope.targetId=targetId;
-        /*$scope.targetType = {};
-        fetchTargetType(targetId).then(function(targetType) {
-            $scope.targetType.desc = targetType[0];
-        }, function(error) {
-            $scope.$apply(function() {
-                $scope.targetType.error = error;
-            });
-        });*/
 
         searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
             $scope.entries = [];
@@ -196,7 +204,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
             //criteria.listOrder = newListOrder;
         });
         
-        // Store resultsPerPage and selectedRPP in the URL so they can be retrieved if user activates $scope.directSearch when viewing annotation
+        // Store resultsPerPage and selectedRPP in the URL so they can be retrieved if user invokes $scope.directSearch when viewing annotation
         $scope.viewAnnotation = function(annoId) {
             $timeout(function() {
                 $location.search('resultsPerPage', criteria.resultsPerPage.toString())
@@ -219,8 +227,8 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 /**
  * View details of individual annotation.
  */
-charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchTargetType', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService',
-    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchTargetType, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService){
+charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService',
+    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService){
 		$scope.viewAnnotationFlag=true;
         searchAnnotations.clearListeners();
         $scope.loading=true;
@@ -234,15 +242,6 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         var annoId=$routeParams.annotationId;
         $scope.annotationId=annoId;
         $scope.targetId=targetId;
-        
-        /*$scope.targetType = {};
-        fetchTargetType(targetId).then(function(targetType) {
-            $scope.targetType.desc = targetType[0];
-        }, function(error) {
-            $scope.$apply(function() {
-                $scope.targetType.error = error;
-            });
-        });*/
         
         Promise.every(fetchKeywords(), fetchAnnotation(annoId), fetchFabioTypes(), fetchAllMotivations(), fetchTargetTypeVocab()).then(
             function (results){
@@ -299,7 +298,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                                     $scope.citation.types = [];
                                             }
                                             $scope.citation.types.push(fType.label);
-//                                            $scope.citation.citoTypeDesc = citoType.label;
+                                            //$scope.citation.citoTypeDesc = citoType.label;
                                         }
                                     });
 
@@ -372,12 +371,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         angular.forEach(targets, function(target){
                             var targetHref = target.getValue(jsonoa.types.Common.ID);
                             var targetName = targetHref.substring(targetHref.lastIndexOf('/') + 1);
-
                             var targetType = (target.getValue(jsonoa.types.Common.TYPE));
                             targetType = targetType.substring(targetType.lastIndexOf('/') + 1);
-                            // xxxdesc
-                            //var targetDesc = (target.getValue(jsonoa.types.Common.DESC));
-                            //$scope.targetList.push({uri: targetHref, name: targetName, desc: targetDesc});
 
                             $scope.targetList.push({uri: targetHref, name: targetName, desc: validTargetTypeLabels[targetType]});
                         });
@@ -392,6 +387,12 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             
                             if($scope.targetList.length > 1)
                                 $scope.multipleTargets = true;
+                            
+                            if($scope.domainTags.length > 1)
+                                $scope.multipleDomains = true;
+                            
+                            if($scope.motivationTags.length > 1)
+                                $scope.multipleMotivations = true;
                         });
                         
                         /*
@@ -592,8 +593,8 @@ charme.web.controllers.controller('ListTargetsCtrl', ['$scope', '$routeParams', 
 /**
  * New annotation screen.
  */
-charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchTargetTypeVocab', 'fetchTargetType', 'fetchAllMotivations', 'fetchKeywords', 'fetchFabioTypes', 'searchAnnotations', 'targetService',
-    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchTargetTypeVocab, fetchTargetType, fetchAllMotivations, fetchKeywords, fetchFabioTypes, searchAnnotations, targetService){
+charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchTargetTypeVocab', 'fetchAllMotivations', 'fetchKeywords', 'fetchFabioTypes', 'searchAnnotations', 'targetService',
+    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchTargetTypeVocab, fetchAllMotivations, fetchKeywords, fetchFabioTypes, searchAnnotations, targetService){
         searchAnnotations.clearListeners();
         $scope.newAnnotationFlag=true;
         var targetId=$routeParams.targetId;
@@ -601,17 +602,6 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         $scope.commentMaxLength = 250; // Maximum no. of characters for free text
         
         $scope.anno = {};
-        /*$scope.targetType = {};
-        fetchTargetType(targetId).then(function(targetType) {
-            $scope.anno.target = $scope.targetType.desc = targetType[0];
-
-            if(!targetType[1])
-                $scope.errorMsg = 'Error: ' + targetType[0];
-        }, function(error) {
-            $scope.$apply(function() {
-                $scope.errorMsg = error;
-            });
-        });*/
         
         $scope.loggedIn=loginService.isLoggedIn();
         $scope.targetList = targetService.targets;
@@ -636,15 +626,12 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
                     $scope.targetList[target].push('invalid');
                     invalidFlag = true;
                 }
-                
-                // Put here, inside the loop as alternative to using $timeout
-                if(numTargets > 1) // Would use Object.keys(obj).length method, but not supported in IE8
-                    $scope.multipleTargets = true;
             };
             
-            // If we check numTargets > 1 here, would need to use $timeout
-            //if(numTargets > 1) // Would use Object.keys(obj).length method, but not supported in IE8
-            //    $scope.multipleTargets = true;
+            $timeout(function() {
+                if(numTargets > 1) // Would use Object.keys(obj).length method, but not supported in IE8
+                    $scope.multipleTargets = true;
+            });
             
             var targetDropdown = document.getElementById('selectedTarget');
             // Avoid first option being shown twice (doesn't happen in IE, but don't need to check if browser is IE here)
@@ -763,7 +750,6 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
 charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$window', '$timeout', 'fetchAllSearchFacets', 'fetchTargetTypeVocab', 'searchAnnotations',
     function($rootScope, $scope, $routeParams, $location, $window, $timeout, fetchAllSearchFacets, fetchTargetTypeVocab, searchAnnotations) {
         var targetId=$routeParams.targetId;
-        
         $scope.loading = true;
         $scope.resultsPerPage = [10, 20, 30, 'All'];  // first value in this array must be a number (not 'All')
         //$scope.listOrderOptions = [{text: 'Newest', sortNum: -1}, {text: 'Oldest', sortNum: 1}];
