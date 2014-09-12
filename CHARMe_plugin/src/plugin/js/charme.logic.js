@@ -480,7 +480,7 @@ charme.logic.fetchFabioTypes = function() {
 	return promise;
 };
 
-charme.logic.fetchTargetType = function(targetId) {
+/*charme.logic.fetchTargetType = function(targetId) {
     var promise = new Promise(function(resolver) {
         var targetType, allTargetTypes = [];
         var returnTargetType = ['Target type undefined', false];
@@ -515,7 +515,7 @@ charme.logic.fetchTargetType = function(targetId) {
     });
     
     return promise;
-};
+};*/
 
 charme.logic.fetchTargetTypeVocab = function() {
     var promise = new Promise(function(resolver) {

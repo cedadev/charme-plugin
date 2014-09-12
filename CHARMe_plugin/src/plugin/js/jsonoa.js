@@ -360,7 +360,6 @@ jsonoa.util._hasTypeAttribute = function(node){
 jsonoa.types.Common = new function(){
 	this.ID = '@id';
 	this.TYPE = '@type';
-        //this.DESC = '@desc'; // xxxdesc
 };
 
 jsonoa.core.Stub = jsonoa.core.wrapNode({

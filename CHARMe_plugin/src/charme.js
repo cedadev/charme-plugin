@@ -493,7 +493,7 @@ charme.plugin.loadPlugin = function () {
     // Don't use createElement here, because in IE11 you won't be able to use input fields (weird bug)
     //var plugin = document.createElement('iframe');
     //document.lastChild.appendChild(plugin);
-
+    
     var plugin = document.getElementById('charme-placeholder');
     plugin.innerHTML += '<iframe></iframe>';
     plugin = plugin.lastChild;
@@ -501,7 +501,7 @@ charme.plugin.loadPlugin = function () {
     plugin.frameBorder = "no";
     plugin.id = 'charme-plugin-frame';
     plugin.style.backgroundColor = 'transparent';
-    plugin.style.minWidth = '1350px';
+    //plugin.style.minWidth = '1260px';
     plugin.style.display = 'none';
     plugin.style.margin = 'auto';
     plugin.style.position = 'fixed';
@@ -509,12 +509,21 @@ charme.plugin.loadPlugin = function () {
     plugin.style.right = '0';
     plugin.style.bottom = '0';
     plugin.style.top = '0';
-    plugin.style.paddingTop = '50px';
-    plugin.style.paddingLeft = '25px';
+    //plugin.style.paddingTop = '50px';
+    //plugin.style.paddingLeft = '25px';
     plugin.style.height = '100%';
     plugin.style.zIndex = 1000;
     plugin.allowTransparency = true;
     plugin.setAttribute('scrolling', 'no');
+    
+    if(screen.width <= 1280) {
+        plugin.style.minWidth = '1240px';
+    }
+    else {
+        plugin.style.minWidth = '1350px';
+        plugin.style.paddingTop = '50px';
+        plugin.style.paddingLeft = '25px';
+    }
 };
 
 /**
@@ -543,9 +552,18 @@ charme.plugin.miniaturiseFunc = function () {
 charme.plugin.maximiseFunc = function () {
     var plugin = document.getElementById('charme-plugin-frame');
     plugin.style.height = '100%';
-    plugin.style.minWidth = '1350px';
-    plugin.style.paddingLeft = '25px';
+    //plugin.style.minWidth = '1260px';
+    //plugin.style.paddingLeft = '25px';
     //plugin.style.paddingTop = '50px';
+    
+    if(screen.width <= 1280) {
+        plugin.style.minWidth = '1240px';
+    }
+    else {
+        plugin.style.minWidth = '1350px';
+        plugin.style.paddingTop = '50px';
+        plugin.style.paddingLeft = '25px';
+    }
 };
 
 /**
