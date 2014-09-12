@@ -237,8 +237,8 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
     var targetHref = targetCheckbox.target.id;
     var targetHrefEncoded = '';
     var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
-    var targetTypeLabel = targetCheckbox.target.name;
     
+    var targetTypeLabel = targetCheckbox.target.name;
     var targetTypeDesc = targetTypeLabel.split('-');
     var tempArr = [];
     for(var i = 0; i < targetTypeDesc.length; i++) {
@@ -246,9 +246,8 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
         descFrag = descFrag[0].toUpperCase() + descFrag.substr(1).toLowerCase();
         tempArr.push(descFrag);
     }
-    
+    targetTypeLabel = tempArr.join('');
     targetTypeDesc = tempArr.join(' ');
-    targetTypeLabel = targetTypeLabel.replace('-', '').toLowerCase();
         
     //alert('event fired : checked status = ' + targetCheckbox.target.checked + " " + targetCheckbox.target.id);
 
@@ -289,7 +288,7 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
  * invoke the plugin on the main data provider page.
  * @param targetHref
 */
-charme.plugin.setAsSelected = function (targetHref, targetType) {
+/*charme.plugin.setAsSelected = function (targetHref, targetType) {
 
     var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
     //var targetHrefEncoded = encodeURIComponent(targetHref);
@@ -322,7 +321,7 @@ charme.plugin.setAsSelected = function (targetHref, targetType) {
     //Save the clicked target into the "highlighted" list.
     //charme.plugin.selectedTargetsHighlighted = {};
     //charme.plugin.selectedTargetsHighlighted[targetName] = targetHrefEncoded;
-}
+}*/
 
 
 
@@ -521,10 +520,16 @@ charme.plugin.loadPlugin = function () {
 /**
  * A callback function used for hiding the plugin. Because the iFrame that the plugin is held in is created outside of the plugin itself (within the scope of the hosted environment), it must also be hidden from this scope. Using a callback avoids the plugin having to know anything about its hosted environment.
  */
-charme.plugin.closeFunc = function () {
+charme.plugin.closeFunc = function (isOneTarget, targetId) {
 	var plugin = document.getElementById('charme-plugin-frame');
 	//plugin.style.display = 'none';
         plugin.parentNode.removeChild(plugin);
+        
+        if(isOneTarget) {
+            var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+            targetCheckboxs[targetId].click();
+        }
+        
         charme.plugin.loadPlugin();
 };
 
@@ -533,7 +538,6 @@ charme.plugin.miniaturiseFunc = function () {
     plugin.style.height = '40%';
     plugin.style.minWidth = '720px';
     //plugin.style.paddingTop = '300px';
-
 };
 
 charme.plugin.maximiseFunc = function () {
@@ -600,8 +604,13 @@ charme.plugin.showPlugin = function (e) {
 		encodeURIComponent(encodeURIComponent(targetHref)) + '/init';
 	plugin.style.display = 'block'; // Only show the iFrame once the content has loaded in order to minimize flicker
 
-    //charme.plugin.populateTargetList();
-    charme.plugin.setAsSelected(targetHref, targetType);
+    ////charme.plugin.populateTargetList();
+    //charme.plugin.setAsSelected(targetHref, targetType);
+    
+    if (!(targetHref in charme.plugin.selectedTargets)) {
+        var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+        targetCheckboxs[targetHref].click();
+    }
 };
 
 charme.plugin.preInit = function () {

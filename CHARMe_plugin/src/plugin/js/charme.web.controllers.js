@@ -17,10 +17,22 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
 /**
  * A controller specific to the plugin header
  */
-charme.web.controllers.controller('HeaderCtrl', ['$scope',
-function ($scope){
+charme.web.controllers.controller('HeaderCtrl', ['$scope', '$routeParams', 'targetService',
+function ($scope, $routeParams, targetService){
     $scope.close = function(){
-        charme.web.close();
+        var targetId = $routeParams.targetId;
+        $scope.targets = targetService.targets;
+
+        var numSelectedTargets = 0;
+        var isOneTarget = true;
+        for(target in $scope.targets) { // Would use Object.keys(obj).length method, but not supported in IE8
+            if(++numSelectedTargets > 1) {
+                isOneTarget = false;
+                break;
+            }
+        }
+        
+        charme.web.close(isOneTarget, targetId);
     };
 
     $scope.size = 'max';
@@ -87,9 +99,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         /**
          * Onclick functions for buttons
          */
-        $scope.close = function(){
-            charme.web.close();
-        };
 
         $scope.viewTargets = function() {
             $location.path(encodeURIComponent(targetId) + '/annotations/datasets/');
@@ -217,8 +226,8 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 /**
  * View details of individual annotation.
  */
-charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetType', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService',
-    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetType, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService){
+charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchTargetType', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService',
+    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchTargetType, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService){
 		$scope.viewAnnotationFlag=true;
         searchAnnotations.clearListeners();
         $scope.loading=true;
@@ -242,7 +251,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
             });
         });*/
         
-        Promise.every(fetchKeywords(), fetchAnnotation(annoId), fetchFabioTypes(), fetchAllMotivations()).then(
+        Promise.every(fetchKeywords(), fetchAnnotation(annoId), fetchFabioTypes(), fetchAllMotivations(), fetchTargetTypeVocab()).then(
             function (results){
                 $scope.loading=false;
                 //Create local alias to avoid having to use fully resolved name
@@ -360,17 +369,26 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             $scope.targetList = [];
                         }
                         
+                        var targetTypeVocab = results[4];
+                        var validTargetTypeLabels = {};
+                        for(var i = 0; i < targetTypeVocab.length; i++) {
+                            var label = targetTypeVocab[i].label.replace(" ", "");
+                            validTargetTypeLabels[label] = targetTypeVocab[i].label;
+                        }
+                        
                         angular.forEach(targets, function(target){
-                            //if (target instanceof jsonoa.types.Dataset){
-                                var targetHref = target.getValue(jsonoa.types.Common.ID);
-                                var targetName = targetHref.substring(targetHref.lastIndexOf('/') + 1);
-                                
-                                var targetType = (target.getValue(jsonoa.types.Common.TYPE));
-                               // targetType = targetType.substring(targetType.lastIndexOf('/') + 1)
-                                
-                                $scope.targetList.push({uri: targetHref, name: targetName, desc: targetType});
-                            //}
+                            var targetHref = target.getValue(jsonoa.types.Common.ID);
+                            var targetName = targetHref.substring(targetHref.lastIndexOf('/') + 1);
+
+                            var targetType = (target.getValue(jsonoa.types.Common.TYPE));
+                            targetType = targetType.substring(targetType.lastIndexOf('/') + 1);
+                            // xxxdesc
+                            //var targetDesc = (target.getValue(jsonoa.types.Common.DESC));
+                            //$scope.targetList.push({uri: targetHref, name: targetName, desc: targetDesc});
+
+                            $scope.targetList.push({uri: targetHref, name: targetName, desc: validTargetTypeLabels[targetType]});
                         });
+                            
                         // Remove the empty option from the dropdown by initialising the model value
                         $scope.targetListDisplay = targetId;
                         
@@ -612,8 +630,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         var validTargetTypeLabels = {}, invalidFlag;
         fetchTargetTypeVocab().then(function(types) {
             for(var i = 0; i < types.length; i++) {
-                // Format label's capitalisation here, because hasOwnProperty (called below) is case-sensitive
-                var label = types[i].label.replace(" ", "").toLowerCase();
+                var label = types[i].label.replace(" ", "");
                 validTargetTypeLabels[label] = '';
             }
             
@@ -643,7 +660,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
             if(invalidFlag) {
                 // Ensure correct className for <select> if first option in dropdown is invalid 
                 // (otherwise className will simply be 'target-type-' (see HTML))
-                if($scope.targetList[targetDropdown.options[0].value][2] === 'invalid')
+                if($scope.targetList[targetDropdown.options[0].value][3] === 'invalid')
                     $(targetDropdown).addClass('target-type-invalid');
 
                 $scope.errorMsg = 'Error: Invalid/undefined target type(s) - check list below';
@@ -750,8 +767,8 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         };
     }]);
 
-charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$window', '$timeout', 'fetchAllSearchFacets', 'searchAnnotations',
-    function($rootScope, $scope, $routeParams, $location, $window, $timeout, fetchAllSearchFacets, searchAnnotations) {
+charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$window', '$timeout', 'fetchAllSearchFacets', 'fetchTargetTypeVocab', 'searchAnnotations',
+    function($rootScope, $scope, $routeParams, $location, $window, $timeout, fetchAllSearchFacets, fetchTargetTypeVocab, searchAnnotations) {
         var targetId=$routeParams.targetId;
         
         $scope.loading = true;
@@ -769,9 +786,21 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             //count: 100000  // until the node can handle date queries, we must always retrieve all annotations
         };
 
-        fetchAllSearchFacets(criteria).then(function(facetTypes){
+        Promise.every(fetchAllSearchFacets(criteria), fetchTargetTypeVocab()).then(function(results){
+            var facetTypes = results[0];
+            var targetTypeVocab = results[1];
+
+            var validTargetTypeLabels = {};
+            for(var i = 0; i < targetTypeVocab.length; i++) {
+               var label = targetTypeVocab[i].label.replace(" ", "");
+               validTargetTypeLabels[label] = targetTypeVocab[i].label;
+            }
+
             $scope.$apply(function(){
                 var targetTypeKeywords = facetTypes[charme.logic.constants.FACET_TYPE_TARGET_TYPE];
+                for(targetType in targetTypeKeywords)
+                    targetTypeKeywords[targetType].label = validTargetTypeLabels[targetTypeKeywords[targetType].label];
+                
                 var targetTypeCategories = [{
                 	name: 'Target Types',
                         keywords: targetTypeKeywords
@@ -1005,7 +1034,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                 // we store that number as 'maxResults' for future reference
                 if(firstSearchFlag) {
                     firstSearchFlag = false;
-                    maxResults = totalResults;
+                    maxResults = totalResults > 0 ? totalResults : 1;  // Node doesn't like 'count=0'
                 }
             });
         });

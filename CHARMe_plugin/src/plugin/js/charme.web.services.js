@@ -360,7 +360,7 @@ charme.web.services.factory('saveAnnotation', function () {
                     anno.addValue(annoSpec.MOTIVATED_BY, page);
                 });
             }
-
+            
             // Save each of the selected targetids into the annotation target
             for(target in targetMap)
             {
@@ -368,8 +368,11 @@ charme.web.services.factory('saveAnnotation', function () {
                 var targetTargetId = target;
                 var targetDesc = targetMap[target][1];
                 
-                //var target = graph.createNode({type: jsonoa.types[annoModel.target], id: targetId});
-                var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetId});
+                //var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetId});
+                var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId}); // xxxid
+                
+                // xxxdesc
+                //var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId, desc: jsonoa.types[targetDesc]});
                 
                 //anno.addValue(annoModel.TARGET, target);
                 anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
@@ -449,13 +452,13 @@ charme.web.services.factory('fetchFabioTypes', function(){
 	};
 });
 
-charme.web.services.factory('fetchTargetType', function(){
+charme.web.services.factory('fetchTargetType', function() {
     return function(targetId) {
         return charme.logic.fetchTargetType(targetId);
     };
 });
 
-charme.web.services.factory('fetchTargetTypeVocab', function(){
+charme.web.services.factory('fetchTargetTypeVocab', function() {
     return function() {	
         var promise = new Promise(function(resolver) {
             charme.logic.fetchTargetTypeVocab().then(function(types) {

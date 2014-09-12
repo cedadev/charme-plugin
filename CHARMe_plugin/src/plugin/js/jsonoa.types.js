@@ -25,11 +25,6 @@ jsonoa.types.Annotation=(function Annotation(){
 	};
 	return Annotation;
 })();
-jsonoa.types.Dataset=(function Dataset(){
-	Dataset.TYPE = 'http://purl.org/dc/dcmitype/Dataset';
-	Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE]};
-	return Dataset;
-})();
 jsonoa.types.CitationAct=(function CitationAct(){
 	CitationAct.TYPE='http://purl.org/spar/cito/CitationAct';
 	CitationAct.CITING_ENTITY='http://purl.org/spar/cito/hasCitingEntity';
@@ -101,10 +96,34 @@ jsonoa.types.Organization=(function Organization(){
 	};
 	return Organization;
 })();
+jsonoa.types.Dataset=(function Dataset(){
+	Dataset.TYPE = 'http://purl.org/dc/dcmitype/Dataset';
+        //Dataset.DESC = 'Dataset'; // xxxdesc
+        Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE]};
+	//Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE], "@desc": [Dataset.DESC]}; // xxxdesc
+	return Dataset;
+})();
 jsonoa.types.TechnicalReport=(function TechnicalReport(){
 	TechnicalReport.TYPE='http://purl.org/spar/fabio/TechnicalReport';
-	TechnicalReport.TEMPLATE = {"@id": "?", "@type": [TechnicalReport.TYPE]};
+        //TechnicalReport.DESC = 'Technical Report'; // xxxdesc
+        TechnicalReport.TEMPLATE = {"@id": "?", "@type": [TechnicalReport.TYPE]};
+	//TechnicalReport.TEMPLATE = {"@id": "?", "@type": [TechnicalReport.TYPE], "@desc": [TechnicalReport.DESC]}; // xxxdesc
 	return TechnicalReport;
+})();
+jsonoa.types.DatasetCollection=(function DatasetCollection(){
+	DatasetCollection.TYPE='http://purl.org/spar/fabio/MetadataDocument';
+	DatasetCollection.TEMPLATE={"@id": "?", "@type": [DatasetCollection.TYPE]};
+	return DatasetCollection;
+})();
+jsonoa.types.DiscoveryMetadata=(function DiscoveryMetadata(){
+	DiscoveryMetadata.TYPE='http://purl.org/spar/fabio/MetadataDocument';
+	DiscoveryMetadata.TEMPLATE={"@id": "?", "@type": [DiscoveryMetadata.TYPE]};
+	return DiscoveryMetadata;
+})();
+jsonoa.types.BrowseMetadata=(function BrowseMetadata(){
+	BrowseMetadata.TYPE='http://purl.org/spar/fabio/MetadataDocument';
+	BrowseMetadata.TEMPLATE={"@id": "?", "@type": [BrowseMetadata.TYPE]};
+	return BrowseMetadata;
 })();
 jsonoa.types.ConferencePaper=(function ConferencePaper(){
 	ConferencePaper.TYPE='http://purl.org/spar/fabio/ConferencePaper';
