@@ -1,15 +1,46 @@
+/*
+ * Copyright (c) 2014, CGI
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification, are 
+ * permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this list of 
+ *    conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list 
+ *    of conditions and the following disclaimer in the documentation and/or other materials 
+ *    provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be 
+ *    used to endorse or promote products derived from this software without specific prior 
+ *    written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
 charme.web.controllers = angular.module('charmeControllers', ['charmeServices']);
 
 charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$location', '$filter', 'loginService', 'targetService', 'searchAnnotations',
     function ($scope, $routeParams, $location, $filter, loginService, targetService, searchAnnotations){
         searchAnnotations.clearListeners();
-        var targetId=$routeParams.targetId;
+        var targetId = $routeParams.targetId;
         loginService._loadState();
 
         // call the getSelectedTargets() function on charme.js
         var selectedTargets = window.parent.charme.plugin.getSelectedTargets();
-        targetService.targets = selectedTargets;
-
+        
+        if(selectedTargets.hasOwnProperty('http://alltargets/'))
+            targetService.targets = {'http://alltargets/': selectedTargets['http://alltargets/']};
+        else
+            targetService.targets = selectedTargets;
+        
+        //targetService.targets = selectedTargets;
+        
         $location.path(encodeURIComponent(targetId) + '/annotations/');
     }
 ]);
@@ -17,47 +48,86 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
 /**
  * A controller specific to the plugin header
  */
-charme.web.controllers.controller('HeaderCtrl', ['$scope', '$routeParams', 'targetService',
+charme.web.controllers.controller('HeaderCtrl', ['$scope', '$routeParams', 'targetService', 
 function ($scope, $routeParams, targetService){
     $scope.close = function() {
         var targetId = $routeParams.targetId;
-        charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
+        charme.web.close($.map(targetService.targets, function(value, index){return index;}).length === 1, targetId);
     };
 
     $scope.size = 'max';
     $scope.miniaturise = function(){
         $scope.size = 'min';
+        $scope.headerBorderBottomStyle = $('#charmeDragHandle').css('border-bottom');
+        $('#charmeDragHandle').css('border-bottom', 'none');
+        $('.modal-body').hide();
+        $('.modal-footer').hide();
         charme.web.miniaturise();
     };
     $scope.maximise = function(){
         $scope.size = 'max';
+        $('#charmeDragHandle').css('border-bottom', $scope.headerBorderBottomStyle);
+        $('.modal-body').show();
+        $('.modal-footer').show();
         charme.web.maximise();
     };
+    
+    // If data provider allows the plugin GUI to be dragged, make header element the handle for dragging
+    var plugin = window.parent.document.getElementById('charme-placeholder');
+    if(plugin.className === 'charme-draggable')
+        document.onLoad = dragIF_addHandle(document.getElementById('charmeDragHandle'), window);
+}]);
+charme.web.controllers.controller('FooterCtrl', ['$rootScope', '$scope',
+function($rootScope, $scope){
+    $scope.confirmDelete = false;
+    
+    $rootScope.$on('noDelete', function() {
+        $scope.confirmDelete = false;
+    });
+    
+    $('.shift-anno-buttons-holder').css('right', ($('.modal-footer').outerWidth() - $('.shift-anno-buttons-holder').outerWidth()) / 2);
 }]);
 
 /**
  * List the results of an annotation search.
  */
-charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$filter', '$timeout', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 'targetService', 'searchBarService',
-    function ($rootScope, $scope, $routeParams, $location, $filter, $timeout, fetchAnnotationsForTarget, loginService, searchAnnotations, targetService, searchBarService){
+charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$filter', '$timeout', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 'targetService', 'searchBarService', 'shiftAnnoService', 
+    function ($rootScope, $scope, $routeParams, $location, $filter, $timeout, fetchAnnotationsForTarget, loginService, searchAnnotations, targetService, searchBarService, shiftAnnoService){
         $scope.listAnnotationsFlag=true;
         $scope.loading=true;
         $scope.targets = targetService.targets;
         $scope.close = function() {
             var targetId = $routeParams.targetId;
-            charme.web.close($.map(targetService.targets, function(value, index){return index}).length === 1, targetId);
+            charme.web.close($.map(targetService.targets, function(value, index){return index;}).length === 1, targetId);
         };
         
         $scope.isSearchOpen = searchBarService.isSearchOpen;
-        $scope.searchOpen = $scope.isSearchOpen ? 'opened' : 'collapsed';
+        if(searchBarService.targetDropdownFlag) {
+            $scope.searchOpen = 'open';
+            searchBarService.targetDropdownFlag = false;
+        }
+        else
+            $scope.searchOpen = $scope.isSearchOpen ? 'opened' : 'collapsed';
+
+        $scope.smallSpan = screen.width <= charme.common.SMALL_SCREEN ? 'span5' : 'span7';
+        $scope.largeSpan = 'span12';
+        if(!$scope.isSearchOpen)
+            $timeout(function() {
+                $('#chooseTarget').removeClass($scope.smallSpan).addClass($scope.largeSpan);
+            });
+
+        var cachedIsSearchOpen = $scope.isSearchOpen;
+        
         $scope.setSearchOpen = function() {
             if($scope.searchOpen === 'open' || $scope.searchOpen === 'opened') {
                 $scope.searchOpen = 'collapse';
                 searchBarService.isSearchOpen = $scope.isSearchOpen = false;
+                $('#chooseTarget').removeClass($scope.smallSpan).addClass($scope.largeSpan);
             }
             else {
                 $scope.searchOpen = 'open';
                 searchBarService.isSearchOpen = $scope.isSearchOpen = true;
+                $('#chooseTarget').removeClass($scope.largeSpan).addClass($scope.smallSpan);
             }
         };
 
@@ -87,10 +157,10 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
             });
         });
 
-        var targetId=$routeParams.targetId;
-        $timeout(function() {
-            $scope.targetIdKey=$scope.targets[targetId][0];
-        });
+        var targetId = $routeParams.targetId;
+        //$timeout(function() {
+        //    $scope.targetIdKey=$scope.targets[targetId][0];
+        //});
         
         // Remove the empty option from the dropdown by initialising the model value...
         $scope.selectedTarget = targetId;
@@ -114,7 +184,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         $scope.refreshTargetSelection = function() {
             //var targetSelect = document.getElementById("chooseTarget");
 
-            searchBarService.isSearchOpen = $scope.isSearchOpen;
+            searchBarService.isSearchOpen = cachedIsSearchOpen;
             $location.path(encodeURIComponent($scope.selectedTarget) + '/annotations/');
         };
 
@@ -153,16 +223,28 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
             });
         });
 
-        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages){
+        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, pageNum, lastPage){
             $scope.$apply(function(){
                 $scope.entries = results;
                 $scope.pages = pages;
+                
+                if(pageNum <= Math.ceil(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
+                    $scope.offset = 1;
+                else if(pageNum >= lastPage - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
+                    $scope.offset = lastPage - charme.logic.constants.NUM_PAGE_BUTTONS + 1;
+                else
+                    $scope.offset = pageNum - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2);
+
+                $scope.lastPage = lastPage;
+                $scope.pageIncrement = Math.ceil(lastPage / 10);
                 
                 angular.forEach($scope.entries, function(entry) {
                     //Double-escape URIs embedded within a URI in order to work with Angular routing
                     entry.uri = '#/' + encodeURIComponent(encodeURIComponent(targetId)) + '/annotation/' 
                                      + encodeURIComponent(encodeURIComponent(entry.id)) + '/';
                 });
+                
+                shiftAnnoService.annoList = $scope.entries;
             });
         });
 
@@ -178,16 +260,13 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 		 */
         var criteria = {};
         var criteriaFromUrl = function() {
-            var resultsPerPage = $location.search()['resultsPerPage'];
-            var selectedRPP = $location.search()['selectedRPP'];
-            if(typeof resultsPerPage === 'string')
-                criteria.resultsPerPage = resultsPerPage;
-            if(typeof selectedRPP === 'string'){
-                if(selectedRPP === resultsPerPage)
-                    criteria.selectedRPP = criteria.resultsPerPage;
-                else
-                    criteria.selectedRPP = selectedRPP;
-            }
+            criteria.targetTypes = $location.search()[charme.web.constants.PARAM_TARGET_TYPES];
+            criteria.motivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
+            criteria.domainsOfInterest = $location.search()[charme.web.constants.PARAM_DOMAINS];
+            criteria.organization = $location.search()[charme.web.constants.PARAM_ORGANIZATION];
+            criteria.creator = $location.search()[charme.web.constants.PARAM_CREATOR];
+            criteria.resultsPerPage = $location.search()['resultsPerPage'];
+            criteria.selectedRPP = $location.search()['selectedRPP'];
             
             //var listOrder = $location.search()['listOrder'];
             //if(typeof listOrder === 'string')
@@ -198,43 +277,142 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
         
         criteria = criteriaFromUrl();
         
-        $rootScope.$on('listOptions', function(event, newResultsPerPage, newSelectedRPP) {//, newListOrder) {
+        var onNewCriteria = $rootScope.$on('newCriteria', function(event, newCriteria) {//, newListOrder) {
+            criteria.targetTypes = newCriteria.targetTypes;
+            criteria.motivations = newCriteria.motivations;
+            criteria.domainsOfInterest = newCriteria.domainsOfInterest;
+            criteria.organization = newCriteria.organization;
+            criteria.creator = newCriteria.creator;
+            criteria.resultsPerPage = newCriteria.resultsPerPage;
+            criteria.selectedRPP = newCriteria.selectedRPP;
+        });
+        $scope.$on('$destroy', function() {
+            onNewCriteria(); // Remove listener
+        });
+        
+        /*$rootScope.$on('listOptions', function(event, newResultsPerPage, newSelectedRPP) {//, newListOrder) {
             criteria.resultsPerPage = newResultsPerPage;
             criteria.selectedRPP = newSelectedRPP;
             //criteria.listOrder = newListOrder;
-        });
+        });*/
         
         // Store resultsPerPage and selectedRPP in the URL so they can be retrieved if user invokes $scope.directSearch when viewing annotation
         $scope.viewAnnotation = function(annoId) {
-            $timeout(function() {
+            /*$timeout(function() {
                 $location.search('resultsPerPage', criteria.resultsPerPage.toString())
                          .search('selectedRPP', criteria.selectedRPP.toString())
                          //.search('listOrder', criteria.listOrder.toString())
+                         .replace();
+            });*/
+            
+            $timeout(function() {
+                criteria.targetTypes = criteria.targetTypes === '' ? '' : criteria.targetTypes.join(',');
+                criteria.motivations = criteria.motivations === '' ? '' : criteria.motivations.join(',');
+                criteria.domainsOfInterest = criteria.domainsOfInterest === '' ? '' : criteria.domainsOfInterest.join(',');
+                criteria.organization = criteria.organization === '' ? '' : criteria.organization.toString();
+                criteria.creator = criteria.creator === '' ? '' : criteria.creator.toString();
+                criteria.resultsPerPage = criteria.resultsPerPage === '' ? '' : criteria.resultsPerPage.toString();
+                criteria.selectedRPP = criteria.selectedRPP === '' ? '' : criteria.selectedRPP.toString();
+                //criteria.listOrder = criteria.listOrder === '' ? '' : criteria.listOrder.toString();
+                
+                $location.search(charme.web.constants.PARAM_TARGET_TYPES, criteria.targetTypes)
+                         .search(charme.web.constants.PARAM_MOTIVATIONS, criteria.motivations)
+                         .search(charme.web.constants.PARAM_DOMAINS, criteria.domainsOfInterest)
+                         .search(charme.web.constants.PARAM_ORGANIZATION, criteria.organization)
+                         .search(charme.web.constants.PARAM_CREATOR, criteria.creator)
+                         .search('resultsPerPage', criteria.resultsPerPage)
+                         .search('selectedRPP', criteria.selectedRPP)
+                         //.search('listOrder', criteria.listOrder)
                          .replace();
             });
         };
         
         $scope.setPage = function(newPage){
-            $rootScope.$broadcast('changePage', newPage, $scope.pages);
+            $rootScope.$broadcast('changePage', newPage, $scope.lastPage, $scope.pages);
         };
         
         $scope.directSearch = function(facet, name, evt) {
             evt.preventDefault();
             $location.path(encodeURIComponent(targetId) + '/annotations/').search(facet, name);
         };
+
+        var cachedTarget;
+        var waitAnotherClickFlag = true;
+        $('#chooseTarget')
+            .focus(function() {
+                cachedIsSearchOpen = $scope.isSearchOpen;
+                cachedTarget = $scope.selectedTarget;
+
+                if($scope.isSearchOpen) {
+                    searchBarService.targetDropdownFlag = true;
+                    $(this).removeClass($scope.smallSpan).addClass($scope.largeSpan);
+
+                    $scope.$apply(function() {
+                        $scope.searchOpen = 'collapse';
+                        searchBarService.isSearchOpen = $scope.isSearchOpen = false;
+                        $location.replace();
+                    });
+
+                    // In this particular case, the initial click to give focus to the dropdown doesn't fire 
+                    // the .click function, only the .focus function. When the search bar is closed, or with 
+                    // other browsers, both the .focus and .click functions fire with the initial click.
+                    if(charme.common.isChrome)
+                        $(this).click();
+                }
+            })
+            .blur(function() {
+                waitAnotherClickFlag = true;
+        
+                if(cachedIsSearchOpen) {
+                    searchBarService.targetDropdownFlag = false;
+                    $(this).removeClass($scope.largeSpan).addClass($scope.smallSpan);
+                    
+                    $scope.$apply(function() {
+                        $scope.searchOpen = 'open';
+                        searchBarService.isSearchOpen = $scope.isSearchOpen = true;
+                        $location.replace();
+                    });
+                }
+            })
+            .click(function() {
+                if(waitAnotherClickFlag)
+                    waitAnotherClickFlag = false;
+                else if($scope.selectedTarget === cachedTarget)
+                    $(this).blur();
+            });
     }]);
 
 /**
  * View details of individual annotation.
  */
-charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService',
-    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService){
+charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchAnnotation', 'fetchKeywords', 'fetchFabioTypes', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService', 'shiftAnnoService', 
+    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchAnnotation, fetchKeywords, fetchFabioTypes, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService, shiftAnnoService){
 		$scope.viewAnnotationFlag=true;
         searchAnnotations.clearListeners();
         $scope.loading=true;
-        var targetId=$routeParams.targetId;
+        var targetId = $routeParams.targetId;
         $scope.cancel = function(){
-            window.history.back();
+            //window.history.back();
+            
+            var criteria = {};
+            criteria.targetTypes = $location.search()[charme.web.constants.PARAM_TARGET_TYPES];
+            criteria.motivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
+            criteria.domainsOfInterest = $location.search()[charme.web.constants.PARAM_DOMAINS];
+            criteria.organization = $location.search()[charme.web.constants.PARAM_ORGANIZATION];
+            criteria.creator = $location.search()[charme.web.constants.PARAM_CREATOR];
+            criteria.resultsPerPage = $location.search()['resultsPerPage'];
+            criteria.selectedRPP = $location.search()['selectedRPP'];
+            //criteria.listOrder = $location.search()['listOrder'];
+
+            $location.path(encodeURIComponent(targetId) + '/annotations/')
+                     .search(charme.web.constants.PARAM_TARGET_TYPES, criteria.targetTypes)
+                     .search(charme.web.constants.PARAM_MOTIVATIONS, criteria.motivations)
+                     .search(charme.web.constants.PARAM_DOMAINS, criteria.domainsOfInterest)
+                     .search(charme.web.constants.PARAM_ORGANIZATION, criteria.organization)
+                     .search(charme.web.constants.PARAM_CREATOR, criteria.creator)
+                     .search('resultsPerPage', criteria.resultsPerPage)
+                     .search('selectedRPP', criteria.selectedRPP);
+                     //.search('listOrder', criteria.listOrder);
         };
         $scope.flag = function(){
             alert('Flag annotation as inappropriate (for review by moderator): this functionality will be enabled in a future iteration of CHARMe');
@@ -370,7 +548,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         
                         angular.forEach(targets, function(target){
                             var targetHref = target.getValue(jsonoa.types.Common.ID);
-                            var targetName = targetHref.substring(targetHref.lastIndexOf('/') + 1);
+                            var targetName = targetHref;//.substring(targetHref.lastIndexOf('/') + 1);
                             var targetType = (target.getValue(jsonoa.types.Common.TYPE));
                             targetType = targetType.substring(targetType.lastIndexOf('/') + 1);
 
@@ -384,14 +562,15 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             var targetDropdown = document.getElementById('targetList');
                             // Avoid first option being shown twice (doesn't happen in IE, but don't need to check if browser is IE here)
                             targetDropdown.options[0].style.display = 'none';
+                            targetDropdown.selectedIndex = 0; // Fix for Firefox to make first option displayed (rather than blank)
                             
                             if($scope.targetList.length > 1)
                                 $scope.multipleTargets = true;
                             
-                            if($scope.domainTags.length > 1)
+                            if($scope.domainTags && $scope.domainTags.length > 1)
                                 $scope.multipleDomains = true;
                             
-                            if($scope.motivationTags.length > 1)
+                            if($scope.motivationTags && $scope.motivationTags.length > 1)
                                 $scope.multipleMotivations = true;
                         });
                         
@@ -401,25 +580,36 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         var auth = loginService.getAuth();
                         if (loginService.isLoggedIn() && auth && $scope.userName === auth.user.username) {
                                 $scope.deleteAnnotationFlag = true;
+                                
+                                $scope.getConfirm = function(confirmDelete) {
+                                    $scope.confirmDelete = confirmDelete;
+                                };
+                                $scope.noDelete = function() {
+                                    $rootScope.$broadcast('noDelete');
+                                };
+                                
                                 $scope.deleteAnnotation = function () {
-									$scope.processing=true;
-                                        deleteAnnotation(annoId, auth.token).then(function (response) {
-                                                $scope.$apply(function() {
-														$scope.processing=false;
-														angular.forEach($scope.targetList, function(thisTarget) {
-															window.top.postMessage('refreshAnnotationCount' +
-																":::" + thisTarget.uri, '*');
-														});
-                                                        $location.path(encodeURIComponent(targetId) +
-                                                                '/annotations/');
-                                                });
+                                    $scope.processing=true;
+                                    $('.ajaxModal').height($('.modal-body-view')[0].scrollHeight);
+                                    $('.popover-visible').css('z-index', '0');
+                                    
+                                    deleteAnnotation(annoId, auth.token).then(function (response) {
+                                        $scope.$apply(function() {
+                                            $scope.processing=false;
+                                            angular.forEach($scope.targetList, function(thisTarget) {
+                                                window.top.postMessage('refreshAnnotationCount' +
+                                                        ":::" + thisTarget.uri, '*');
+                                            });
+                                            $location.path(encodeURIComponent(targetId) +
+                                                    '/annotations/');
+                                            });
                                         }, function (error) {
-                                                $scope.$apply(function() {
-														$scope.processing=false;
-                                                        $scope.errorMsg='Unable to delete annotation';
-                                                });
+                                            $scope.$apply(function() {
+                                                $scope.processing=false;
+                                                $scope.errorMsg='Unable to delete annotation';
+                                            });
                                         });
-                                }
+                                };
                         }
 
                         if (!$scope.comment){
@@ -448,6 +638,40 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         $scope.directSearch = function(facet, name) {
             $location.path(encodeURIComponent(targetId) + '/annotations/').search(facet, name);
         };
+        
+        var annoListPosition = shiftAnnoService.getPosition($scope.annotationId);
+        $scope.atFirstAnno = annoListPosition[0];
+        $scope.atLastAnno = annoListPosition[1];
+        
+        $scope.shiftAnno = function(direction) {
+            var newAnno = shiftAnnoService.getNewAnno($scope.annotationId, direction);
+            annoListPosition = shiftAnnoService.getPosition(newAnno.id);
+            $scope.atFirstAnno = annoListPosition[0];
+            $scope.atLastAnno = annoListPosition[1];
+
+                var criteria = {};
+                criteria.targetTypes = $location.search()[charme.web.constants.PARAM_TARGET_TYPES];
+                criteria.motivations = $location.search()[charme.web.constants.PARAM_MOTIVATIONS];
+                criteria.domainsOfInterest = $location.search()[charme.web.constants.PARAM_DOMAINS];
+                criteria.organization = $location.search()[charme.web.constants.PARAM_ORGANIZATION];
+                criteria.creator = $location.search()[charme.web.constants.PARAM_CREATOR];
+                criteria.resultsPerPage = $location.search()['resultsPerPage'];
+                criteria.selectedRPP = $location.search()['selectedRPP'];
+                //criteria.listOrder = $location.search()['listOrder'];
+                
+                window.location.href = newAnno.uri;
+                $timeout(function() {
+                    $location.search(charme.web.constants.PARAM_TARGET_TYPES, criteria.targetTypes)
+                             .search(charme.web.constants.PARAM_MOTIVATIONS, criteria.motivations)
+                             .search(charme.web.constants.PARAM_DOMAINS, criteria.domainsOfInterest)
+                             .search(charme.web.constants.PARAM_ORGANIZATION, criteria.organization)
+                             .search(charme.web.constants.PARAM_CREATOR, criteria.creator)
+                             .search('resultsPerPage', criteria.resultsPerPage)
+                             .search('selectedRPP', criteria.selectedRPP)
+                             //.search('listOrder', criteria.listOrder.toString());
+                             .replace();
+                });
+        };
     }]);
 
 /**
@@ -457,7 +681,7 @@ charme.web.controllers.controller('ListTargetsCtrl', ['$scope', '$routeParams', 
     function ($scope, $routeParams, $location, $window){
         $scope.viewTargetsFlag=true;
         $scope.loading=true;
-        var targetId=$routeParams.targetId;
+        var targetId = $routeParams.targetId;
         $scope.cancel = function(){
             $location.path(encodeURIComponent(targetId) + '/annotations/');
         };
@@ -597,7 +821,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
     function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchTargetTypeVocab, fetchAllMotivations, fetchKeywords, fetchFabioTypes, searchAnnotations, targetService){
         searchAnnotations.clearListeners();
         $scope.newAnnotationFlag=true;
-        var targetId=$routeParams.targetId;
+        var targetId = $routeParams.targetId;
         $scope.targetId=targetId;
         $scope.commentMaxLength = 250; // Maximum no. of characters for free text
         
@@ -636,6 +860,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
             var targetDropdown = document.getElementById('selectedTarget');
             // Avoid first option being shown twice (doesn't happen in IE, but don't need to check if browser is IE here)
             targetDropdown.options[0].style.display = 'none';
+            targetDropdown.selectedIndex = 0; // Fix for Firefox to make first option displayed (rather than blank)
             
             if(invalidFlag) {
                 // Ensure correct className for <select> if first option in dropdown is invalid 
@@ -720,6 +945,8 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
                 return;
             
             $scope.loading=true;
+            $('.ajaxModal').height($('.modal-body-new')[0].scrollHeight);
+            
             var auth = loginService.getAuth();
             saveAnnotation(annoModel, targetId, $scope.targetList, auth).then(
                 function(){
@@ -749,7 +976,9 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
 
 charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$window', '$timeout', 'fetchAllSearchFacets', 'fetchTargetTypeVocab', 'searchAnnotations',
     function($rootScope, $scope, $routeParams, $location, $window, $timeout, fetchAllSearchFacets, fetchTargetTypeVocab, searchAnnotations) {
-        var targetId=$routeParams.targetId;
+        var targetId = $routeParams.targetId;
+        targetId = targetId === 'http://alltargets/' ? '' : targetId;
+        
         $scope.loading = true;
         $scope.resultsPerPage = [10, 20, 30, 'All'];  // first value in this array must be a number (not 'All')
         //$scope.listOrderOptions = [{text: 'Newest', sortNum: -1}, {text: 'Oldest', sortNum: 1}];
@@ -801,6 +1030,8 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
                 $scope.$broadcast('domainCategoriesForSearch', domainCategories);
                 
                 $scope.organizations = facetTypes[charme.logic.constants.FACET_TYPE_ORGANIZATION];
+                
+                $rootScope.$broadcast('vocabFetched');
             });
         });
         
@@ -841,10 +1072,22 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             var creator = $location.search()[charme.web.constants.PARAM_CREATOR];
             if(typeof creator === 'string')
                 criteria.creator = creator;
-            
+
+            // Wait to broadcast if returning from viewAnno or newAnno...
+            var onVocabFetched = $rootScope.$on('vocabFetched', function() {
+                $rootScope.$broadcast('newTargetTypes', criteria.targetTypes);
+                $rootScope.$broadcast('newMotivations', criteria.motivations);
+                $rootScope.$broadcast('newDomains', criteria.domainsOfInterest);
+            });
+            // ... otherwise broadcast now
             $rootScope.$broadcast('newTargetTypes', criteria.targetTypes);
             $rootScope.$broadcast('newMotivations', criteria.motivations);
             $rootScope.$broadcast('newDomains', criteria.domainsOfInterest);
+            
+            $scope.$on('$destroy', function() {
+                onVocabFetched(); // Remove listener
+            });
+            
             $scope.criteria.selectedOrganization = criteria.organization;
             $scope.criteria.selectedCreator = criteria.creator;
 
@@ -869,7 +1112,9 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             //if(typeof listOrder === 'string')
             //    $scope.selectedOrder = criteria.listOrder = parseInt(listOrder);
             
-            $rootScope.$broadcast('listOptions', criteria.resultsPerPage, criteria.selectedRPP);//, criteria.listOrder);
+            //$rootScope.$broadcast('listOptions', criteria.resultsPerPage, criteria.selectedRPP);//, criteria.listOrder);
+            $rootScope.$broadcast('newCriteria', criteria);
+            
             return criteria;
         };
  
@@ -988,15 +1233,17 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             searchAnnotations.searchAnnotations(criteriaFromSearch());
         });
 
-        $rootScope.$on('changePage', function(event, newPage, pages){
+        $rootScope.$on('changePage', function(event, newPage, lastPage, pages) {
             var currentPage = criteria.pageNum;
             
             if(typeof newPage === "number")
                 criteria.pageNum = newPage;
-            else if(newPage === '-1' && criteria.pageNum > 1)
-                criteria.pageNum--;
-            else if(newPage === '+1' && criteria.pageNum < pages.length)
-                criteria.pageNum++;
+            else if(typeof newPage === "string") {
+                var pageIncrement = parseInt(newPage);
+                
+                if(criteria.pageNum + pageIncrement > 0 && criteria.pageNum + pageIncrement <= lastPage)
+                    criteria.pageNum += pageIncrement;
+            }
 
             if(criteria.pageNum !== currentPage) {
                 $location.search('pageNum', criteria.pageNum.toString());
@@ -1004,7 +1251,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         });
 
         var maxResults, firstSearchFlag = true;
-        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, totalResults){
+        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, pageNum, lastPage, totalResults){
             $scope.$apply(function() {
                 $scope.numResults = totalResults;
                 $scope.loading = false;
@@ -1059,4 +1306,19 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             $scope.changeOrganisation(true);
             $scope.criteria.selectedCreator = '';
         };
+
+        $scope.xOverflow = function() {
+            $('#searchContainer').removeClass('search-overflow-y');
+        };
+        $scope.yOverflow = function() {
+            $('#searchContainer').addClass('search-overflow-y');
+        };
+
+        selectizeMixins.addToOnFocus('chooseDomainDiv', $scope.xOverflow);
+        selectizeMixins.addToOnBlur('chooseDomainDiv', $scope.yOverflow);
+        
+        $scope.$on('$destroy', function(event) {
+            selectizeMixins.removeFromOnFocus('chooseDomainDiv', $scope.xOverflow);
+            selectizeMixins.removeFromOnBlur('chooseDomainDiv', $scope.yOverflow);
+        });
     }]);

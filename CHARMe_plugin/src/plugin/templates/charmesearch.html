@@ -1,8 +1,33 @@
+<!--
+  Copyright (c) 2014, CGI
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without modification, are 
+  permitted provided that the following conditions are met:
+  1. Redistributions of source code must retain the above copyright notice, this list of 
+     conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright notice, this list 
+     of conditions and the following disclaimer in the documentation and/or other materials 
+     provided with the distribution.
+  3. Neither the name of the copyright holder nor the names of its contributors may be 
+     used to endorse or promote products derived from this software without specific prior 
+     written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
+  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+  THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
+  OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+  TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
 <form class="form-horizontal form-charme-search" data-ng-controller="SearchCtrl">
     <div class="control-group">
         <label class="control-label" for="chooseTargetType">Target type</label>
         <div class="controls controls-row">
-            <select id="chooseTargetType" class="span5 target-types" data-target-types-to-show="targetTypeCategoriesForSearch" data-target-type-keywords 
+            <select id="chooseTargetType" class="span5 target-types" data-target-type-keywords multiple
+                    data-target-types-to-show="targetTypeCategoriesForSearch" 
                     data-ng-model="criteria.selectedTargetTypes"
                     placeholder=" Select tags...">
             </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving targetTypeCategoriesForSearch -->
@@ -12,8 +37,9 @@
     </div>
     <div class="control-group">
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
-        <div class="controls controls-row">
-            <select id="chooseDomain" class="span5 domains" data-keywords-to-show="domainCategoriesForSearch" data-domain-keywords 
+        <div id="chooseDomainDiv" class="controls controls-row">
+            <select id="chooseDomain" class="span5 domains" data-domain-keywords multiple
+                    data-keywords-to-show="domainCategoriesForSearch" 
                     data-ng-model="criteria.selectedDomains" 
                     placeholder=" Select tags...">
             </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving domainCategoriesForSearch -->
@@ -24,7 +50,8 @@
     <div class="control-group">
         <label class="control-label" for="chooseMotivation">Motivation</label>
         <div class="controls controls-row">
-            <select id="chooseMotivation" class="span5 motivations" data-motivations-to-show="motivationCategoriesForSearch" data-motivation-keywords 
+            <select id="chooseMotivation" class="span5 motivations" data-motivation-keywords multiple
+                    data-motivations-to-show="motivationCategoriesForSearch" 
                     data-ng-model="criteria.selectedMotivations"
                     placeholder=" Select tags...">
             </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving motivationCategoriesForSearch -->

@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2014, CGI
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification, are 
+ * permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this list of 
+ *    conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list 
+ *    of conditions and the following disclaimer in the documentation and/or other materials 
+ *    provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be 
+ *    used to endorse or promote products derived from this software without specific prior 
+ *    written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
 charme.web.services = angular.module('charmeServices', []);
 
 charme.web.services.factory('persistence', function(){ 
@@ -199,10 +224,14 @@ charme.web.services.factory('searchAnnotations', function(){
         searchService.listeners = {};
     };
 
-	searchService.tellListeners = function (type, data1, data2, data3){
+	searchService.tellListeners = function (type, data1, data2, data3, data4, data5){
 		angular.forEach(searchService.listeners[type], function(listener){
-			if (typeof data1 !== 'undefined' || typeof data2 !== 'undefined' || typeof data3 !== 'undefined'){
-				listener(data1, data2, data3);
+			if (typeof data1 !== 'undefined' || 
+                            typeof data2 !== 'undefined' || 
+                            typeof data3 !== 'undefined' ||
+                            typeof data4 !== 'undefined' ||
+                            typeof data5 !== 'undefined') {
+				listener(data1, data2, data3, data4, data5);
 			} else {
 				listener();
 			}
@@ -223,7 +252,7 @@ charme.web.services.factory('searchAnnotations', function(){
 					var author = '';
 					var userName = '';
 					var organizationName = '';
-                    var organizationUri = '';
+                                        var organizationUri = '';
 
 					var date = anno.getValue(annoSpec.DATE);
 					date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
@@ -260,14 +289,17 @@ charme.web.services.factory('searchAnnotations', function(){
 				//results.splice(criteria.resultsPerPage, results.length - criteria.resultsPerPage);
 
 				var pages = [];
-				for(var i = 1; i <= Math.ceil(feed.totalResults / criteria.resultsPerPage); i++) {
-					if(i === criteria.pageNum)
-						pages.push({status: 'current'});
-					else
-						pages.push({status: 'notCurrent'});
+                                var lastPage = Math.ceil(feed.totalResults / criteria.resultsPerPage);
+				for(var i = 1; i <= lastPage; i++) {
+                                    if(i === criteria.pageNum)
+                                        pages.push({status: 'current'});
+                                    else if((criteria.pageNum <= Math.ceil(charme.logic.constants.NUM_PAGE_BUTTONS / 2) && i <= charme.logic.constants.NUM_PAGE_BUTTONS) || 
+                                            (criteria.pageNum >= lastPage - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2) && i >= lastPage - charme.logic.constants.NUM_PAGE_BUTTONS + 1) ||
+                                            Math.abs(i - criteria.pageNum) <= Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
+                                        pages.push({status: 'notCurrent'});
 				}
                                 
-				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, feed.totalResults);
+				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, criteria.pageNum, lastPage, feed.totalResults);
 				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);   
 			},
 			function(error){
@@ -289,7 +321,6 @@ charme.web.services.factory('deleteAnnotation', function(){
 
 charme.web.services.factory('saveAnnotation', function () {
 	return function(annoModel, targetId, targetMap, auth){
-            $('.ajaxModal').height($('.modal-body-new')[0].scrollHeight);
 		var promise = new Promise(function(resolver){
 			var annoSpec = jsonoa.types.Annotation;
 			var graph = new jsonoa.core.Graph();
@@ -489,7 +520,7 @@ charme.web.services.factory('fetchAllSearchFacets', function(){
 /**
  * This service returns the list of selected targets.
  */
-charme.web.services.factory('targetService', function(){
+charme.web.services.factory('targetService', function() {
         return {
             targets: []   /* This array is initialised in the InitCtrl */
             //targetsHighlighted: []
@@ -497,9 +528,34 @@ charme.web.services.factory('targetService', function(){
     }
 );
 
-charme.web.services.factory('searchBarService', function(){
+charme.web.services.factory('searchBarService', function() {
         return {
-            isSearchOpen: screen.width <= 1280 ? false : true
+            isSearchOpen: screen.width <= charme.common.SMALL_SCREEN ? false : true,
+            targetDropdownFlag: false
         };
+    }
+);
+
+charme.web.services.factory('shiftAnnoService', function() {
+        var shiftAnnoService = {};
+        shiftAnnoService.annoList = [];
+        
+        shiftAnnoService.getPosition = function(annoId) {
+            var result = [];
+            result.push(annoId === shiftAnnoService.annoList[0].id);
+            result.push(annoId === shiftAnnoService.annoList[shiftAnnoService.annoList.length - 1].id);
+            
+            return result;
+        };
+    
+        shiftAnnoService.getNewAnno = function(annoId, direction) {
+            for(var i = 0; i < shiftAnnoService.annoList.length; i++) {
+                if(shiftAnnoService.annoList[i].id === annoId) {
+                    return shiftAnnoService.annoList[i + direction];
+                }
+            }
+        };
+
+        return shiftAnnoService;
     }
 );

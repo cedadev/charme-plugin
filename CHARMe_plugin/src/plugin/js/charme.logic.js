@@ -1,4 +1,29 @@
 /*
+ * Copyright (c) 2014, CGI
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification, are 
+ * permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this list of 
+ *    conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list 
+ *    of conditions and the following disclaimer in the documentation and/or other materials 
+ *    provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be 
+ *    used to endorse or promote products derived from this software without specific prior 
+ *    written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+/*
  * charme.logic.js
  * 
  * Functions for abstracting the lower level functions of the jsonoa.js library
@@ -42,10 +67,12 @@ charme.logic.constants = {
     FABIO_XP_CLASSES : '//owl:Class',
 
     FACET_TYPE_TARGET_TYPE: 'dataType',
-	FACET_TYPE_MOTIVATION: 'motivation',
-	FACET_TYPE_DOMAIN: 'domainOfInterest',
-	FACET_TYPE_ORGANIZATION: 'organization',
-	STATE_DELETE: 'retired'
+    FACET_TYPE_MOTIVATION: 'motivation',
+    FACET_TYPE_DOMAIN: 'domainOfInterest',
+    FACET_TYPE_ORGANIZATION: 'organization',
+    STATE_DELETE: 'retired',
+        
+    NUM_PAGE_BUTTONS: 15 // Odd number
 };
 
 /*
@@ -201,7 +228,7 @@ charme.logic.shortAnnoId = function(longformId){
 	if (matches)
 		shortId = matches[0];
 	return shortId;
-}
+};
 
 /**
  * A utility function that will find a DOI within a given string
@@ -614,7 +641,7 @@ charme.logic.saveGraph = function(graph, token) {
 				'Authorization' : ' Bearer ' + token
 			},
 			contentType : 'application/ld+json',
-			data : jsonSrc,
+			data : jsonSrc
 		}).then(function() {
 			resolver.fulfill();
 		}, function(e, msg) {
@@ -636,7 +663,7 @@ charme.logic.fetchAnnotation = function(annotationId) {
 	var promise = new Promise(function(resolver) {
 		var reqUrl = charme.logic.urls.fetchRequest(shortId);
 		$.ajax(reqUrl, {
-			type : 'GET',
+			type : 'GET'
 		}).then(function(data) {
 			var graph = new jsonoa.core.Graph();
 			graph.load(data, false).then(function(graph) {
@@ -788,8 +815,8 @@ charme.logic.searchAnnotations = function(criteria) {
  */
 charme.logic.deleteAnnotation=function(annotationId, token){
 	//return charme.logic.advanceState(annotationId, charme.logic.constants.STATE_DELETE, token)
-	return charme.logic.advanceState(annotationId, 'retired', token)
-}
+	return charme.logic.advanceState(annotationId, 'retired', token);
+};
 
 /*
  * Change the status of the given annotation. All transitions between states are allowed.

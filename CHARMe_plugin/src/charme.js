@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2014, CGI
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification, are 
+ * permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this list of 
+ *    conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list 
+ *    of conditions and the following disclaimer in the documentation and/or other materials 
+ *    provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be 
+ *    used to endorse or promote products derived from this software without specific prior 
+ *    written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
 "use strict";
 if (!charme) {
 	var charme = {};
@@ -20,6 +45,9 @@ charme.plugin.constants = (function constants() {
 	//this.XPATH_TOTAL_RESULTS	= '//os:totalResults';
     return constants;
 })();
+
+// GUI open/closed
+charme.plugin.isOpenFlag = false;
 
 /**
  * An XML document namespace resolver. This is required for processing the atom feed
@@ -87,7 +115,9 @@ charme.plugin.request = {};
  * @returns {String}
  */
 charme.plugin.request.fetchForTarget = function (targetId) {
-
+    
+        targetId = targetId === charme.common.ALL_TARGETS ? '' : targetId;
+    
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
 		charme.plugin.constants.REMOTE_BASE_URL + '/') + 'search/atom?target=' +
 		encodeURIComponent(targetId) + '&status=submitted';
@@ -155,7 +185,7 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
  * @param inactiveImgSrc
  */
 charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc) {
-
+    
 	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href), function (xmlDoc) {
 		// Success callback
 		var constants = charme.plugin.constants;
@@ -179,9 +209,9 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 			el.style.background = 'url("' + inactiveImgSrc + '") no-repeat left top';
 		}
                 
-        // Show the annotation count next to the CHARMe icon - use the className 'charme-count' to hide the count if desired
+        // Show the annotation count next to the CHARMe icon - use the className 'charme-count' to hide the count in CSS file if desired
         var showCount = charme.plugin.getByClass('charme-count', charme.plugin.constants.MATCH_EXACT, el.parentNode);
-        if(showCount.length > 0)
+        if(showCount.length > 0) 
             showCount = showCount[0];
         else {
             showCount = document.createElement('span');
@@ -227,6 +257,13 @@ charme.plugin.setWholeTargetList = function(checkbox) {
     }
 };
 
+// Disable icons if plugin already launched
+charme.plugin.disableWholeTargetList = function(isDisabled) {
+    var els = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+    for(var i = 0 ; i < els.length; i++)
+        els[i].disabled = isDisabled;
+};
+
 /**
  * Defines the function that executes when a checkbox on a target is clicked.
  * The event ensures that the charme.plugin.selectedTargets map is kept up-to-date
@@ -236,7 +273,7 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
 
     var targetHref = targetCheckbox.target.id;
     var targetHrefEncoded = '';
-    var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
+    var targetName = targetHref;//.substring(targetHref.lastIndexOf('/')+1);
     
     var targetTypeLabel = targetCheckbox.target.name;
     var targetTypeDesc = targetTypeLabel.split('-');
@@ -328,7 +365,7 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
 charme.plugin.getSelectedTargets = function () {
 
     return charme.plugin.selectedTargets;
-}
+};
 
 
 //charme.plugin.getSelectedTargetsHighlighted = function () {
@@ -419,12 +456,23 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         var text = document.createElement('span');
         text.innerHTML = 'Select/unselect all';
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
+        
+        var allTargetsContainer = document.getElementById('charme-placeholder-all-targets');
+        var anchor = document.createElement('a');
+        anchor.href = charme.common.ALL_TARGETS;
+        anchor.className = 'charme-all-types';
+        allTargetsContainer.appendChild(anchor, allTargetsContainer);
+        
+        text = document.createElement('span');
+        text.innerHTML = 'Select all targets: ';
+        allTargetsContainer.insertBefore(text, anchor);
     }
-
+    
     var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL);
     for(var i = 0; i < els.length; i++) {
         if(els[i].href) {
-            if(isFirstLoad || els[i].href === targetId)
+            //if(isFirstLoad || els[i].href === targetId)
+            if(isFirstLoad || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
                 charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src);
 
             if(isFirstLoad) {
@@ -433,13 +481,15 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
                 els[i].style.height = '26px';
                 
                 // Insert checkboxes and attach selection events
-                var targetCheckbox = document.createElement('input');
-                targetCheckbox.type = 'checkbox';
-                targetCheckbox.className = 'charme-select';
-                targetCheckbox.id = els[i].href;
-                targetCheckbox.name = charme.plugin.extractTargetType(els[i].className);
-                els[i].parentNode.insertBefore(targetCheckbox, els[i]);
-                charme.plugin.setSelectionEventOnTarget(targetCheckbox, 'target');
+                if(els[i].href !== charme.common.ALL_TARGETS) {
+                    var targetCheckbox = document.createElement('input');
+                    targetCheckbox.type = 'checkbox';
+                    targetCheckbox.className = 'charme-select';
+                    targetCheckbox.id = els[i].href;
+                    targetCheckbox.name = charme.plugin.extractTargetType(els[i].className);
+                    els[i].parentNode.insertBefore(targetCheckbox, els[i]);
+                    charme.plugin.setSelectionEventOnTarget(targetCheckbox, 'target');
+                }
             }
         }
     }
@@ -495,7 +545,7 @@ charme.plugin.loadPlugin = function () {
     //document.lastChild.appendChild(plugin);
     
     var plugin = document.getElementById('charme-placeholder');
-    plugin.innerHTML += '<iframe></iframe>';
+    plugin.innerHTML += '<iframe id="charme-iframe" name="charme-iframe"></iframe>';
     plugin = plugin.lastChild;
 
     plugin.frameBorder = "no";
@@ -516,11 +566,11 @@ charme.plugin.loadPlugin = function () {
     plugin.allowTransparency = true;
     plugin.setAttribute('scrolling', 'no');
     
-    if(screen.width <= 1280) {
-        plugin.style.minWidth = '1240px';
+    if(screen.width <= charme.common.SMALL_SCREEN) {
+        plugin.style.minWidth = '1262px';
     }
     else {
-        plugin.style.minWidth = '1350px';
+        plugin.style.minWidth = '1367px';
         plugin.style.paddingTop = '50px';
         plugin.style.paddingLeft = '25px';
     }
@@ -534,19 +584,30 @@ charme.plugin.closeFunc = function (isOneTarget, targetId) {
 	//plugin.style.display = 'none';
         plugin.parentNode.removeChild(plugin);
         
-        if(isOneTarget) {
+        //if(isOneTarget) {
+        if(isOneTarget && targetId !== charme.common.ALL_TARGETS) {
             var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
             targetCheckboxs[targetId].click();
         }
+        
+        if(charme.plugin.selectedTargets.hasOwnProperty(charme.common.ALL_TARGETS))
+            delete charme.plugin.selectedTargets[charme.common.ALL_TARGETS];
+            
+        charme.plugin.disableWholeTargetList(false);
+        charme.plugin.isOpenFlag = false;
         
         charme.plugin.loadPlugin();
 };
 
 charme.plugin.miniaturiseFunc = function () {
     var plugin = document.getElementById('charme-plugin-frame');
-    plugin.style.height = '40%';
-    plugin.style.minWidth = '720px';
+    //plugin.style.height = '40%';
+    //plugin.style.minWidth = '720px';
     //plugin.style.paddingTop = '300px';
+    
+    plugin.style.minWidth = '450px';
+    plugin.style.height = '74px';
+    
 };
 
 charme.plugin.maximiseFunc = function () {
@@ -556,11 +617,11 @@ charme.plugin.maximiseFunc = function () {
     //plugin.style.paddingLeft = '25px';
     //plugin.style.paddingTop = '50px';
     
-    if(screen.width <= 1280) {
-        plugin.style.minWidth = '1240px';
+    if(screen.width <= charme.common.SMALL_SCREEN) {
+        plugin.style.minWidth = '1262px';
     }
     else {
-        plugin.style.minWidth = '1350px';
+        plugin.style.minWidth = '1367px';
         plugin.style.paddingTop = '50px';
         plugin.style.paddingLeft = '25px';
     }
@@ -598,41 +659,53 @@ charme.plugin.stopBubble = function(e){
                     e.returnValue = false;
             }
     }
-}
+};
 /**
  * Renders the plugin visible
  * @param e event object. This is used
  */
 charme.plugin.showPlugin = function (e) {
+        charme.plugin.stopBubble(e);
+        
+        if(charme.plugin.isOpenFlag)
+            return;        
+    
 	var plugin = document.getElementById('charme-plugin-frame');
 	//charme.common.removeEvent(plugin, 'load', charme.plugin.loadFunc);
 	charme.common.addEvent(plugin, 'load', charme.plugin.loadFunc);
 
-        charme.plugin.stopBubble(e);
+        //charme.plugin.stopBubble(e);
 	var targetHref = '', targetType = '';
 	if (typeof e.target === 'undefined') {
 		targetHref = e.srcElement.href;
-                targetType = charme.plugin.extractTargetType(e.srcElement.className);
+                //targetType = charme.plugin.extractTargetType(e.srcElement.className);
 	} else {
 		targetHref = e.target.href;
-                targetType = charme.plugin.extractTargetType(e.target.className);
+                //targetType = charme.plugin.extractTargetType(e.target.className);
 	}
+        
+        if(targetHref === charme.common.ALL_TARGETS) {
+            charme.plugin.selectedTargets[targetHref] = ['All Targets', 'Alltypes', 'all types'];
+            charme.plugin.disableWholeTargetList(true);
+        }
         
 	plugin.contentWindow.location.href = charme.settings.path + '/plugin/plugin.html#/' +
 		encodeURIComponent(encodeURIComponent(targetHref)) + '/init';
 	plugin.style.display = 'block'; // Only show the iFrame once the content has loaded in order to minimize flicker
+        
+        charme.plugin.isOpenFlag = true;
 
     ////charme.plugin.populateTargetList();
     //charme.plugin.setAsSelected(targetHref, targetType);
     
-    if (!(targetHref in charme.plugin.selectedTargets)) {
+    //if (!(targetHref in charme.plugin.selectedTargets)) {
+    if (!(targetHref in charme.plugin.selectedTargets) && targetHref !== charme.common.ALL_TARGETS) {
         var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
         targetCheckboxs[targetHref].click();
     }
 };
 
 charme.plugin.preInit = function () {
-
 	/**
 	 * This is duplicated (unfortunately) from charme.common.js. The code below should not be used anywhere else.
 	 */
@@ -653,22 +726,61 @@ charme.plugin.preInit = function () {
 		var settingsScript = document.createElement('script');
 		settingsScript.type = 'text/javascript';
 		settingsScript.src = scriptPath + '/charme.settings.js';
-		settingsScript.onreadystatechange = charme.plugin.init;
-		settingsScript.onload = charme.plugin.init;
+
+                if(settingsScript.readyState) {
+                    settingsScript.onreadystatechange = function () {
+                        if (settingsScript.readyState === "loaded" || settingsScript.readyState === "complete") {
+                            settingsScript.onreadystatechange = null;
+                            charme.plugin.init();
+                        }
+                    };
+                }
+                else
+                    settingsScript.onload = charme.plugin.init;
+                
 		document.getElementsByTagName('body')[0].appendChild(settingsScript);
+                
+                // If data provider allows the plugin GUI to be dragged, insert script and set option to allow dragging off screen
+                var plugin = document.getElementById('charme-placeholder');
+                if(plugin.className === 'charme-draggable') {
+                    var dragScript = document.createElement('script');
+                    dragScript.type = 'text/javascript';
+                    dragScript.src = scriptPath + '/plugin/js/vendor/dragiframe.js';
+                    document.getElementsByTagName('body')[0].appendChild(dragScript);
+
+                    if(dragScript.readyState) {
+                        dragScript.onreadystatechange = function () {
+                            if (dragScript.readyState === "loaded" || dragScript.readyState === "complete") {
+                                dragScript.onreadystatechange = null;
+                                (function() {return dragIF_allowDragOffScreen(true);}());
+                            }
+                        };
+                    }
+                    else
+                        dragScript.onload = function() {return dragIF_allowDragOffScreen(true);};
+                }
 	};
 
 	var loadCommon = function () {
 		var commonScript = document.createElement('script');
 		commonScript.type = 'text/javascript';
 		commonScript.src = scriptPath + '/charme.common.js';
-		commonScript.onreadystatechange = loadSettings;
-		commonScript.onload = loadSettings;
+                
+                if(commonScript.readyState) {
+                    commonScript.onreadystatechange = function () {
+                        if (commonScript.readyState === "loaded" || commonScript.readyState === "complete") {
+                            commonScript.onreadystatechange = null;
+                            loadSettings();
+                        }
+                    };
+                }
+                else
+                    commonScript.onload = loadSettings;
+                
 		document.getElementsByTagName('body')[0].appendChild(commonScript);
 	};
 
 	loadCommon();
-
 };
 
 /**

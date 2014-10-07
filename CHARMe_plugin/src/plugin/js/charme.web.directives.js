@@ -1,15 +1,46 @@
+/*
+ * Copyright (c) 2014, CGI
+ * All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification, are 
+ * permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice, this list of 
+ *    conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list 
+ *    of conditions and the following disclaimer in the documentation and/or other materials 
+ *    provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be 
+ *    used to endorse or promote products derived from this software without specific prior 
+ *    written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
 charme.web.app.directive('targetTypeKeywords', function($timeout) {
     return {
         restrict: 'A',
         require: '?ngModel',
         scope: {targetTypesToShow: '@'},
         link: function ($scope, element, attrs, $ngModel) {
+            var optgroups = [];
+            var options = [];
+            var el = $(element).selectize({
+                persist: true
+            })[0].selectize;
+            
             $scope.$on($scope.targetTypesToShow, function(event, categories) {
-                $(element)[0].multiple = true;
-                var optgroups = [];
-                var options = [];
                 angular.forEach(categories, function (cat) {
                     optgroups.push({value: cat.name, label: cat.name});
+                    // Could just use el.addOptionGroup here instead, and have no optgroups array at all, but we might perhaps want to have this array in future
+                    //el.addOptionGroup(cat.name, {label: cat.name});
+                    
                         angular.forEach(cat.keywords, function (kword) {
                             if(kword.hasOwnProperty('desc')) {
                                 options.push({text: kword.desc, value: kword.uri, optgroup: cat.name, $order: kword.desc});
@@ -17,17 +48,22 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                             else if(kword.hasOwnProperty('label')) {
                                 if(kword.label instanceof Array)
                                     options.push({text: kword.label[0].trim(), value: kword.uri, optgroup: cat.name, $order: kword.label[0].trim()});
-                                else
+                                else if(kword.label !== undefined)
                                     options.push({text: kword.label.trim(), value: kword.uri, optgroup: cat.name, $order: kword.label.trim()});
                             }
                         });
                 });
-                var el = $(element).selectize({
-                    persist: false,
-                    options: options,
-                    optgroups: optgroups
-                })[0].selectize;
                 
+                // $timeout used to avoid 'apply already in progress' error
+                $timeout(function() {
+                    for(var i = 0; i < optgroups.length; i++) {
+                        el.addOptionGroup(optgroups[i].value, {label: optgroups[i].label});
+                    }
+                    el.load(function(func) {
+                        func(options);
+                    });
+                });
+
                 function applyChange() {
                     var selectedOptions = [];
                     var values = el.getValue();
@@ -77,12 +113,27 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             require: '?ngModel',
             scope: {keywordsToShow: '@'},
             link: function ($scope, element, attrs, $ngModel) {
+                var optgroups = [];
+                var options = [];
+                var el = $(element).selectize({
+                    persist: true,
+                    maxOptions: null,
+                    onItemAdd: function(value) {
+                        var updatedObj = $.extend({}, this.options[value], {text: this.options[value].textShort});
+                        this.updateOption(value, updatedObj);
+                    },
+                    onItemRemove: function(value) {
+                        var updatedObj = $.extend({}, this.options[value], {text: this.options[value].textLong});
+                        this.updateOption(value, updatedObj);
+                    }
+                })[0].selectize;
+            
                 $scope.$on($scope.keywordsToShow, function(event, categories){
-                    $(element)[0].multiple = true;
-                    var optgroups = [];
-                    var options = [];
                     angular.forEach(categories, function (cat) {
-                            optgroups.push({value: cat.name, label: cat.name + ' Keywords'});                  
+                            optgroups.push({value: cat.name, label: cat.name + ' Keywords'});
+                            // Could just use el.addOptionGroup here instead, and have no optgroups array at all, but we might perhaps want to have this array in future
+                            //el.addOptionGroup(cat.name, {label: cat.name + ' Keywords'});
+                            
                             angular.forEach(cat.keywords, function (kword) {
                                     if(kword.hasOwnProperty('desc')) {
                                         options.push({text: kword.desc, textLong: kword.desc, textShort: charme.logic.shortDomainLabel(kword.desc), value: kword.uri, optgroup: cat.name, $order: kword.desc});
@@ -95,43 +146,16 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                                     }
                             });
                     });
-                    var el = $(element).selectize({
-                            persist: false,
-                            options: options,
-                            optgroups: optgroups,
-                            maxOptions: options.length,
-                            // These two functions *almost* enable the desired overflow behaviour in the plugin search window, 
-                            // but not well enough. What we really want are onFocus/onBlur API methods, but there aren't any (yet) 
-                            // so instead we insert our code directly into the onFocus and onBlur methods within selectize.js
-                            /*onDropdownOpen: function() {
-                                var searchContainer = document.getElementById("searchContainer");
-                                searchContainer.className = searchContainer.className.replace(/\ssearch-overflow-y/g, '');
-                            },
-                            onDropdownClose: function() {
-                                var searchContainer = document.getElementById("searchContainer");
-                                searchContainer.className += " search-overflow-y";
-                                
-                                if(el.getValue().length === options.length)
-                                    el.blur();
-                                    
-                                // Here for temporary reference... doesn't work
-                                //var searchContainer = document.querySelectorAll(".domains .selectize-input");
-                                //searchContainer[0].addEventListener('click', function() {
-                                //    var searchContainer = document.getElementById("searchContainer");
-                                //    searchContainer.className = searchContainer.className.replace(/\ssearch-overflow-y/g, '');
-                                //});
-                            },*/
-                            // We $.extend() into a new, empty object, rather than modify this.options directly, because Brian 'Selectize' Reavis says: 
-                            // "It's not a good idea to modify this.items or this.options—it could lead to unexpected behavior"
-                            onItemAdd: function(value) {
-                                var updatedObj = $.extend({}, this.options[value], {text: this.options[value].textShort});
-                                this.updateOption(value, updatedObj);
-                            },
-                            onItemRemove: function(value) {
-                                var updatedObj = $.extend({}, this.options[value], {text: this.options[value].textLong});
-                                this.updateOption(value, updatedObj);
-                            }
-                    })[0].selectize;
+                    
+                    // $timeout used to avoid 'apply already in progress' error
+                    $timeout(function() {
+                        for(var i = 0; i < optgroups.length; i++) {
+                            el.addOptionGroup(optgroups[i].value, {label: optgroups[i].label});
+                        }
+                        el.load(function(func) {
+                            func(options);
+                        });
+                    });
                     
                     function applyChange() {
                             var selectedOptions = [];
@@ -152,10 +176,23 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                     $scope.$on('newDomains', function(event, newDomains) {
                         // $timeout used to avoid 'apply already in progress' error
                         $timeout(function() {
-                            el.clear();
-                            el.refreshItems();
-                            angular.forEach(newDomains, function(value) {
-                                el.addItem(value);
+                            //el.clear();
+                            $timeout(function() {
+                                // Input box reset here, view value reset in the controller
+                                // Don't simply use el.clear(), as we must invoke our onItemRemove() function for each selected item
+                                var items = el.getValue();
+                                angular.forEach(items, function(item) {
+                                    $timeout(function() {
+                                        el.removeItem(item);
+                                    });
+                                });
+                                
+                                $timeout(function() { // $timeout, $timeout, everywhere...
+                                    el.refreshItems();
+                                    angular.forEach(newDomains, function(value) {
+                                        el.addItem(value);
+                                    });
+                                });
                             });
                         });
                     });
@@ -163,7 +200,14 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                     $scope.$on('reset', function() {
                         // $timeout used to avoid 'apply already in progress' error
                         $timeout(function() {
-                            el.clear();  // Input box reset here with .clear(), view value reset in the controller
+                            // Input box reset here, view value reset in the controller
+                            // Don't simply use el.clear(), as we must invoke our onItemRemove() function for each selected item
+                            var items = el.getValue();
+                            angular.forEach(items, function(item) {
+                                $timeout(function() {
+                                    el.removeItem(item);
+                                });
+                            });
                         });
                     });
                     
@@ -182,12 +226,18 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             require: '?ngModel',
             scope: {motivationsToShow: '@'},
             link: function ($scope, element, attrs, $ngModel) {
+                var optgroups = [];
+                var options = [];
+                var el = $(element).selectize({
+                    persist: false
+                })[0].selectize;
+                
                 $scope.$on($scope.motivationsToShow, function(event, categories){
-                    $(element)[0].multiple = true;
-                    var optgroups = [];
-                    var options = [];
                     angular.forEach(categories, function (cat) {
                             optgroups.push({value: cat.name, label: cat.name});
+                            // Could just use el.addOptionGroup here instead, and have no optgroups array at all, but we might perhaps want to have this array in future
+                            //el.addOptionGroup(cat.name, {label: cat.name});
+                            
                             angular.forEach(cat.keywords, function (kword) {
                                     if(kword.hasOwnProperty('desc')) {
                                         options.push({text: kword.desc, value: kword.uri, optgroup: cat.name, $order: kword.desc});
@@ -200,11 +250,16 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                                     }
                             });
                     });
-                    var el = $(element).selectize({
-                            persist: false,
-                            options: options,
-                            optgroups: optgroups
-                    })[0].selectize;
+                    
+                    // $timeout used to avoid 'apply already in progress' error
+                    $timeout(function() {
+                        for(var i = 0; i < optgroups.length; i++) {
+                            el.addOptionGroup(optgroups[i].value, {label: optgroups[i].label});
+                        }
+                        el.load(function(func) {
+                            func(options);
+                        });
+                    });
 
                     function applyChange() {
                             var selectedOptions = [];
@@ -264,9 +319,9 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
 			};
 			scope.onDelete = function(){
 				deleteAnnotation(scope.annoId);
-			}
+			};
 		}
-	}
+	};
 }]);
         
 /*.directive('charmeCito', ['fetchFabioTypes', function (fetchFabioTypes) {
@@ -321,4 +376,3 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
     };
 })*/
 
-;

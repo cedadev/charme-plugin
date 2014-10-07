@@ -1521,11 +1521,6 @@
 		 * @returns {boolean}
 		 */
 		onFocus: function(e) {
-                        // The Selectize API doesn't (yet) provide any onFocus method, so we must insert our code here
-                        var searchContainer = document.getElementById("searchContainer");
-                        if(searchContainer !== null)
-                            searchContainer.className = searchContainer.className.replace(/\ssearch-overflow-y/g, '');
-                    
 			var self = this;
                         
 			self.isFocused = true;
@@ -1554,11 +1549,6 @@
 		 * @returns {boolean}
 		 */
 		onBlur: function(e) {
-                        // The Selectize API doesn't (yet) provide any onFocus method, so we must insert our code here
-                        var searchContainer = document.getElementById("searchContainer");
-                        if(searchContainer !== null)
-                            searchContainer.className += " search-overflow-y";
-                    
 			var self = this;
 			self.isFocused = false;
 			if (self.ignoreFocus) return;
