@@ -40,10 +40,10 @@ charme.plugin.selectedTargetsHighlighted = {};
 charme.plugin.constants = (function constants() {
 	constants.XPATH_BASE = '//atm:feed';
 	constants.XPATH_TOTAL_RESULTS = constants.XPATH_BASE + '/os:totalResults';
-    constants.MATCH_EXACT = 0;
-    constants.MATCH_PARTIAL = 1;
+	constants.MATCH_EXACT = 0;
+	constants.MATCH_PARTIAL = 1;
 	//this.XPATH_TOTAL_RESULTS	= '//os:totalResults';
-    return constants;
+	return constants;
 })();
 
 // GUI open/closed
@@ -222,13 +222,13 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 
         charme.common.addEvent(el, 'click', charme.plugin.showPlugin);
 	}, function () {
-                el.title = 'CHARMe Plugin - Unable to fetch annotation data';
-                el.style.background = 'url("' + noconnectionImgSrc + '") no-repeat left top';
-                charme.common.addEvent(el, 'click', function(e){
-                    alert('CHARMe Plugin - Unable to fetch annotation data');
-                    charme.plugin.stopBubble(e);
-                });
-            
+		el.title = 'CHARMe Plugin - Unable to fetch annotation data';
+		el.style.background = 'url("' + noconnectionImgSrc + '") no-repeat left top';
+		charme.common.addEvent(el, 'click', function(e){
+			alert('CHARMe Plugin - Unable to fetch annotation data');
+			charme.plugin.stopBubble(e);
+		});
+
 		if (window.console) {
 			window.console.error('CHARMe Plugin - Unable to fetch annotation data');
 		} else {
@@ -242,19 +242,19 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
  * @param targetCheckbox
  */
 charme.plugin.setSelectionEventOnTarget = function (checkbox, boxType) {
-    if(boxType === 'all')
-        charme.common.addEvent(checkbox, 'click', charme.plugin.setWholeTargetList);
-    if(boxType === 'target')
-        charme.common.addEvent(checkbox, 'click', charme.plugin.refreshSelectedTargetList);
+	if(boxType === 'all')
+		charme.common.addEvent(checkbox, 'click', charme.plugin.setWholeTargetList);
+	if(boxType === 'target')
+		charme.common.addEvent(checkbox, 'click', charme.plugin.refreshSelectedTargetList);
 };
 
 // Select/unselect all targets
 charme.plugin.setWholeTargetList = function(checkbox) {
-    var els = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
-    for(var i = 0 ; i < els.length; i++) {
-        els[i].checked = !checkbox.target.checked;
-        els[i].click();
-    }
+	var els = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+	for(var i = 0 ; i < els.length; i++) {
+		els[i].checked = !checkbox.target.checked;
+		els[i].click();
+	}
 };
 
 // Disable icons if plugin already launched
@@ -324,41 +324,41 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
  * a charme icon that is not in the set of selected datsets already, is clicked to
  * invoke the plugin on the main data provider page.
  * @param targetHref
-*/
+ */
 /*charme.plugin.setAsSelected = function (targetHref, targetType) {
 
-    var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
-    //var targetHrefEncoded = encodeURIComponent(targetHref);
-    //var targetHrefEncoded = targetHref;
+ var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
+ //var targetHrefEncoded = encodeURIComponent(targetHref);
+ //var targetHrefEncoded = targetHref;
 
-    //Load the clicked target into the selected list, if not in a clicked state.
-    if (!(targetHref in charme.plugin.selectedTargets))
-    {
-        var targetTypeDesc = targetType.split('-');
-        var tempArr = [];
-        for(var i = 0; i < targetTypeDesc.length; i++) {
-            var descFrag = targetTypeDesc[i];
-            descFrag = descFrag[0].toUpperCase() + descFrag.substr(1).toLowerCase();
-            tempArr.push(descFrag);
-        }
-        targetTypeDesc = tempArr.join(' ');
-        
-        //Add the target in the list
-        charme.plugin.selectedTargets[targetHref] =  [targetName, targetType, targetTypeDesc];
+ //Load the clicked target into the selected list, if not in a clicked state.
+ if (!(targetHref in charme.plugin.selectedTargets))
+ {
+ var targetTypeDesc = targetType.split('-');
+ var tempArr = [];
+ for(var i = 0; i < targetTypeDesc.length; i++) {
+ var descFrag = targetTypeDesc[i];
+ descFrag = descFrag[0].toUpperCase() + descFrag.substr(1).toLowerCase();
+ tempArr.push(descFrag);
+ }
+ targetTypeDesc = tempArr.join(' ');
 
-        //Set the checkbox to 'checked' state
-        var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
-        for (var i = 0; i < targetCheckboxs.length; i++) {
-            if (targetCheckboxs[i].id === targetHref) {
-                targetCheckboxs[i].checked = true;
-            }
-        }
-    }
+ //Add the target in the list
+ charme.plugin.selectedTargets[targetHref] =  [targetName, targetType, targetTypeDesc];
 
-    //Save the clicked target into the "highlighted" list.
-    //charme.plugin.selectedTargetsHighlighted = {};
-    //charme.plugin.selectedTargetsHighlighted[targetName] = targetHrefEncoded;
-}*/
+ //Set the checkbox to 'checked' state
+ var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+ for (var i = 0; i < targetCheckboxs.length; i++) {
+ if (targetCheckboxs[i].id === targetHref) {
+ targetCheckboxs[i].checked = true;
+ }
+ }
+ }
+
+ //Save the clicked target into the "highlighted" list.
+ //charme.plugin.selectedTargetsHighlighted = {};
+ //charme.plugin.selectedTargetsHighlighted[targetName] = targetHrefEncoded;
+ }*/
 
 
 
@@ -413,28 +413,28 @@ charme.plugin.getSelectedTargets = function () {
  * Cross browser class selector. Defined in order to avoid add external dependencies on libraries such as JQuery.
  */
 charme.plugin.getByClass = function (className, searchType, rootElement) {
-    rootElement = rootElement || document;
-    //Default to native function if it exists, and your search is exact (not partial)
-    if(document.getElementsByClassName && searchType === charme.plugin.constants.MATCH_EXACT) {
-        return rootElement.getElementsByClassName(className);
-    } else {
-        //Else, search exhaustively
-        var elArray = [], regex;
-        var tmp = rootElement.getElementsByTagName("*");
+	rootElement = rootElement || document;
+	//Default to native function if it exists, and your search is exact (not partial)
+	if(document.getElementsByClassName && searchType === charme.plugin.constants.MATCH_EXACT) {
+		return rootElement.getElementsByClassName(className);
+	} else {
+		//Else, search exhaustively
+		var elArray = [], regex;
+		var tmp = rootElement.getElementsByTagName("*");
 
-        if(searchType === charme.plugin.constants.MATCH_EXACT)
-            regex = new RegExp("(^|\\s)" + className + "(\\s|$)");
-        else if(searchType === charme.plugin.constants.MATCH_PARTIAL)
-            regex = new RegExp(className);
+		if(searchType === charme.plugin.constants.MATCH_EXACT)
+			regex = new RegExp("(^|\\s)" + className + "(\\s|$)");
+		else if(searchType === charme.plugin.constants.MATCH_PARTIAL)
+			regex = new RegExp(className);
 
-        for(var i = 0; i < tmp.length; i++) {
-            if(regex.test(tmp[i].className)) {
-                elArray.push(tmp[i]);
-            }
-        }
+		for(var i = 0; i < tmp.length; i++) {
+			if(regex.test(tmp[i].className)) {
+				elArray.push(tmp[i]);
+			}
+		}
 
-        return elArray;
-    }
+		return elArray;
+	}
 };
 
 // Find CHARMe icon insertion points / refresh icon insertion point for specified targetId
@@ -496,21 +496,21 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
 };
 
 charme.plugin.extractTargetType = function(className) {
-    var targetType = className.substring('charme-'.length);
-    if(targetType.length > 0)
-        return(targetType);
-    else
-        return('Type undefined');
-    
-    /*var targetType = className.split('-');
-    
-    if(targetType.length > 1 && targetType[1].length > 0) {
-        targetType = targetType[1];
-        targetType = targetType[0].toUpperCase() + targetType.substr(1).toLowerCase();
-        return(targetType[0].toUpperCase() + targetType.substr(1).toLowerCase());
-    }
-    else
-        return('Type undefined');*/
+	var targetType = className.substring('charme-'.length);
+	if(targetType.length > 0)
+		return(targetType);
+	else
+		return('Type undefined');
+
+	/*var targetType = className.split('-');
+
+	 if(targetType.length > 1 && targetType[1].length > 0) {
+	 targetType = targetType[1];
+	 targetType = targetType[0].toUpperCase() + targetType.substr(1).toLowerCase();
+	 return(targetType[0].toUpperCase() + targetType.substr(1).toLowerCase());
+	 }
+	 else
+	 return('Type undefined');*/
 };
 
 /* ============================================================================================  */
@@ -519,17 +519,17 @@ charme.plugin.extractTargetType = function(className) {
  */
 
 function listenMessage(msg) {
-    var _msg= msg.data;
-    var n = _msg.lastIndexOf(':::');
-    var targetId = _msg.substring(n + 3);
+	var _msg= msg.data;
+	var n = _msg.lastIndexOf(':::');
+	var targetId = _msg.substring(n + 3);
 
-    charme.plugin.markupTags(false, targetId);
+	charme.plugin.markupTags(false, targetId);
 }
 
 if (window.addEventListener) {
-    window.addEventListener("message", listenMessage, false);
+	window.addEventListener("message", listenMessage, false);
 } else {
-    window.attachEvent("onmessage", listenMessage);
+	window.attachEvent("onmessage", listenMessage);
 }
 
 /* ============================================================================================  */
@@ -632,16 +632,18 @@ charme.plugin.maximiseFunc = function () {
  */
 charme.plugin.loadFunc = function () {
 
-    //Close listeners
+	//Close listeners
 	//this.contentWindow.charme.web.removeCloseListener(charme.plugin.closeFunc);
 	this.contentWindow.charme.web.addCloseListener(charme.plugin.closeFunc);
 
-    //Minimise & Maximise listeners
-    //this.contentWindow.charme.web.removeMiniaturiseListener(charme.plugin.miniaturiseFunc);
-    this.contentWindow.charme.web.addMiniaturiseListener(charme.plugin.miniaturiseFunc);
+	//Minimise & Maximise listeners
+	//this.contentWindow.charme.web.removeMiniaturiseListener(charme.plugin.miniaturiseFunc);
+	this.contentWindow.charme.web.addMiniaturiseListener(charme.plugin.miniaturiseFunc);
 
-    //this.contentWindow.charme.web.removeMaximiseListener(charme.plugin.maximiseFunc);
-    this.contentWindow.charme.web.addMaximiseListener(charme.plugin.maximiseFunc);
+	//this.contentWindow.charme.web.removeMaximiseListener(charme.plugin.maximiseFunc);
+	this.contentWindow.charme.web.addMaximiseListener(charme.plugin.maximiseFunc);
+
+	charme.common.removeEvent(this, 'load', charme.plugin.loadFunc); // Remove the loadfunc. Only want it to load once
 };
 
 charme.plugin.stopBubble = function(e){
@@ -671,7 +673,6 @@ charme.plugin.showPlugin = function (e) {
             return;        
     
 	var plugin = document.getElementById('charme-plugin-frame');
-	//charme.common.removeEvent(plugin, 'load', charme.plugin.loadFunc);
 	charme.common.addEvent(plugin, 'load', charme.plugin.loadFunc);
 
         //charme.plugin.stopBubble(e);
@@ -787,7 +788,7 @@ charme.plugin.preInit = function () {
  * Will execute on window load (most init code should go in here)
  */
 charme.plugin.init = function () {
-        charme.plugin.markupTags(true);
+	charme.plugin.markupTags(true);
 	charme.plugin.loadPlugin();
 };
 
