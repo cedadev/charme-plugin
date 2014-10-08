@@ -581,8 +581,9 @@ charme.plugin.loadPlugin = function () {
  */
 charme.plugin.closeFunc = function (isOneTarget, targetId) {
 	var plugin = document.getElementById('charme-plugin-frame');
-	//plugin.style.display = 'none';
-        plugin.parentNode.removeChild(plugin);
+	plugin.contentWindow.location.href = 'about:blank';
+        charme.plugin.maximiseFunc(); // In case GUI was closed while minimised
+	plugin.style.display = 'none';
         
         //if(isOneTarget) {
         if(isOneTarget && targetId !== charme.common.ALL_TARGETS) {
@@ -596,7 +597,7 @@ charme.plugin.closeFunc = function (isOneTarget, targetId) {
         charme.plugin.disableWholeTargetList(false);
         charme.plugin.isOpenFlag = false;
         
-        charme.plugin.loadPlugin();
+        //charme.plugin.loadPlugin();
 };
 
 charme.plugin.miniaturiseFunc = function () {
@@ -690,9 +691,40 @@ charme.plugin.showPlugin = function (e) {
             charme.plugin.disableWholeTargetList(true);
         }
         
+        
+        // If data provider allows the plugin GUI to be dragged, insert script (first removing it if already present) and set 
+        // option to allow dragging off screen. We remove the script first as dragiframe.js has no clear/removeHandle() method.
+        var dragScript = document.getElementById("dragiframeScript");
+        if(dragScript)
+            dragScript.parentNode.removeChild(dragScript);
+        
+        var _plugin = document.getElementById('charme-placeholder');
+        if(_plugin.className === 'charme-draggable') {
+            dragScript = document.createElement('script');
+            dragScript.id = 'dragiframeScript';
+            dragScript.type = 'text/javascript';
+            dragScript.src = scriptPath + '/plugin/js/vendor/dragiframe.js';
+            document.getElementsByTagName('body')[0].appendChild(dragScript);
+
+            if(dragScript.readyState) {
+                dragScript.onreadystatechange = function () {
+                    if (dragScript.readyState === "loaded" || dragScript.readyState === "complete") {
+                        dragScript.onreadystatechange = null;
+                        (function() {return dragIF_allowDragOffScreen(true);}());
+                    }
+                };
+            }
+            else
+                dragScript.onload = function() {return dragIF_allowDragOffScreen(true);};
+        }
+
+        function _showPlugin() {
+            charme.common.removeEvent(plugin, 'load', _showPlugin);
+            plugin.style.display = 'block'; // Only show the iFrame once the content has loaded in order to minimize flicker
+	}
+	charme.common.addEvent(plugin, 'load', _showPlugin);
 	plugin.contentWindow.location.href = charme.settings.path + '/plugin/plugin.html#/' +
-		encodeURIComponent(encodeURIComponent(targetHref)) + '/init';
-	plugin.style.display = 'block'; // Only show the iFrame once the content has loaded in order to minimize flicker
+            encodeURIComponent(encodeURIComponent(targetHref)) + '/init';
         
         charme.plugin.isOpenFlag = true;
 
@@ -706,12 +738,13 @@ charme.plugin.showPlugin = function (e) {
     }
 };
 
+var scriptPath;
 charme.plugin.preInit = function () {
 	/**
 	 * This is duplicated (unfortunately) from charme.common.js. The code below should not be used anywhere else.
 	 */
 	var scripts = document.getElementsByTagName('script');
-	var scriptPath = scripts[scripts.length - 1].src;//The last loaded script will be this one
+	scriptPath = scripts[scripts.length - 1].src;//The last loaded script will be this one
 	if (!/charme\.js$/.test(scriptPath)) {
 		if (typeof console !== 'undefined' && console.error) {
 			console.error('Unable to initialise CHARMe plugin. Error determining script path');
@@ -741,7 +774,7 @@ charme.plugin.preInit = function () {
                 
 		document.getElementsByTagName('body')[0].appendChild(settingsScript);
                 
-                // If data provider allows the plugin GUI to be dragged, insert script and set option to allow dragging off screen
+                /*// If data provider allows the plugin GUI to be dragged, insert script and set option to allow dragging off screen
                 var plugin = document.getElementById('charme-placeholder');
                 if(plugin.className === 'charme-draggable') {
                     var dragScript = document.createElement('script');
@@ -759,7 +792,7 @@ charme.plugin.preInit = function () {
                     }
                     else
                         dragScript.onload = function() {return dragIF_allowDragOffScreen(true);};
-                }
+                }*/
 	};
 
 	var loadCommon = function () {
