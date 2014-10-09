@@ -826,3 +826,5 @@ charme.plugin.init = function () {
 };
 
 charme.plugin.preInit();
+
+//master
