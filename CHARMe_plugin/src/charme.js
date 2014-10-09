@@ -450,12 +450,13 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         var selectAllContainer = document.getElementById('charme-placeholder');
         var selectAllBox = document.createElement('input');
         selectAllBox.type = 'checkbox';
-        selectAllContainer.parentNode.insertBefore(selectAllBox, selectAllContainer);
+        selectAllContainer.parentNode.insertBefore(selectAllBox, null);
         charme.plugin.setSelectionEventOnTarget(selectAllBox, 'all');
         
         var text = document.createElement('span');
         text.innerHTML = 'Select/unselect all';
-        selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
+		text.id='charme-select-all';
+        selectAllContainer.parentNode.insertBefore(text, null);
         
         var allTargetsContainer = document.getElementById('charme-placeholder-all-targets');
         var anchor = document.createElement('a');
@@ -464,7 +465,8 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         allTargetsContainer.appendChild(anchor, allTargetsContainer);
         
         text = document.createElement('span');
-        text.innerHTML = 'Select all targets: ';
+        text.innerHTML = 'All targets';
+		text.id='charme-all-targets'
         allTargetsContainer.insertBefore(text, anchor);
     }
     
