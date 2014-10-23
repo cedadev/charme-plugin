@@ -823,7 +823,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         $scope.newAnnotationFlag=true;
         var targetId = $routeParams.targetId;
         $scope.targetId=targetId;
-        $scope.commentMaxLength = 250; // Maximum no. of characters for free text
+        $scope.commentMaxLength = charme.settings.COMMENT_LENGTH ? charme.settings.COMMENT_LENGTH : 500; // Maximum no. of characters for free text
         
         $scope.anno = {};
         
