@@ -44,6 +44,7 @@ charme.logic.constants = {
     // returned when viewing annotations
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
+    COMPOSITE_ID_PREFIX : 'http://localhost/',
 
     URL_PREFIX : 'http://',
     DXDOI_URL : 'http://dx.doi.org/',

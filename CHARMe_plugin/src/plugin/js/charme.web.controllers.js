@@ -534,7 +534,16 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         });
                         
                         //Extract the targetid(s) of the annotation
-                        var targets = anno.getValues(annoType.TARGET);
+                        //var targets = anno.getValues(annoType.TARGET);
+                        var targets = [];
+                        var composite = anno.getValues(annoType.TARGET);
+                        if (composite.hasType(jsonoa.types.Composite.TYPE))
+                        {
+                            angular.forEach(composite, function(element){
+                                targets.push(element.getValue(jsonoa.types.Composite.ITEM))
+                            });
+                        }
+
                         if (targets && targets.length > 0) {
                             $scope.targetList = [];
                         }

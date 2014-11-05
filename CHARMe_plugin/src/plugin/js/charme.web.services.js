@@ -327,7 +327,9 @@ charme.web.services.factory('saveAnnotation', function () {
 			var anno = graph.createNode({type: jsonoa.types.Annotation, id: charme.logic.constants.ATN_ID_PREFIX + 'annoID'});
 			var bodyId = charme.logic.constants.BODY_ID_PREFIX + 'bodyID';
 			var commentId = bodyId;
-			
+            var compositeSpec = jsonoa.types.Composite;
+            var composite = graph.createNode({type: jsonoa.types.Composite, id: charme.logic.constants.COMPOSITE_ID_PREFIX + 'targetID'});
+
 			if (annoModel.comment){
 				var comment = graph.createNode({type: jsonoa.types.Text, id: commentId});
 				comment.setValue(jsonoa.types.Text.CONTENT_CHARS, annoModel.comment);
@@ -392,7 +394,6 @@ charme.web.services.factory('saveAnnotation', function () {
                     anno.addValue(annoSpec.MOTIVATED_BY, page);
                 });
             }
-            
             // Save each of the selected targetids into the annotation target
             for(target in targetMap)
             {
@@ -402,10 +403,13 @@ charme.web.services.factory('saveAnnotation', function () {
                 
                 //var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetId});
                 var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
-                
-                //anno.addValue(annoModel.TARGET, target);
-                anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
+
+                // anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
+                composite.addValue(compositeSpec.ITEM, graph.createStub(targetTargetId));
             }
+
+            //Attach the composite to the Annotation
+            anno.setValue(annoSpec.TARGET, composite);
                         
 			//anno.setValue(annoSpec.TARGET, target);
 			charme.logic.saveGraph(graph, auth.token).then(
