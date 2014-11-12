@@ -451,6 +451,52 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             var motivURI =  motivation.getValue(motivation.ID);
                             $scope.motivationTags.push({uri: motivURI, desc: motivation_keywords[motivURI]});
                         });
+
+                        //Retrieve citations if present
+                        var citoSpec = jsonoa.types.CitationAct;
+                        if(anno.hasType(citoSpec.TYPE))
+                        {
+                            var citingEntity = anno.getValue(citoSpec.CITING_ENTITY);
+
+                            if (citingEntity.getValue){
+                                var citoURI = citingEntity.getValue(jsonoa.types.Common.ID);
+                                $scope.citation = {};
+                                $scope.citation.loading=true;
+                                $scope.citation.uri = citoURI;
+
+                                //Match the citation type to a text description.
+                                var citoTypes = citingEntity.getValues(citingEntity.TYPE_ATTR_NAME);
+                                angular.forEach(fabioTypes, function(fType){
+                                    if (citoTypes.indexOf(fType.resource)>=0){
+                                        if (!$scope.citation.types){
+                                            $scope.citation.types = [];
+                                        }
+                                        $scope.citation.types.push(fType.label);
+                                    }
+                                });
+
+                                //Trim the 'doi:' from the front
+                                var doiTxt = citoURI.substring(charme.logic.constants.DXDOI_URL.length, citoURI.length);
+                                var criteria = {};
+                                criteria[charme.logic.constants.DXDOI_CRITERIA_ID]=doiTxt;
+                                charme.logic.fetchDxdoiMetaData(criteria).then(function(citation){
+                                    $scope.$apply(function(){
+                                        $scope.citation.text = citation;
+                                        $scope.citation.loading=false;
+                                    });
+                                }, function(error){
+                                    $scope.$apply(function(){
+                                        $scope.citation.text = citoURI;
+                                        $scope.citation.error='Error: Could not fetch citation metadata';
+                                        $scope.citation.loading=false;
+                                    });
+                                });
+                            } else {
+                                $scope.link.uri = citingEntity;
+                            }
+
+                        }
+
                         var bodies = anno.getValues(annoType.BODY);
                         //Create local alias to avoid having to use fully qualified name everywhere
                         var textType = jsonoa.types.Text;
@@ -459,7 +505,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             if (body.hasType(textType.TEXT) || body.hasType(textType.CONTENT_AS_TEXT)){
                                 $scope.comment = body.getValue(textType.CONTENT_CHARS);
                             }
-                            else if (body.hasType(citoSpec.TYPE)) {
+/*                            else if (body.hasType(citoSpec.TYPE)) {
                                 var citingEntity = body.getValue(citoSpec.CITING_ENTITY);
                                 //Check if the returned value is an object, or a primitive (should be an object, but some historical data might have primitives in this field)
                                 if (citingEntity.getValue){
@@ -499,7 +545,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 } else {
                                     $scope.link.uri = citingEntity;
                                 }
-                            }
+                            }*/
                             else if (body.hasType(jsonoa.types.SemanticTag.TYPE)){
                                 if (!$scope.domainTags){
                                     $scope.domainTags = [];
