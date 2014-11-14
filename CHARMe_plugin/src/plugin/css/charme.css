@@ -35,7 +35,7 @@
 .modal-body{
 	/*overflow-y: auto;*/
 	/*max-height: 300px;*/
-    min-height: 400px;
+    min-height: 410px;
     overflow: hidden;
 }
 .modal-body-new{
@@ -293,11 +293,16 @@ body {
     margin-right: 5px;
 }
 
+.browser-history {
+    float: left !important;
+    margin-right: 30px;
+}
+
 .search-question-icon {
     margin-left: 5px !important;
 }
 
-.target-types, .motivations, .domains {
+.target-types, .body-types, .motivations, .domains {
     margin-left: 0px !important;
 }
 
@@ -386,19 +391,19 @@ textarea::-webkit-input-placeholder {
     background-color: red;
 }
 
-.confirm-delete-box {
+.confirm-box {
     position: absolute;
     border: 1px solid #cccccc;
     right: 35px;
     bottom: 15px;
     padding: 1px;
 }
-.confirm-delete-box-inner {
+.confirm-box-inner {
     padding: 10px;
     /*color: #0088cc;*/
     background-color: #f5f5f5;
 }
-.confirm-delete-buttons {
+.confirm-buttons {
     text-align: center;
 }
 

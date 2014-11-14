@@ -4,11 +4,47 @@
   "resource": "http://purl.org/dc/dcmitype/Dataset"
  },
  {
+  "label": "CHARMe Annotation",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#CHARMeAnnotation"
+ },
+ {
+  "label": "Semantic Tag",
+  "resource": "http://www.w3.org/ns/oa#SemanticTag"
+ },
+ {
+  "label": "Document",
+  "resource": "http://purl.org/spar/fabio#Document"
+ },
+ {
   "label": "Technical Report",
   "resource": "http://purl.org/spar/fabio/TechnicalReport"
  },
  {
-  "label": "Metadata Document",
-  "resource": "http://purl.org/spar/fabio/MetadataDocument"
+  "label": "Algorithm Theoretical Basis Document",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#AlgorithmTheoreticalBasisDocument"
+ },
+ {
+  "label": "Product User Manual",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#ProductUserManual"
+ },
+ {
+  "label": "Validation Report",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#ValidationReport"
+ },
+ {
+  "label": "Operation Report",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#OperationReport"
+ },
+ {
+  "label": "Service Message",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#ServiceMessage"
+ },
+ {
+  "label": "Product Change Log",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#ProductChangeLog"
+ },
+ {
+  "label": "Known Product Disruption",
+  "resource": "http://charme.cems.rl.ac.uk/2014/charme#KnownProductDisruption"
  }
 ]

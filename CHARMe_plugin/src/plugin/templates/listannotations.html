@@ -47,8 +47,8 @@
 
         <div class="target-list">
             <span>&nbsp; Viewing annotations for: </span>
-            <select id="chooseTarget" class="{{smallSpan}}" data-ng-model="selectedTarget" data-ng-change="refreshTargetSelection();">
-                <option data-ng-repeat="(key, value) in targets" value="{{key}}">{{value[0]}} ({{value[2]}})</option>
+            <select id="chooseTarget" class="{{largeSpan}}" data-ng-model="selectedTarget" data-ng-change="refreshTargetSelection();">
+                <option data-ng-repeat="(targetHref, targetDetails) in targets" value="{{targetHref}}">{{targetDetails.name}} ({{targetDetails.desc}})</option>
             </select>
             <span class="icon-question-sign"
                   title="If target name is truncated, open dropdown to see name in full (search pane will temporarily collapse if necessary)"></span>
@@ -109,18 +109,19 @@
         <table class="table search-results-table">
             <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
             <tbody>
-                <tr data-ng-hide="!loading">
+                <tr data-ng-hide="!loadingList && !loadingFacets">
                     <td colspan="4" class="spinner spinner-small">
                         <img src ="img/ajaxspinner.gif" />
                     </td>
                 </tr>
-                <tr data-ng-show="!loading && entries.length===0"><td colspan="4">No annotations</td></tr>
-                <tr data-ng-repeat="entry in entries">
-                    <td><a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
-                           title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
-                    <!--<td>{{entry.author}}</td>
-                    <td>{{entry.organizationName}}</td>-->
-                    
+                <tr data-ng-show="!loadingList && !loadingFacets && entries.length===0"><td colspan="4">No annotations</td></tr>
+                <tr data-ng-show="!loadingList && !loadingFacets" data-ng-repeat="entry in entries">
+                    <td><a data-ng-show="entry.title" data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
+                           title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a>
+                        <a data-ng-hide="entry.title" data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
+                           title="No comment was included in this annotation">(No comment)</a>
+                    </td>
+
                     <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('userName', entry.userName, $event)">{{entry.author}}</a></td>
                     <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('organization', entry.organizationUri, $event);">{{entry.organizationName}}</a></td>
                     <td>{{entry.date | date:'d/M/yyyy'}}</td>

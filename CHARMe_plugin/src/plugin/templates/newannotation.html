@@ -32,12 +32,15 @@
     <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
     <form name="newAnnoForm">
         <h4>Target<span data-ng-show="multipleTargets">s</span> <span title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
-        <select id="selectedTarget" class="span7 targetList" data-ng-model="selectedTarget">
-            <option disabled class="target-type-{{value[3]}}" data-ng-repeat="(key, value) in targetList" value="{{key}}">{{value[0]}} ({{value[2]}})</option>
+        <select id="selectedTarget" class="span12 targetList" data-ng-model="selectedTarget">
+            <option disabled class="target-type-{{targetDetails.type}}" 
+                    data-ng-repeat="(targetHref, targetDetails) in targetList" 
+                    value="{{targetHref}}">{{targetDetails.name}} ({{targetDetails.desc}})
+            </option>
         </select>
         
         <h4>Comments <span title="Free text comments (&le;{{commentMaxLength}} characters) go here; a link may be included below" class="icon-question-sign"></span></h4>
-        <textarea data-ng-model="anno.comment" maxlength="{{commentMaxLength}}" rows="2"></textarea>
+        <textarea data-ng-model="anno.comment" maxlength="{{commentMaxLength}}" rows="3"></textarea>
 
         <h4>Motivation <span title="Select tag(s) describing the motivation of this annotation"
                              class="icon-question-sign"></span></h4>

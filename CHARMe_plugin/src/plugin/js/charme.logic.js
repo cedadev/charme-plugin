@@ -40,7 +40,7 @@ charme.logic = {};
 charme.logic.authToken = {};
 
 charme.logic.constants = {
-    ANNO_DEPTH : 99, // A depth specifier for the graph depth that is
+    ANNO_DEPTH : 1, // A depth specifier for the graph depth that is
     // returned when viewing annotations
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
@@ -52,7 +52,7 @@ charme.logic.constants = {
     CROSSREF_URL : 'http://data.crossref.org/',
     CROSSREF_CRITERIA_ID : 'id',
     NERC_SPARQL_EP : 'http://vocab.nerc.ac.uk/sparql/sparql',
-    FABIO_URL : 'http://eelst.cs.unibo.it/apps/LODE/source?url=http://purl.org/spar/fabio',
+    //FABIO_URL : 'http://eelst.cs.unibo.it/apps/LODE/source?url=http://purl.org/spar/fabio',
     TARGET_URL : 'localData/target_types.json', // use locally cached file for now
 
     SPARQL_GCMD : 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>			' +
@@ -64,9 +64,10 @@ charme.logic.constants = {
             '}											' +
              'ORDER BY ?l									',
 
-    FABIO_XP_CLASSES : '//owl:Class',
+    //FABIO_XP_CLASSES : '//owl:Class',
 
     FACET_TYPE_TARGET_TYPE: 'dataType',
+    FACET_TYPE_BODY_TYPE: 'bodyType',
     FACET_TYPE_MOTIVATION: 'motivation',
     FACET_TYPE_DOMAIN: 'domainOfInterest',
     FACET_TYPE_ORGANIZATION: 'organization',
@@ -101,15 +102,17 @@ charme.logic.urls.fetchForTarget = function(targetId) {
 		'&status=submitted';
 };
 charme.logic.urls.fetchRequest = function(id) {
-	return charme.logic.urls._baseURL() +
-		'data/' +
+	return charme.logic.urls._baseURL() + 'data/' +
 		id +
 		'?format=json-ld' +
-		(charme.logic.constants.ANNO_DEPTH === 0 ? '' : '&depth=' + 
-			charme.logic.constants.ANNO_DEPTH);
+		//(charme.logic.constants.ANNO_DEPTH === 0 ? '' : '&depth=' + 
+		//	charme.logic.constants.ANNO_DEPTH);
+                '&depth=' + charme.logic.constants.ANNO_DEPTH;
 };
 charme.logic.urls.fetchSearchFacets = function(criteria, facets){
-	var url=charme.logic.urls._baseURL() + 'suggest/atom?status=submitted&q=';
+	var url=charme.logic.urls._baseURL() + 'suggest/atom?' + 
+                'depth=' + charme.logic.constants.ANNO_DEPTH + 
+                '&status=submitted&q=';
 	if (typeof facets !== 'undefined'){
 		url+=facets.join(',');
 	} else {
@@ -130,9 +133,9 @@ charme.logic.urls.authRequest = function() {
 		charme.settings.AUTH_CLIENT_ID + '&response_type=' + 
 		charme.settings.AUTH_RESPONSE_TYPE;
 };
-charme.logic.urls.fabioTypesRequest = function() {
-	return charme.logic.constants.FABIO_URL;
-};
+//charme.logic.urls.fabioTypesRequest = function() {
+//	return charme.logic.constants.FABIO_URL;
+//};
 charme.logic.urls.gcmdVocabRequest = function(sparqlQry) {
 	var url = charme.logic.constants.NERC_SPARQL_EP;
 	url += '?query=' + encodeURIComponent(charme.logic.constants.SPARQL_GCMD);
@@ -155,12 +158,17 @@ charme.logic.urls.dxdoiRequest = function(criteria) {
 	return url;
 };
 charme.logic.urls.fetchAnnotations = function(criteria) {
-	var url= charme.logic.urls._baseURL() + 'search/atom?status=submitted';
+	var url= charme.logic.urls._baseURL() + 'search/atom?' + 
+                'depth=' + charme.logic.constants.ANNO_DEPTH + 
+                '&status=submitted';
 	if (typeof criteria.targets !== 'undefined' && criteria.targets.length > 0){
 		url+='&target=' + encodeURIComponent(criteria.targets.join(' '));
 	}
         if (typeof criteria.targetTypes !== 'undefined' && criteria.targetTypes.length > 0){
 		url+='&dataType=' + encodeURIComponent(criteria.targetTypes.join(' '));
+	}
+        if (typeof criteria.bodyTypes !== 'undefined' && criteria.bodyTypes.length > 0){
+		url+='&bodyType=' + encodeURIComponent(criteria.bodyTypes.join(' '));
 	}
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
@@ -213,13 +221,13 @@ charme.logic.regExpEscape = function(s) {
  * @param prefix
  * @returns
  */
-charme.logic.fabioNSResolver = function(prefix) {
+/*charme.logic.fabioNSResolver = function(prefix) {
 	var ns = {
 		'rdfs' : 'http://www.w3.org/2000/01/rdf-schema#',
 		'owl' : 'http://www.w3.org/2002/07/owl#'
 	};
 	return ns[prefix] || null;
-};
+};*/
 
 
 charme.logic.shortAnnoId = function(longformId){
@@ -486,7 +494,7 @@ charme.logic.fetchMotivationVocab = function() {
 
 };
 
-charme.logic.fetchFabioTypes = function() {
+/*charme.logic.fetchFabioTypes = function() {
 	var promise = new Promise(function(resolver) {
 
 		var fabioTypes = [ {
@@ -505,7 +513,7 @@ charme.logic.fetchFabioTypes = function() {
 		resolver.fulfill(fabioTypes);
 	});
 	return promise;
-};
+};*/
 
 /*charme.logic.fetchTargetType = function(targetId) {
     var promise = new Promise(function(resolver) {
@@ -758,6 +766,18 @@ charme.logic.shortDomainLabel = function(label) {
     }
 };
 
+charme.logic.shortTargetName = function(name, length) {
+    if(name && length) {
+        var out = name.substring(0, length);
+        if(name.length > length)
+            out += '...';
+        
+        return out;
+    }
+    else
+        return '';
+};
+
 /**
  * Retrieve all annotations matching the supplied criteria
  *
@@ -838,7 +858,7 @@ charme.logic.advanceState=function(annotationId, newState, token){
 			headers : {
 				'Authorization' : ' Bearer ' + token
 			},
-			contentType: 'application/json',
+			contentType: 'application/ld+json',
 			data: JSON.stringify({annotation: annotationId, toState: newState})
 		}).then(function(result){
 			resolver.fulfill(result);
@@ -847,4 +867,25 @@ charme.logic.advanceState=function(annotationId, newState, token){
 			resolver.reject(error);
 		});
 	});
+};
+
+charme.logic.debounce = function(func, wait, immediate) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments;
+
+        var later = function() {
+            timeout = null;
+
+            if(!immediate)
+                func.apply(context, args);
+        };
+
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+
+        if(callNow)
+            func.apply(context, args);
+    };
 };

@@ -28,15 +28,15 @@ charme.web={};
 charme.web.constants = {
     CHARME_TK: 'CHARME_AT',
     PARAM_TARGET_TYPES: 'dataType',
- 	PARAM_MOTIVATIONS: 'motivations',
- 	PARAM_DOMAINS: 'domains',
- 	PARAM_ORGANIZATION: 'organization',
- 	PARAM_CREATOR: 'userName'
+    PARAM_BODY_TYPES: 'bodyType',
+    PARAM_MOTIVATIONS: 'motivations',
+    PARAM_DOMAINS: 'domains',
+    PARAM_ORGANIZATION: 'organization',
+    PARAM_CREATOR: 'userName'
 };
 
 charme.web._closeListeners = [];
-
-charme.web._miniaturiseListeners = [];
+charme.web._minimiseListeners = [];
 charme.web._maximiseListeners = [];
 
 //charme.web._dsSelectionListeners = [];
@@ -93,11 +93,9 @@ charme.web.postMessageProxy = function(msgStr, originStr){
 	loginService._loginEvent({data: msgStr, origin: originStr});
 };
 
-
-
-charme.web.miniaturise = function(){
-    angular.forEach(charme.web._miniaturiseListeners, function(miniaturiseFunc, key){
-        miniaturiseFunc();
+charme.web.minimise = function(topOffset){
+    angular.forEach(charme.web._minimiseListeners, function(minimiseFunc, key){
+        minimiseFunc(topOffset);
     });
 };
 
@@ -107,13 +105,12 @@ charme.web.maximise = function(){
     });
 };
 
-
-charme.web.removeMiniaturiseListener = function (miniaturiseFunc){
-    charme.web._miniaturiseListeners.splice(charme.web._miniaturiseListeners.indexOf(miniaturiseFunc),1);
+charme.web.removeMinimiseListener = function (minimiseFunc){
+    charme.web._minimiseListeners.splice(charme.web._minimiseListeners.indexOf(minimiseFunc),1);
 };
 
-charme.web.addMiniaturiseListener = function (miniaturiseFunc){
-    charme.web._miniaturiseListeners.push(miniaturiseFunc);
+charme.web.addMinimiseListener = function (minimiseFunc){
+    charme.web._minimiseListeners.push(minimiseFunc);
 };
 
 charme.web.removeMaximiseListener = function (maximiseFunc){

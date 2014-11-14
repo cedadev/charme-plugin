@@ -126,10 +126,55 @@ jsonoa.types.Dataset=(function Dataset(){
         Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE]};
 	return Dataset;
 })();
+jsonoa.types.CHARMeAnnotation=(function CHARMeAnnotation(){
+	CHARMeAnnotation.TYPE = 'http://charme.cems.rl.ac.uk/2014/charme#CHARMeAnnotation'; // This is a dummy URL
+        CHARMeAnnotation.TEMPLATE = {"@id": "?", "@type": [CHARMeAnnotation.TYPE]};
+	return CHARMeAnnotation;
+})();
+jsonoa.types.Document=(function Document(){
+	Document.TYPE='http://purl.org/spar/fabio#Document';
+        Document.TEMPLATE = {"@id": "?", "@type": [Document.TYPE]};
+	return Document;
+})();
 jsonoa.types.TechnicalReport=(function TechnicalReport(){
 	TechnicalReport.TYPE='http://purl.org/spar/fabio/TechnicalReport';
         TechnicalReport.TEMPLATE = {"@id": "?", "@type": [TechnicalReport.TYPE]};
 	return TechnicalReport;
+})();
+jsonoa.types.AlgorithmTheoreticalBasisDocument=(function AlgorithmTheoreticalBasisDocument(){
+	AlgorithmTheoreticalBasisDocument.TYPE='http://charme.cems.rl.ac.uk/2014/charme#AlgorithmTheoreticalBasisDocument';
+        AlgorithmTheoreticalBasisDocument.TEMPLATE = {"@id": "?", "@type": [AlgorithmTheoreticalBasisDocument.TYPE]};
+	return AlgorithmTheoreticalBasisDocument;
+})();
+jsonoa.types.ProductUserManual=(function ProductUserManual(){
+	ProductUserManual.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ProductUserManual';
+        ProductUserManual.TEMPLATE = {"@id": "?", "@type": [ProductUserManual.TYPE]};
+	return ProductUserManual;
+})();
+jsonoa.types.ValidationReport=(function ValidationReport(){
+	ValidationReport.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ValidationReport';
+        ValidationReport.TEMPLATE = {"@id": "?", "@type": [ValidationReport.TYPE]};
+	return ValidationReport;
+})();
+jsonoa.types.OperationReport=(function OperationReport(){
+	OperationReport.TYPE='http://charme.cems.rl.ac.uk/2014/charme#OperationReport';
+        OperationReport.TEMPLATE = {"@id": "?", "@type": [OperationReport.TYPE]};
+	return OperationReport;
+})();
+jsonoa.types.ServiceMessage=(function ServiceMessage(){
+	ServiceMessage.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ServiceMessage';
+        ServiceMessage.TEMPLATE = {"@id": "?", "@type": [ServiceMessage.TYPE]};
+	return ServiceMessage;
+})();
+jsonoa.types.ProductChangeLog=(function ProductChangeLog(){
+	ProductChangeLog.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ProductChangeLog';
+        ProductChangeLog.TEMPLATE = {"@id": "?", "@type": [ProductChangeLog.TYPE]};
+	return ProductChangeLog;
+})();
+jsonoa.types.KnownProductDisruption=(function KnownProductDisruption(){
+	KnownProductDisruption.TYPE='http://charme.cems.rl.ac.uk/2014/charme#KnownProductDisruption';
+        KnownProductDisruption.TEMPLATE = {"@id": "?", "@type": [KnownProductDisruption.TYPE]};
+	return KnownProductDisruption;
 })();
 /*jsonoa.types.DatasetCollection=(function DatasetCollection(){
 	DatasetCollection.TYPE='http://purl.org/spar/fabio/MetadataDocument';

@@ -29,9 +29,10 @@
             <!--<div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="viewTargets()">View Target(s)</div>-->
             <div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="newAnnotation()">New Annotation</div>
             <div data-ng-show="loggedIn" class="btn-group userMenu">
-                <button class="btn">{{userName}}</button>
+                <button class="btn">{{author}}</button>
                 <button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
                 <ul class="dropdown-menu">
+                    <li><a href="" data-ng-click="directSearch('userName', userName, $event)">My annotations</a></li>
                     <li><a href="" data-ng-click="logout()">Logout</a></li>
                 </ul>	
             </div>
@@ -46,20 +47,27 @@
 
         <div data-ng-show="viewAnnotationFlag">
             <span class="shift-anno-buttons-holder">
-                <button class="btn" data-ng-disabled="atFirstAnno || confirmDelete || processing" data-ng-click="shiftAnno(-1)">
-                    <span class="icon-chevron-left" title="Previous annotatation in page"></span>
+                <button class="btn" data-ng-disabled="noShifting || confirmDelete || processing" data-ng-click="shiftAnno(-1)">
+                    <span class="icon-chevron-left" title="Next annotatation in page"></span>
                 </button>
-                <button class="btn" data-ng-disabled="atLastAnno || confirmDelete || processing" data-ng-click="shiftAnno(1)">
-                    <span class="icon-chevron-right" title="Next annotatation in page"></span>
+                <span> {{annoListPosition}} / {{annoListLength}} </span>
+                <button class="btn" data-ng-disabled="noShifting || confirmDelete || processing" data-ng-click="shiftAnno(1)">
+                    <span class="icon-chevron-right" title="Previous annotatation in page"></span>
                 </button>
             </span>
             
             <button class="btn" title="Flag this annotation as inappropriate" data-ng-disabled="confirmDelete || processing" 
                     data-ng-click="flag()">Flag</button>
-            <button class="btn btn-danger" data-ng-show="deleteAnnotationFlag" data-ng-disabled="confirmDelete || processing" 
-                    data-ng-click="confirmDelete=true; getConfirm(confirmDelete)">Delete</button>
-            <button class="btn" data-ng-disabled="confirmDelete || processing" 
-                    data-ng-click="cancel();">Back</button>
+            <button class="btn" data-ng-show="loggedIn" title="Reply to this annotation" data-ng-disabled="confirmDelete || processing" 
+                    data-ng-click="replyToAnno()">Reply</button>
+            <button class="btn btn-danger" title="Delete this annotation" data-ng-show="creatorOfAnnotationFlag" data-ng-disabled="confirmDelete || processing" 
+                    data-ng-click="confirmDelete=true; getConfirm()">Delete</button>
+            <!--<button class="btn" title="Go back to previous page" data-ng-disabled="confirmDelete || processing" 
+                    data-ng-click="back();">Back</button>
+            <button class="btn" title="Go forward to next page" data-ng-disabled="confirmDelete || processing" 
+                    data-ng-click="forward();">Forward</button>-->
+            <button class="btn" title="Return to annotation list page" data-ng-disabled="confirmDelete || processing" 
+                    data-ng-click="return();">Return</button>
             
             <!--<button class="btn btn-danger"
                     data-ng-show="deleteAnnotationFlag && !confirmDelete"

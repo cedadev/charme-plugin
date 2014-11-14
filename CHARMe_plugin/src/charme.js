@@ -31,6 +31,12 @@ if (!charme) {
 //Define an object that will provide scope for charme-specific functions and fields
 charme.plugin = {};
 
+// Number of markup tags
+charme.plugin.numTags = 0;
+
+// Number of selected targets
+charme.plugin.numSelected = 0;
+
 //Map to hold selected target names as keys and the target hrefs as corresponding values
 charme.plugin.selectedTargets = {};
 
@@ -115,7 +121,7 @@ charme.plugin.request = {};
  * @returns {String}
  */
 charme.plugin.request.fetchForTarget = function (targetId) {
-    
+
         targetId = targetId === charme.common.ALL_TARGETS ? '' : targetId;
     
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
@@ -161,6 +167,9 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
 				errorCB.call(oReq);
 			}
 		}
+                if(oReq.status.toString()[0] === '5') {
+                    errorCB.call(oReq);
+                }
 	}, false);
 	oReq.addEventListener("error", function () {
 		errorCB.call(oReq);
@@ -184,7 +193,7 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
  * @param activeImgSrc
  * @param inactiveImgSrc
  */
-charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc) {
+charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc, reloadImgSrc) {
     
 	charme.plugin.ajax(charme.plugin.request.fetchForTarget(el.href), function (xmlDoc) {
 		// Success callback
@@ -209,9 +218,13 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 			el.style.background = 'url("' + inactiveImgSrc + '") no-repeat left top';
 		}
                 
+        var reloadTarget = document.getElementById('reload' + el.href);
+        if(reloadTarget)
+            reloadTarget.parentNode.removeChild(reloadTarget);
+    
         // Show the annotation count next to the CHARMe icon - use the className 'charme-count' to hide the count in CSS file if desired
         var showCount = charme.plugin.getByClass('charme-count', charme.plugin.constants.MATCH_EXACT, el.parentNode);
-        if(showCount.length > 0) 
+        if(showCount.length > 0)
             showCount = showCount[0];
         else {
             showCount = document.createElement('span');
@@ -224,10 +237,28 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 	}, function () {
 		el.title = 'CHARMe Plugin - Unable to fetch annotation data';
 		el.style.background = 'url("' + noconnectionImgSrc + '") no-repeat left top';
-		charme.common.addEvent(el, 'click', function(e){
-			alert('CHARMe Plugin - Unable to fetch annotation data');
-			charme.plugin.stopBubble(e);
-		});
+                charme.common.addEvent(el, 'click', charme.plugin.alertError);
+                
+                var reloadTarget = document.getElementById('reload' + el.href);
+                if(reloadTarget)
+                    reloadTarget.parentNode.removeChild(reloadTarget);
+                
+                reloadTarget = document.createElement('img');
+                reloadTarget.src = reloadImgSrc;
+                reloadTarget.style.width = '18px';
+                reloadTarget.style.height = '18px';
+                reloadTarget.style.paddingLeft = '10px';
+                reloadTarget.title = 'Reload annotations';
+                reloadTarget.id = 'reload' + el.href;
+                reloadTarget.className = 'charme-reload-icon';
+                el.parentNode.insertBefore(reloadTarget, el.nextSibling);
+
+                charme.common.addEvent(reloadTarget, 'click', function(e) {
+                    var reloadTarget = document.getElementById('reload' + el.href);
+                    reloadTarget.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
+                    charme.common.removeEvent(el, 'click', charme.plugin.alertError);
+                    charme.plugin.getAnnotationCountForTarget(el, activeImgSrc, inactiveImgSrc, noconnectionImgSrc, reloadImgSrc);
+                });
 
 		if (window.console) {
 			window.console.error('CHARMe Plugin - Unable to fetch annotation data');
@@ -235,6 +266,11 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
 			throw 'CHARMe Plugin - Unable to fetch annotation data';
 		}
 	});
+};
+
+charme.plugin.alertError = function(e) {
+    alert('CHARMe Plugin - Unable to fetch annotation data');
+    charme.plugin.stopBubble(e);
 };
 
 /**
@@ -269,12 +305,10 @@ charme.plugin.disableWholeTargetList = function(isDisabled) {
  * The event ensures that the charme.plugin.selectedTargets map is kept up-to-date
  * @param targetCheckbox
  */
-charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
-
+charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
     var targetHref = targetCheckbox.target.id;
-    var targetHrefEncoded = '';
-    var targetName = targetHref;//.substring(targetHref.lastIndexOf('/')+1);
     
+    var targetName = targetHref;//.substring(targetHref.lastIndexOf('/') + 1);
     var targetTypeLabel = targetCheckbox.target.name;
     var targetTypeDesc = targetTypeLabel.split('-');
     var tempArr = [];
@@ -285,37 +319,28 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
     }
     targetTypeLabel = tempArr.join('');
     targetTypeDesc = tempArr.join(' ');
-        
-    //alert('event fired : checked status = ' + targetCheckbox.target.checked + " " + targetCheckbox.target.id);
 
-    //targetHref = targetCheckbox.target.id;
-    //targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
-    
-    //targetHrefEncoded = encodeURIComponent(targetHref);
-    //targetHrefEncoded = targetHref;
-
-    if(targetCheckbox.target.checked)
-    {
-        if (!(targetHref in charme.plugin.selectedTargets))
-        {
-            //Add the target in the list
-            charme.plugin.selectedTargets[targetHref] = [targetName, targetTypeLabel, targetTypeDesc];
-
-            //alert('added : ' + targetName);
+    if(targetCheckbox.target.checked) {
+        if(!(targetHref in charme.plugin.selectedTargets)) {
+            // Add the target to the list
+            charme.plugin.selectedTargets[targetHref] = {
+                name: targetName,
+                label: targetTypeLabel,
+                desc: targetTypeDesc
+            };
+            charme.plugin.numSelected++;
         }
-
     }
-    else
-    {
-        if (targetHref in charme.plugin.selectedTargets)
-        {
-            // remove from the charme.plugin.selectedTargets
+    else {
+        if(targetHref in charme.plugin.selectedTargets) {
+            // Remove the target from the list
             delete charme.plugin.selectedTargets[targetHref];
-
-            //alert('removed : ' + targetName);
+            charme.plugin.numSelected--;
         }
     }
-
+    
+    var showNumSelected = document.getElementById('showNumSelected');
+    showNumSelected.innerHTML = charme.plugin.numSelected;
 };
 
 /**
@@ -362,8 +387,7 @@ charme.plugin.refreshSelectedTargetList = function (targetCheckbox) {
 
 
 
-charme.plugin.getSelectedTargets = function () {
-
+charme.plugin.getSelectedTargets = function() {
     return charme.plugin.selectedTargets;
 };
 
@@ -445,6 +469,10 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
     inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
     var noConnectionImage = new Image();
     noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
+    var loadImage = new Image();
+    loadImage.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
+    var reloadImage = new Image();
+    reloadImage.src = charme.settings.path + '/reloadbuttonsmall.PNG';
     
     if(isFirstLoad) {
         var selectAllContainer = document.getElementById('charme-placeholder');
@@ -454,6 +482,7 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         charme.plugin.setSelectionEventOnTarget(selectAllBox, 'all');
         
         var text = document.createElement('span');
+        text.id = 'charme-selectUnselectAll';
         text.innerHTML = 'Select/unselect all';
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
         
@@ -464,6 +493,7 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         allTargetsContainer.appendChild(anchor, allTargetsContainer);
         
         text = document.createElement('span');
+        text.id = 'charme-selectAllTargets';
         text.innerHTML = 'Select all targets: ';
         allTargetsContainer.insertBefore(text, anchor);
     }
@@ -473,12 +503,16 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         if(els[i].href) {
             //if(isFirstLoad || els[i].href === targetId)
             if(isFirstLoad || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
-                charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src);
+                charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src, reloadImage.src);
 
             if(isFirstLoad) {
                 els[i].style.display = 'inline-block';
                 els[i].style.width = '36px';
                 els[i].style.height = '26px';
+
+                els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
+                els[i].style.backgroundSize = '18px 18px';
+                els[i].style.backgroundPosition = '10px';
                 
                 // Insert checkboxes and attach selection events
                 if(els[i].href !== charme.common.ALL_TARGETS) {
@@ -489,10 +523,14 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
                     targetCheckbox.name = charme.plugin.extractTargetType(els[i].className);
                     els[i].parentNode.insertBefore(targetCheckbox, els[i]);
                     charme.plugin.setSelectionEventOnTarget(targetCheckbox, 'target');
+                    charme.plugin.numTags++;
                 }
             }
         }
     }
+    
+    var text = document.getElementById('charme-selectUnselectAll');
+    text.innerHTML += ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
 };
 
 charme.plugin.extractTargetType = function(className) {
@@ -566,29 +604,47 @@ charme.plugin.loadPlugin = function () {
     plugin.allowTransparency = true;
     plugin.setAttribute('scrolling', 'no');
     
-    if(screen.width <= charme.common.SMALL_SCREEN) {
+    /*
+    if(window.innerWidth <= charme.common.SMALL_WINDOW) {
         plugin.style.minWidth = '1262px';
     }
     else {
-        plugin.style.minWidth = '1367px';
+        plugin.style.minWidth = '1368px';
         plugin.style.paddingTop = '50px';
         plugin.style.paddingLeft = '25px';
-    }
+        plugin.style.paddingRight = '25px';
+    }*/
+    
+    plugin.style.paddingTop = '50px';
+    plugin.style.paddingLeft = '25px';
+    plugin.style.paddingRight = '25px';
+    
+    if(top.window.innerWidth <= charme.common.SMALL_WINDOW)
+        plugin.style.width = plugin.style.minWidth = charme.common.SMALL_WIDTH + 'px';
+    else if(top.window.innerWidth >= charme.common.LARGE_WINDOW)
+        plugin.style.minWidth = charme.common.LARGE_WIDTH + 'px';
+    else
+        plugin.style.minWidth = top.window.innerWidth + 'px';
 };
 
 /**
  * A callback function used for hiding the plugin. Because the iFrame that the plugin is held in is created outside of the plugin itself (within the scope of the hosted environment), it must also be hidden from this scope. Using a callback avoids the plugin having to know anything about its hosted environment.
  */
-charme.plugin.closeFunc = function (isOneTarget, targetId) {
+charme.plugin.closeFunc = function (isOneTarget, targetIds) { //targetId) {
 	var plugin = document.getElementById('charme-plugin-frame');
 	plugin.contentWindow.location.href = 'about:blank';
         charme.plugin.maximiseFunc(); // In case GUI was closed while minimised
 	plugin.style.display = 'none';
-        
-        //if(isOneTarget) {
-        if(isOneTarget && targetId !== charme.common.ALL_TARGETS) {
+
+        /*if(isOneTarget && targetId !== charme.common.ALL_TARGETS) {
             var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
             targetCheckboxs[targetId].click();
+        }*/
+        if(isOneTarget && !targetIds.hasOwnProperty(charme.common.ALL_TARGETS)) {
+            var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+            for(var targetId in targetIds) {
+                targetCheckboxs[targetId].click();
+            }
         }
         
         if(charme.plugin.selectedTargets.hasOwnProperty(charme.common.ALL_TARGETS))
@@ -600,36 +656,34 @@ charme.plugin.closeFunc = function (isOneTarget, targetId) {
         //charme.plugin.loadPlugin();
 };
 
-charme.plugin.miniaturiseFunc = function () {
+charme.plugin.minimiseFunc = function(topOffset) {
     var plugin = document.getElementById('charme-plugin-frame');
-    //plugin.style.height = '40%';
-    //plugin.style.minWidth = '720px';
-    //plugin.style.paddingTop = '300px';
-    
-    plugin.style.minWidth = '450px';
+    plugin.style.margin = '0';
     plugin.style.height = '74px';
-    
+    plugin.style.width = plugin.style.minWidth = '450px';
+    plugin.style.top = topOffset + 'px';
+    if(parseInt(plugin.style.left) < 0) {
+        var _plugin = document.getElementById('charme-placeholder').lastChild;
+        plugin.style.left = '-' + _plugin.style.paddingLeft;
+    }
 };
 
-charme.plugin.maximiseFunc = function () {
+charme.plugin.maximiseFunc = function() {
     var plugin = document.getElementById('charme-plugin-frame');
     plugin.style.height = '100%';
-    //plugin.style.minWidth = '1260px';
-    //plugin.style.paddingLeft = '25px';
-    //plugin.style.paddingTop = '50px';
-    
-    if(screen.width <= charme.common.SMALL_SCREEN) {
+
+    if(window.innerWidth <= charme.common.SMALL_WINDOW) {
         plugin.style.minWidth = '1262px';
     }
     else {
-        plugin.style.minWidth = '1367px';
+        plugin.style.minWidth = '1368px';
         plugin.style.paddingTop = '50px';
         plugin.style.paddingLeft = '25px';
     }
 };
 
 /**
- * Registers the close and minituarise function listeners with the plugin itself. The close buttons exist within the plugin, so the event will be fired from there.
+ * Registers the close and minimise function listeners with the plugin itself. The close buttons exist within the plugin, so the event will be fired from there.
  */
 charme.plugin.loadFunc = function () {
 
@@ -638,8 +692,8 @@ charme.plugin.loadFunc = function () {
 	this.contentWindow.charme.web.addCloseListener(charme.plugin.closeFunc);
 
 	//Minimise & Maximise listeners
-	//this.contentWindow.charme.web.removeMiniaturiseListener(charme.plugin.miniaturiseFunc);
-	this.contentWindow.charme.web.addMiniaturiseListener(charme.plugin.miniaturiseFunc);
+	//this.contentWindow.charme.web.removeMinimiseListener(charme.plugin.minimiseFunc);
+	this.contentWindow.charme.web.addMinimiseListener(charme.plugin.minimiseFunc);
 
 	//this.contentWindow.charme.web.removeMaximiseListener(charme.plugin.maximiseFunc);
 	this.contentWindow.charme.web.addMaximiseListener(charme.plugin.maximiseFunc);
@@ -687,10 +741,9 @@ charme.plugin.showPlugin = function (e) {
 	}
         
         if(targetHref === charme.common.ALL_TARGETS) {
-            charme.plugin.selectedTargets[targetHref] = ['All Targets', 'Alltypes', 'all types'];
+            charme.plugin.selectedTargets[targetHref] = {name: 'All Targets', label: 'Alltypes', desc: 'all types'};
             charme.plugin.disableWholeTargetList(true);
         }
-        
         
         // If data provider allows the plugin GUI to be dragged, insert script (first removing it if already present) and set 
         // option to allow dragging off screen. We remove the script first as dragiframe.js has no clear/removeHandle() method.
@@ -827,4 +880,4 @@ charme.plugin.init = function () {
 
 charme.plugin.preInit();
 
-//master
+//aoa
