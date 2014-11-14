@@ -157,9 +157,10 @@ charme.plugin.parseXML = function (xmlString) {
  * @param errorCB
  */
 charme.plugin.ajax = function (url, successCB, errorCB) {
-	var oReq = new XMLHttpRequest();
-	oReq.addEventListener("load", function () {
-		if (oReq.status === 200) {
+	var oReq;
+	var successFunc = function(){
+		var status = 200;
+		if (status === 200) {
 			try {
 				var xmlDoc = charme.plugin.parseXML(oReq.responseText);
 				successCB.call(oReq, xmlDoc);
@@ -167,14 +168,24 @@ charme.plugin.ajax = function (url, successCB, errorCB) {
 				errorCB.call(oReq);
 			}
 		}
-                if(oReq.status.toString()[0] === '5') {
-                    errorCB.call(oReq);
-                }
-	}, false);
-	oReq.addEventListener("error", function () {
+	};
+	var errorFunc = function(status){
 		errorCB.call(oReq);
-	}, false);
-	oReq.open('GET', url, true);
+	};
+
+	//Check first for presence of XDomainRequest as this is used by IE9 for making cross domain requests instead of XMLHttpRequest.
+	if (window.XDomainRequest){
+		oReq = new XDomainRequest();
+		oReq.onload = successFunc;
+		oReq.onerror = errorFunc;
+		oReq.open('GET', url);
+	} else if (window.XMLHttpRequest){
+		oReq = new XMLHttpRequest();
+		oReq.addEventListener("load", successFunc, false);
+		oReq.addEventListener("error", errorFunc, false);
+		oReq.open('GET', url, true);
+	}
+
 
 	//Unfortunately, Internet explorer support for XPath is difficult. Need to force the response type, but only for IE.
 	//SHOULD use feature detection, but in this case it needs to apply to all IE versions, and does not relate to a specific feature that can be easily detected (the response type needs to be set because the feature in question even exists to be detected)
@@ -484,6 +495,7 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         var text = document.createElement('span');
         text.id = 'charme-selectUnselectAll';
         text.innerHTML = 'Select/unselect all';
+		text.id='charme-select-all';
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
         
         var allTargetsContainer = document.getElementById('charme-placeholder-all-targets');
@@ -493,8 +505,8 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         allTargetsContainer.appendChild(anchor, allTargetsContainer);
         
         text = document.createElement('span');
-        text.id = 'charme-selectAllTargets';
-        text.innerHTML = 'Select all targets: ';
+        text.innerHTML = 'All targets';
+		text.id='charme-all-targets'
         allTargetsContainer.insertBefore(text, anchor);
     }
     

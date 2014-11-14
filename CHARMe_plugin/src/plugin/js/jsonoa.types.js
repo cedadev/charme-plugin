@@ -38,7 +38,7 @@ jsonoa.types.Annotation=(function Annotation(){
 	Annotation.MOTIVATED_BY='http://www.w3.org/ns/oa#motivatedBy';
 	Annotation.ANNOTATED_BY='http://www.w3.org/ns/oa#annotatedBy';
 	Annotation.BODY='http://www.w3.org/ns/oa#hasBody';
-	Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
+    Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
 	Annotation.DATE='http://www.w3.org/ns/oa#annotatedAt';
 
 	Annotation.TEMPLATE={
@@ -46,10 +46,23 @@ jsonoa.types.Annotation=(function Annotation(){
 		"@type": [Annotation.TYPE],
 		"http://www.w3.org/ns/oa#motivatedBy": [],
 		"http://www.w3.org/ns/oa#hasBody": [],
-		"http://www.w3.org/ns/oa#hasTarget": []
+		"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}
 	};
 	return Annotation;
 })();
+
+jsonoa.types.Composite=(function Composite(){
+    Composite.TYPE='http://www.w3.org/ns/oa#Composite';
+    Composite.ITEM='http://www.w3.org/ns/oa#item';
+
+    Composite.TEMPLATE=  {
+        "@id": "?",
+        "@type": [Composite.TYPE],
+        "http://www.w3.org/ns/oa#item": []
+    }
+    return Composite;
+})();
+
 jsonoa.types.CitationAct=(function CitationAct(){
 	CitationAct.TYPE='http://purl.org/spar/cito/CitationAct';
 	CitationAct.CITING_ENTITY='http://purl.org/spar/cito/hasCitingEntity';

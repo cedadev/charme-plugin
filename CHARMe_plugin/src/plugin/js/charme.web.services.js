@@ -327,11 +327,13 @@ charme.web.services.factory('saveAnnotation', function () {
 	return function(annoModel, targetId, targetMap, auth){
 		var promise = new Promise(function(resolver){
 			var annoSpec = jsonoa.types.Annotation;
-			var graph = new jsonoa.core.Graph();
+            var graph = new jsonoa.core.Graph();
 			var anno = graph.createNode({type: jsonoa.types.Annotation, id: charme.logic.constants.ATN_ID_PREFIX + 'annoID'});
 			var bodyId = charme.logic.constants.BODY_ID_PREFIX + 'bodyID';
 			var commentId = bodyId;
-			
+            var compositeSpec = jsonoa.types.Composite;
+            var composite = graph.createNode({type: jsonoa.types.Composite, id: charme.logic.constants.COMPOSITE_ID_PREFIX + 'targetID'});
+
 			if (annoModel.comment){
 				var comment = graph.createNode({type: jsonoa.types.Text, id: commentId});
 				comment.setValue(jsonoa.types.Text.CONTENT_CHARS, annoModel.comment);
@@ -357,12 +359,22 @@ charme.web.services.factory('saveAnnotation', function () {
 						 * Create a citation act for the body. 
 						 */
 						var citoType = jsonoa.types.CitationAct;
-						var citation = graph.createNode({type: citoType, id: citoId});
-						citation.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
-						citation.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
-						anno.addValue(annoSpec.BODY, citation);
+						//var citation = graph.createNode({type: citoType, id: citoId});
+						//citation.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
+						//citation.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
+						//anno.addValue(annoSpec.BODY, citation);
+
 						//Create node for link uri, with typing information
-						graph.createNode({type: type, id: linkURI});
+						var uriLink = graph.createNode({type: type, id: linkURI});
+
+                        //Add the "citationAct type" to annotation
+                        anno.addValue('@type', citoType.TYPE);
+                        //anno.setValue(annoSpec.CITED_ENTITY, graph.createStub(targetId));
+                        anno.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
+                        //anno.setValue(annoSpec.CITING_ENTITY, graph.createStub(linkURI));
+                        //anno.setValue(citoType.CITING_ENTITY, uriLink);
+                        anno.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
+
 					} else {
 						var linkBody =graph.createNode({type: type, id: linkURI});
 						anno.addValue(annoSpec.BODY, linkBody);
@@ -396,7 +408,6 @@ charme.web.services.factory('saveAnnotation', function () {
                     anno.addValue(annoSpec.MOTIVATED_BY, page);
                 });
             }
-            
             // Save each of the selected targetids into the annotation target
             for(target in targetMap)
             {
@@ -410,6 +421,9 @@ charme.web.services.factory('saveAnnotation', function () {
                 //anno.addValue(annoModel.TARGET, target);
                 anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
             }
+
+            //Attach the composite to the Annotation
+            anno.setValue(annoSpec.TARGET, composite);
                         
 			//anno.setValue(annoSpec.TARGET, target);
 			charme.logic.saveGraph(graph, auth.token).then(

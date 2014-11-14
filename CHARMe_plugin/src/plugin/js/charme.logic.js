@@ -44,6 +44,7 @@ charme.logic.constants = {
     // returned when viewing annotations
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
+    COMPOSITE_ID_PREFIX : 'http://localhost/',
 
     URL_PREFIX : 'http://',
     DXDOI_URL : 'http://dx.doi.org/',
@@ -94,6 +95,9 @@ charme.logic.urls.createRequest = function() {
 };
 charme.logic.urls.stateRequest = function(newState) {
 	return charme.logic.urls._baseURL() + 'advance_status/';
+};
+charme.logic.urls.deleteRequest = function(annoID) {
+    return charme.logic.urls._baseURL() + 'resource/' + annoID;
 };
 
 charme.logic.urls.fetchForTarget = function(targetId) {
@@ -835,7 +839,29 @@ charme.logic.searchAnnotations = function(criteria) {
  */
 charme.logic.deleteAnnotation=function(annotationId, token){
 	//return charme.logic.advanceState(annotationId, charme.logic.constants.STATE_DELETE, token)
-	return charme.logic.advanceState(annotationId, 'retired', token);
+	//return charme.logic.advanceState(annotationId, 'retired', token);
+
+    var shortId = charme.logic.shortAnnoId(annotationId);
+
+    var url = charme.logic.urls.deleteRequest(shortId);
+    return new Promise(function(resolver) {
+        $.ajax(url, {
+            dataType: 'xml',
+            type: 'DELETE',
+            headers : {
+                'Authorization' : ' Bearer ' + token
+            },
+            contentType: 'application/json'
+            //data: JSON.stringify({annotation: annotationId, toState: newState})
+        }).then(function(result){
+                resolver.fulfill(result);
+            },
+            function(error){
+                resolver.reject(error);
+            });
+    });
+
+
 };
 
 /*
