@@ -1105,7 +1105,6 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         var targetId = $routeParams.targetId;
         $scope.targetId=targetId;
         $scope.commentMaxLength = charme.settings.COMMENT_LENGTH ? charme.settings.COMMENT_LENGTH : 500; // Maximum no. of characters for free text
-        
         $scope.anno = {};
         
         $scope.loggedIn=loginService.isLoggedIn();

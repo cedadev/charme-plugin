@@ -493,9 +493,8 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         charme.plugin.setSelectionEventOnTarget(selectAllBox, 'all');
         
         var text = document.createElement('span');
-        text.id = 'charme-selectUnselectAll';
-        text.innerHTML = 'Select/unselect all';
-		text.id='charme-select-all';
+        text.id='charme-select-all';
+        text.innerHTML = 'Select/unselect all';	
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
         
         var allTargetsContainer = document.getElementById('charme-placeholder-all-targets');
@@ -505,8 +504,8 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         allTargetsContainer.appendChild(anchor, allTargetsContainer);
         
         text = document.createElement('span');
-        text.innerHTML = 'All targets';
-		text.id='charme-all-targets'
+        text.id = 'charme-all-targets'
+        text.innerHTML = 'All targets';	
         allTargetsContainer.insertBefore(text, anchor);
     }
     
@@ -541,7 +540,7 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         }
     }
     
-    var text = document.getElementById('charme-selectUnselectAll');
+    var text = document.getElementById('charme-select-all');
     text.innerHTML += ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
 };
 

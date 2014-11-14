@@ -418,8 +418,8 @@ charme.web.services.factory('saveAnnotation', function () {
                 //var target = graph.createNode({type: jsonoa.types[targetLabel], id: targetId});
                 var target = graph.createNode({type: jsonoa.types[targetLabel], id: targetTargetId});
                 
-                //anno.addValue(annoModel.TARGET, target);
-                anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
+                //anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
+                composite.addValue(compositeSpec.ITEM, graph.createStub(targetTargetId));
             }
 
             //Attach the composite to the Annotation

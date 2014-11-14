@@ -99,7 +99,6 @@ charme.logic.urls.stateRequest = function(newState) {
 charme.logic.urls.deleteRequest = function(annoID) {
     return charme.logic.urls._baseURL() + 'resource/' + annoID;
 };
-
 charme.logic.urls.fetchForTarget = function(targetId) {
 	//return 'testData/charmetest.atom';
 	return charme.logic.urls._baseURL() + 'search/atom?target=' + encodeURIComponent(targetId) +
