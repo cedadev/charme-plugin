@@ -540,7 +540,9 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                     //Process graph
                     var annoList = graph.getAnnotations();
                     if (annoList.length > 0) {
-                        var anno = annoList[0];
+                        //var anno = annoList[0];
+                        var anno = charme.logic.filterAnnoList(annoList, annoType);
+
                         var motivations = anno.getValues(annoType.MOTIVATED_BY);
                         if (motivations && motivations.length > 0) {
                             $scope.motivationTags = [];
@@ -680,18 +682,19 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         //Extract the targetid(s) of the annotation
                         //var targets = anno.getValues(annoType.TARGET);
                         var targets = [];
-                        var composite = anno.getValues(annoType.TARGET);
-                        if (composite.hasType(jsonoa.types.Composite.TYPE))
-                        {
-                            angular.forEach(composite, function(element){
-                                targets.push(element.getValue(jsonoa.types.Composite.ITEM))
+                        var composite = anno.getValue(annoType.TARGET);
+
+                        if(composite.hasType(jsonoa.types.Composite.TYPE)) {
+                            var items = composite.getValues(jsonoa.types.Composite.ITEM);
+                            angular.forEach(items, function(element){
+                                targets.push(element);
                             });
                         }
-
-                        if (targets && targets.length > 0) {
+                        
+                        if(targets && targets.length > 0) {
                             $scope.targetList = [];
                         }
-
+                        
                         var date = anno.getValue(annoType.DATE);
                         $scope.date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
 
@@ -722,7 +725,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 fetchAnnotation(targetHref).then(function(graph) {
                                     var annoList = graph.getAnnotations();
                                     if (annoList.length > 0) {
-                                        var anno = annoList[0];
+                                        //var anno = annoList[0];
+                                        var anno = charme.logic.filterAnnoList(annoList, annoType);
                                         var bodies = anno.getValues(annoType.BODY);
                                         var textType = jsonoa.types.Text;
                                         $scope.targetComment = '(No comment)';
@@ -840,6 +844,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                     }
                 });
                 
+                
+                // annoOnAnno code:
                 var criteria = {
                     targets: [annoId],
                     pageNum: '1',
@@ -860,9 +866,66 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                     if(targetIsAnno) {
                         $scope.$apply(function() {
                             numSearchesCompleted++;
-                            //numSearchesStarted += results.length;
                             if(numSearchesCompleted === (numSearchesStarted + results.length)) {
                                 annoList.sort(function(a, b) {return (Date.parse(b.date) - Date.parse(a.date));});
+                                
+                                /*console.log('annoList');
+                                console.log(annoList);
+                                
+                                var sortedAnnoList = [], newSortedAnnoList = [];
+                                for(var i = 0; i < annoList.length; i++) {
+                                    if(annoList[i].targets[0] === annoId) {
+                                        sortedAnnoList.push(annoList[i]);
+                                    }
+                                }
+                                sortedAnnoList.sort(function(a, b) {return (Date.parse(b.date) - Date.parse(a.date));});
+                                
+                                for(var i = 0; i < sortedAnnoList.length; i++) {
+                                    newSortedAnnoList.push(sortedAnnoList[i]);
+                                }
+                                
+                                console.log(sortedAnnoList);
+                                
+                                threadedConvo = function() {
+                                    //for(var i = 0; i < sortedAnnoList.length; i++) {
+                                    //    newSortedAnnoList.push(sortedAnnoList[i]);
+                                    //}
+                                    
+                                    for(var i = 0; i < sortedAnnoList.length; i++) {
+                                        var tempArr = [];
+                                        
+                                        for(var j = 0; j < annoList.length; j++) {
+                                            if(annoList[j].targets[0] === sortedAnnoList[i].id) {
+                                                tempArr.push(annoList[j]);
+                                            }
+                                            
+                                        }
+                                        
+                                        console.log('tempArr');
+                                        console.log(tempArr);
+                                        
+                                        tempArr.sort(function(b, a) {return (Date.parse(b.date) - Date.parse(a.date));});
+                                        for(var k = 0; k < tempArr.length; k++)
+                                            var insertionPoint = newSortedAnnoList.indexOf(sortedAnnoList[i]) + 1;
+                                            newSortedAnnoList.splice(insertionPoint, 0, tempArr[k]);
+                                        
+                                        console.log('newSortedAnnoList');
+                                        console.log(newSortedAnnoList);
+                                        
+                                    }
+                                    
+                                    for(var i = 0; i < newSortedAnnoList.length; i++) {
+                                        sortedAnnoList.push(newSortedAnnoList[i]);
+                                    }
+                                    
+                                    if(sortedAnnoList.length < annoList.length)
+                                        threadedConvo();
+                                };
+
+                                threadedConvo();
+                                $scope.entries = newSortedAnnoList;*/
+
+
                                 $scope.entries = annoList;
                                 shiftAnnoService.annoList[annoId] = $scope.entries;
                                 $scope.loadingReplies = false;
@@ -885,7 +948,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                         //annoList.push(result); // If id workaround no longer needed, then uncomment this line
 
                                         // id workaround
-                                        if(!resultIdList.hasOwnProperty(result.id)) {
+                                        if(!resultIdList.hasOwnProperty(result.id) && result.date > $scope.date) {
                                             annoList.push(result);
                                             resultIdList[result.id] = '';
                                         }
@@ -952,6 +1015,10 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                              .replace();
                 });
         };
+        
+        $scope.$on('$destroy', function() {
+            searchAnnotations.clearListeners();
+        });
     }]);
 
 /**

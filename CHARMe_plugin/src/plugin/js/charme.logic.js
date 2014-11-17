@@ -40,7 +40,7 @@ charme.logic = {};
 charme.logic.authToken = {};
 
 charme.logic.constants = {
-    ANNO_DEPTH : 1, // A depth specifier for the graph depth that is
+    ANNO_DEPTH : 99, // A depth specifier for the graph depth that is
     // returned when viewing annotations
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
@@ -913,4 +913,35 @@ charme.logic.debounce = function(func, wait, immediate) {
         if(callNow)
             func.apply(context, args);
     };
+};
+
+charme.logic.filterAnnoList = function(annoList, annoType) {
+    var _anno, _annoTargets, _targetIds = [];
+    var newAnnoList = [];
+    
+    for(var i = 0; i < annoList.length; i++) {
+        _anno = annoList[i].getValue(annoType.TARGET);
+        _annoTargets = _anno.getValues(jsonoa.types.Composite.ITEM);
+        angular.forEach(_annoTargets, function(target){
+            _targetIds.push(target.getValue(jsonoa.types.Common.ID));
+        });
+    }
+
+    var annoId, pushFlag;
+    for(var i = 0; i < annoList.length; i++) {
+        pushFlag = true;
+        annoId = annoList[i].getValue(jsonoa.types.Common.ID);
+        for(var j = 0; j < _targetIds.length; j++) {
+            if(annoId === _targetIds[j])
+                pushFlag = false;
+        }
+
+        if(pushFlag)
+            newAnnoList.push(annoList[i]);
+    }
+    
+    if(newAnnoList.length > 1)
+        console.error('newAnnoList array contains multiple annotations');
+
+    return(newAnnoList[0]);
 };

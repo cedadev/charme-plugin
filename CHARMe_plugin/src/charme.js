@@ -504,7 +504,7 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         allTargetsContainer.appendChild(anchor, allTargetsContainer);
         
         text = document.createElement('span');
-        text.id = 'charme-all-targets'
+        text.id = 'charme-all-targets';
         text.innerHTML = 'All targets';	
         allTargetsContainer.insertBefore(text, anchor);
     }
@@ -891,4 +891,4 @@ charme.plugin.init = function () {
 
 charme.plugin.preInit();
 
-//aoa
+//master
