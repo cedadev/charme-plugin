@@ -36,6 +36,18 @@
         </div>
     </div>
     <div class="control-group">
+        <label class="control-label" for="chooseBodyType">Body type</label>
+        <div class="controls controls-row">
+            <select id="chooseBodyType" class="span5 body-types" data-body-type-keywords multiple
+                    data-body-types-to-show="bodyTypeCategoriesForSearch" 
+                    data-ng-model="criteria.selectedBodyTypes"
+                    placeholder=" Select tags...">
+            </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving bodyTypeCategoriesForSearch -->
+            <span class="span1 search-question-icon icon-question-sign"
+                  title="Search by type of the annotation’s body"></span>
+        </div>
+    </div>
+    <div class="control-group">
         <label class="control-label" for="chooseDomain"><span>Domains of interest</span></label>
         <div id="chooseDomainDiv" class="controls controls-row">
             <select id="chooseDomain" class="span5 domains" data-domain-keywords multiple

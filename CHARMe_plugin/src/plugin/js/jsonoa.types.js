@@ -1,24 +1,24 @@
 /*
  * Copyright (c) 2014, CGI
  * All rights reserved.
- * Redistribution and use in source and binary forms, with or without modification, are 
+ * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 1. Redistributions of source code must retain the above copyright notice, this list of 
+ * 1. Redistributions of source code must retain the above copyright notice, this list of
  *    conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice, this list 
- *    of conditions and the following disclaimer in the documentation and/or other materials 
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *    of conditions and the following disclaimer in the documentation and/or other materials
  *    provided with the distribution.
- * 3. Neither the name of the copyright holder nor the names of its contributors may be 
- *    used to endorse or promote products derived from this software without specific prior 
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be
+ *    used to endorse or promote products derived from this software without specific prior
  *    written permission.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY 
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
- * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
- * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+ * THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
@@ -38,7 +38,7 @@ jsonoa.types.Annotation=(function Annotation(){
 	Annotation.MOTIVATED_BY='http://www.w3.org/ns/oa#motivatedBy';
 	Annotation.ANNOTATED_BY='http://www.w3.org/ns/oa#annotatedBy';
 	Annotation.BODY='http://www.w3.org/ns/oa#hasBody';
-	Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
+    Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
 	Annotation.DATE='http://www.w3.org/ns/oa#annotatedAt';
 	Annotation.WAS_REVISION_OF='http://www.w3.org/ns/prov#wasRevisionOf';
 
@@ -47,10 +47,23 @@ jsonoa.types.Annotation=(function Annotation(){
 		"@type": [Annotation.TYPE],
 		"http://www.w3.org/ns/oa#motivatedBy": [],
 		"http://www.w3.org/ns/oa#hasBody": [],
-		"http://www.w3.org/ns/oa#hasTarget": []
+		"http://www.w3.org/ns/oa#hasTarget": {"@id":"?"}
 	};
 	return Annotation;
 })();
+
+jsonoa.types.Composite=(function Composite(){
+    Composite.TYPE='http://www.w3.org/ns/oa#Composite';
+    Composite.ITEM='http://www.w3.org/ns/oa#item';
+
+    Composite.TEMPLATE=  {
+        "@id": "?",
+        "@type": [Composite.TYPE],
+        "http://www.w3.org/ns/oa#item": []
+    }
+    return Composite;
+})();
+
 jsonoa.types.CitationAct=(function CitationAct(){
 	CitationAct.TYPE='http://purl.org/spar/cito/CitationAct';
 	CitationAct.CITING_ENTITY='http://purl.org/spar/cito/hasCitingEntity';
@@ -127,10 +140,55 @@ jsonoa.types.Dataset=(function Dataset(){
         Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE]};
 	return Dataset;
 })();
+jsonoa.types.CHARMeAnnotation=(function CHARMeAnnotation(){
+	CHARMeAnnotation.TYPE = 'http://charme.cems.rl.ac.uk/2014/charme#CHARMeAnnotation'; // This is a dummy URL
+        CHARMeAnnotation.TEMPLATE = {"@id": "?", "@type": [CHARMeAnnotation.TYPE]};
+	return CHARMeAnnotation;
+})();
+jsonoa.types.Document=(function Document(){
+	Document.TYPE='http://purl.org/spar/fabio#Document';
+        Document.TEMPLATE = {"@id": "?", "@type": [Document.TYPE]};
+	return Document;
+})();
 jsonoa.types.TechnicalReport=(function TechnicalReport(){
 	TechnicalReport.TYPE='http://purl.org/spar/fabio/TechnicalReport';
         TechnicalReport.TEMPLATE = {"@id": "?", "@type": [TechnicalReport.TYPE]};
 	return TechnicalReport;
+})();
+jsonoa.types.AlgorithmTheoreticalBasisDocument=(function AlgorithmTheoreticalBasisDocument(){
+	AlgorithmTheoreticalBasisDocument.TYPE='http://charme.cems.rl.ac.uk/2014/charme#AlgorithmTheoreticalBasisDocument';
+        AlgorithmTheoreticalBasisDocument.TEMPLATE = {"@id": "?", "@type": [AlgorithmTheoreticalBasisDocument.TYPE]};
+	return AlgorithmTheoreticalBasisDocument;
+})();
+jsonoa.types.ProductUserManual=(function ProductUserManual(){
+	ProductUserManual.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ProductUserManual';
+        ProductUserManual.TEMPLATE = {"@id": "?", "@type": [ProductUserManual.TYPE]};
+	return ProductUserManual;
+})();
+jsonoa.types.ValidationReport=(function ValidationReport(){
+	ValidationReport.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ValidationReport';
+        ValidationReport.TEMPLATE = {"@id": "?", "@type": [ValidationReport.TYPE]};
+	return ValidationReport;
+})();
+jsonoa.types.OperationReport=(function OperationReport(){
+	OperationReport.TYPE='http://charme.cems.rl.ac.uk/2014/charme#OperationReport';
+        OperationReport.TEMPLATE = {"@id": "?", "@type": [OperationReport.TYPE]};
+	return OperationReport;
+})();
+jsonoa.types.ServiceMessage=(function ServiceMessage(){
+	ServiceMessage.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ServiceMessage';
+        ServiceMessage.TEMPLATE = {"@id": "?", "@type": [ServiceMessage.TYPE]};
+	return ServiceMessage;
+})();
+jsonoa.types.ProductChangeLog=(function ProductChangeLog(){
+	ProductChangeLog.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ProductChangeLog';
+        ProductChangeLog.TEMPLATE = {"@id": "?", "@type": [ProductChangeLog.TYPE]};
+	return ProductChangeLog;
+})();
+jsonoa.types.KnownProductDisruption=(function KnownProductDisruption(){
+	KnownProductDisruption.TYPE='http://charme.cems.rl.ac.uk/2014/charme#KnownProductDisruption';
+        KnownProductDisruption.TEMPLATE = {"@id": "?", "@type": [KnownProductDisruption.TYPE]};
+	return KnownProductDisruption;
 })();
 /*jsonoa.types.DatasetCollection=(function DatasetCollection(){
 	DatasetCollection.TYPE='http://purl.org/spar/fabio/MetadataDocument';

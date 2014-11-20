@@ -329,14 +329,15 @@ charme.web.services.factory('searchAnnotations', function(){
         searchService.listeners = {};
     };
 
-	searchService.tellListeners = function (type, data1, data2, data3, data4, data5){
+	searchService.tellListeners = function (type, data1, data2, data3, data4, data5, data6){
 		angular.forEach(searchService.listeners[type], function(listener){
 			if (typeof data1 !== 'undefined' || 
                             typeof data2 !== 'undefined' || 
                             typeof data3 !== 'undefined' ||
                             typeof data4 !== 'undefined' ||
-                            typeof data5 !== 'undefined') {
-				listener(data1, data2, data3, data4, data5);
+                            typeof data5 !== 'undefined' ||
+                            typeof data6 !== 'undefined') {
+				listener(data1, data2, data3, data4, data5, data6);
 			} else {
 				listener();
 			}
@@ -358,7 +359,7 @@ charme.web.services.factory('searchAnnotations', function(){
 					var userName = '';
 					var organizationName = '';
                                         var organizationUri = '';
-
+                                        
 					var date = anno.getValue(annoSpec.DATE);
 					date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
 
@@ -383,7 +384,8 @@ charme.web.services.factory('searchAnnotations', function(){
                                                     'userName': userName,
                                                     'organizationName': organizationName,
                                                     'organizationUri': organizationUri,
-                                                    'date': date
+                                                    'date': date,
+                                                    'targets': criteria.targets
 						}
 					);
 				});
@@ -399,7 +401,9 @@ charme.web.services.factory('searchAnnotations', function(){
                                         pages.push({status: 'notCurrent'});
 				}
                                 
-				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, criteria.pageNum, lastPage, feed.totalResults);
+                                var targetIsAnno = criteria.targetIsAnno || false;
+                                
+				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, criteria.pageNum, lastPage, feed.totalResults, targetIsAnno);
 				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);   
 			},
 			function(error){
@@ -437,6 +441,8 @@ charme.web.services.factory('saveAnnotation', function () {
 			}
 			var bodyId = charme.logic.constants.BODY_ID_PREFIX + 'bodyID';
 			var commentId = bodyId;
+            var compositeSpec = jsonoa.types.Composite;
+            var composite = graph.createNode({type: jsonoa.types.Composite, id: charme.logic.constants.COMPOSITE_ID_PREFIX + 'targetID'});
 
 			/**
 			 * If this is an update (a 'pristine' model was provided), check if comments have changed. If they have not, DO NOT include a body node, just a reference to the existing node.
@@ -468,12 +474,22 @@ charme.web.services.factory('saveAnnotation', function () {
 						 * Create a citation act for the body. 
 						 */
 						var citoType = jsonoa.types.CitationAct;
-						var citation = graph.createNode({type: citoType, id: citoId});
-						citation.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
-						citation.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
-						anno.addValue(annoSpec.BODY, citation);
+						//var citation = graph.createNode({type: citoType, id: citoId});
+						//citation.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
+						//citation.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
+						//anno.addValue(annoSpec.BODY, citation);
+
 						//Create node for link uri, with typing information
-						graph.createNode({type: type, id: linkURI});
+						var uriLink = graph.createNode({type: type, id: linkURI});
+
+                        //Add the "citationAct type" to annotation
+                        anno.addValue('@type', citoType.TYPE);
+                        //anno.setValue(annoSpec.CITED_ENTITY, graph.createStub(targetId));
+                        anno.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
+                        //anno.setValue(annoSpec.CITING_ENTITY, graph.createStub(linkURI));
+                        //anno.setValue(citoType.CITING_ENTITY, uriLink);
+                        anno.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
+
 					} else {
 						var linkBody =graph.createNode({type: type, id: linkURI});
 						anno.addValue(annoSpec.BODY, linkBody);
@@ -529,35 +545,43 @@ charme.web.services.factory('saveAnnotation', function () {
                     anno.addValue(annoSpec.MOTIVATED_BY, page);
                 });
             }
-            
-            // Save each of the selected targetids into the annotation target
-            /*for(target in targetMap)
+
+            //If the number of targets exceeds one, then attach the collection as a oc:composite.
+            //Else attach the target directly to the annotation
+
+            //if(targetMap.length > 1)
+            if(Object.keys(targetMap).length > 1 )
             {
-                //var targetTargetId = decodeURIComponent(targetMap[target]);
-                var targetTargetId = target;
-                var targetDesc = targetMap[target][1];
-                
-                var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
 
-                anno.addValue(annoSpec.TARGET, graph.createStub(targetTargetId));
-            }*/
-			if (annoModel.targets.length === 0){
-				resolver.reject('Annotations must have at least one target');
-			}
-			for(var i=0; i < annoModel.targets.length; i++)
-			{
-				var target = annoModel.targets[i];
-				var targetId = target.id;
-				var targetType = target.typeId;
-				var nodeType = jsonoa.util.templateFromType(targetType);
-				if (typeof nodeType === 'undefined'){
-					resolver.reject('Unknown target type: ' + targetType);
-				}
+                // Save each of the selected targetids into the annotation target
+                for(target in targetMap)
+                {
+                    var targetTargetId = target;
+                    var targetDesc = targetMap[target][1];
 
-				var target = graph.createNode({type: nodeType, id: targetId});
+                    var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
+                    composite.addValue(compositeSpec.ITEM, graph.createStub(targetTargetId));
+                }
 
-				anno.addValue(annoSpec.TARGET, graph.createStub(targetId));
-			}
+                //Attach the composite to the Annotation
+                anno.setValue(annoSpec.TARGET, composite);
+
+            }
+            else
+            {
+                for(target in targetMap)
+                {
+                    var targetTargetId = target;
+                    var targetDesc = targetMap[target][1];
+
+                    var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetId});
+                    anno.setValue(annoSpec.TARGET, graph.createStub(targetTargetId));
+                }
+                //Attach the target to the Annotation
+                anno.setValue(annoSpec.TARGET, target);
+            }
+
+
 
 			//insert or update?
 			var saveUrl;
@@ -567,6 +591,7 @@ charme.web.services.factory('saveAnnotation', function () {
 				saveUrl = charme.logic.urls.updateRequest();
 
 			charme.logic.saveGraph(graph, auth.token, saveUrl).then(
+
 				function(data){
 					resolver.fulfill(data);
 				}, 
@@ -626,7 +651,7 @@ charme.web.services.factory('fetchAllMotivations', function(){
 });
 
 
-charme.web.services.factory('fetchFabioTypes', function(){
+/*charme.web.services.factory('fetchFabioTypes', function(){
 	return function(annoModel, targetId){	
 		var promise = new Promise(function(resolver){
 			charme.logic.fetchFabioTypes().then(function(types){
@@ -637,7 +662,7 @@ charme.web.services.factory('fetchFabioTypes', function(){
 		});
 		return promise;
 	};
-});
+});*/
 
 /*charme.web.services.factory('fetchTargetType', function() {
     return function(targetId) {
@@ -680,40 +705,65 @@ charme.web.services.factory('fetchAllSearchFacets', function(){
  */
 charme.web.services.factory('targetService', function() {
         return {
-            targets: []   /* This array is initialised in the InitCtrl */
+            targets: [],   /* This array is initialised in the InitCtrl */
             //targetsHighlighted: []
+            
+            listViewTarget: ''
         };
     }
 );
 
 charme.web.services.factory('searchBarService', function() {
         return {
-            isSearchOpen: screen.width <= charme.common.SMALL_SCREEN ? false : true,
+            isSearchOpen: false,
             targetDropdownFlag: false
+        };
+    }
+);
+
+charme.web.services.factory('minimisedService', function() {
+        return {
+            isMinimised: false
         };
     }
 );
 
 charme.web.services.factory('shiftAnnoService', function() {
         var shiftAnnoService = {};
-        shiftAnnoService.annoList = [];
+        shiftAnnoService.annoList = {};
         
-        shiftAnnoService.getPosition = function(annoId) {
-            var result = [];
-            result.push(annoId === shiftAnnoService.annoList[0].id);
-            result.push(annoId === shiftAnnoService.annoList[shiftAnnoService.annoList.length - 1].id);
-            
-            return result;
+        shiftAnnoService.getPosition = function(targetId, annoId) {
+            for(var i = 0; i < shiftAnnoService.annoList[targetId].length; i++) {
+                if(annoId === shiftAnnoService.annoList[targetId][i].id)
+                    return i + 1;
+            }
+        };
+        
+        shiftAnnoService.getListLength = function(targetId) {
+            return shiftAnnoService.annoList[targetId].length;
         };
     
-        shiftAnnoService.getNewAnno = function(annoId, direction) {
-            for(var i = 0; i < shiftAnnoService.annoList.length; i++) {
-                if(shiftAnnoService.annoList[i].id === annoId) {
-                    return shiftAnnoService.annoList[i + direction];
+        shiftAnnoService.getNewAnno = function(targetId, annoId, direction) {
+            for(var i = 0; i < shiftAnnoService.annoList[targetId].length; i++) {
+                if(shiftAnnoService.annoList[targetId][i].id === annoId) {
+                    if(i + direction === -1)
+                        return shiftAnnoService.annoList[targetId][shiftAnnoService.annoList[targetId].length - 1];
+                    else if(i + direction === shiftAnnoService.annoList[targetId].length)
+                        return shiftAnnoService.annoList[targetId][0];
+                    else                    
+                        return shiftAnnoService.annoList[targetId][i + direction];
                 }
             }
         };
 
         return shiftAnnoService;
+    }
+);
+
+charme.web.services.factory('replyToAnnoService', function() {
+        return {
+            comments: '',
+            initialTarget: ''
+        };
     }
 );

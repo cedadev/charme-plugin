@@ -144,12 +144,17 @@ jsonoa.core.wrapNode = function(typeDesc){
 			if (value instanceof Array){
 				throw 'Type exception, cannot set value to an array type. Use addValue function instead.';
 			}
-			if (typeof this.node[attr] !== 'object' && this.template[attr]!=='?'){
-				throw 'Field (' + attr + ') is defined as constant in type template';
-			}
-			if (typeof value !== typeof this.node[attr] && !(this.node[attr] instanceof Array)){
-				throw 'Type exception, cannot set field (' + attr + ') with type ' + (typeof this.node[attr]) + ' to value of type ' + (typeof value);
-			}
+            if (typeof this.template[attr] !== 'undefined' )
+            {
+                //Validate value against template
+                if (typeof this.node[attr] !== 'object' && this.template[attr]!=='?'){
+                    throw 'Field (' + attr + ') is defined as constant in type template';
+                }
+                if (typeof value !== typeof this.node[attr] && !(this.node[attr] instanceof Array)){
+                    throw 'Type exception, cannot set field (' + attr + ') with type ' + (typeof this.node[attr]) + ' to value of type ' + (typeof value);
+                }
+
+            }
 			if (jsonoa.util.isWrapped(value)){
 				value = (this.graph.createStub(value.node[value.ID])).node;
 			}

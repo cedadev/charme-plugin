@@ -49,8 +49,11 @@ charme.common.isIE11orLess = charme.common.isIE11 || navigator.appVersion.indexO
 // Determining if browser is Chrome
 charme.common.isChrome = !!window.chrome;
 
-// We adjust the GUI width for small screens
-charme.common.SMALL_SCREEN = 1280;
+// We adjust the GUI width with window width
+charme.common.SMALL_WINDOW = 1280;
+charme.common.LARGE_WINDOW = 1366;
+charme.common.SMALL_WIDTH = 1262;
+charme.common.LARGE_WIDTH = 1368;
 
 // Dummy URL for when we view annotations for all targets
 charme.common.ALL_TARGETS = 'http://alltargets/';

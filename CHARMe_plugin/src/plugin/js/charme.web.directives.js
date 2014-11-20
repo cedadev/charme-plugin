@@ -40,7 +40,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                     optgroups.push({value: cat.name, label: cat.name});
                     // Could just use el.addOptionGroup here instead, and have no optgroups array at all, but we might perhaps want to have this array in future
                     //el.addOptionGroup(cat.name, {label: cat.name});
-                    
+
                         angular.forEach(cat.keywords, function (kword) {
                             if(kword.hasOwnProperty('desc')) {
                                 options.push({text: kword.desc, value: kword.uri, optgroup: cat.name, $order: kword.desc});
@@ -210,19 +210,13 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                             });
                         });
                     });
-
-					//Load initial values
-					//Modified to load values on change
-					$scope.$parent.$watch(attrs.ngModel, function(){
-						$timeout(function(){
-							console.log('Watch triggered for domains');
-							if ($ngModel.$modelValue instanceof Array){
-								angular.forEach($ngModel.$modelValue, function(value){
-									el.addItem(value.value);
-								});
-							}
-						});
-					});
+                    
+                    //Load initial values
+                    if ($ngModel.$modelValue instanceof Array){
+                        angular.forEach($ngModel.$modelValue, function(value){
+                            el.addItem(value.value);
+                        });
+                    }
                 });
             }
     };
@@ -303,23 +297,28 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                     });
 
                     //Load initial values
-					//Modified to load values on change
-					$scope.$parent.$watch(attrs.ngModel, function(){
-						$timeout(function() {
-							if ($ngModel.$modelValue instanceof Array) {
-								angular.forEach($ngModel.$modelValue, function (value) {
-									el.addItem(value.value);
-								});
-							}
-						});
-					});
-
+                    if ($ngModel.$modelValue instanceof Array){
+                            angular.forEach($ngModel.$modelValue, function(value){
+                                    el.addItem(value.value);
+                            });
+                    }
                 });
             }
     };
 })
 
-.directive('confirm', ['deleteAnnotation', function(deleteAnnotation){
+.directive('confirmBox', function() {
+    return {
+        restrict: 'A',
+        scope: {
+            content: '=',
+            confirmFunc: '&onConfirm',
+            cancelFunc: '&onCancel'
+        },
+        templateUrl: 'templates/confirmbox.html'
+    };
+});
+/*.directive('confirm', ['deleteAnnotation', function(deleteAnnotation){
 	return {
 		restrict: 'A',
 		scope: {
@@ -337,6 +336,8 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
 }]);
 
 
+}]);*/
+        
 /*.directive('charmeCito', ['fetchFabioTypes', function (fetchFabioTypes) {
     return {
             restrict: 'A',
