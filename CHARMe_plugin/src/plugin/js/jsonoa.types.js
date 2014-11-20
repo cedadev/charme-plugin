@@ -40,6 +40,7 @@ jsonoa.types.Annotation=(function Annotation(){
 	Annotation.BODY='http://www.w3.org/ns/oa#hasBody';
 	Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
 	Annotation.DATE='http://www.w3.org/ns/oa#annotatedAt';
+	Annotation.WAS_REVISION_OF='http://www.w3.org/ns/prov#wasRevisionOf';
 
 	Annotation.TEMPLATE={
 		"@id": "?",
@@ -180,4 +181,23 @@ jsonoa.types.Platform=(function Platform(){
 	Platform.TYPE='http://blah.org/blah/Platform';
 	Platform.TEMPLATE = {"@id": "?", "@type": [Platform.TYPE]};
 	return Platform;
+})();
+
+/**
+ * The following types should NOT be created on the client, and as such have no template
+ */
+jsonoa.types.Activity=(function Activity(){
+	Activity.TYPE='http://www.w3.org/ns/prov#Activity';
+	Activity.GENERATED='http://www.w3.org/ns/prov#generated';
+	Activity.INVALIDATED='http://www.w3.org/ns/prov#invalidated';
+	Activity.ENDED_AT='http://www.w3.org/ns/prov#wasEndedAt';
+	Activity.ENDED_BY='http://www.w3.org/ns/prov#wasEndedBy';
+	Activity.STARTED_AT='http://www.w3.org/ns/prov#wasStartedAt';
+	Activity.STARTED_BY='http://www.w3.org/ns/prov#wasStartedBy';
+	return Activity;
+})();
+
+jsonoa.types.Composite=(function Composite() {
+	Composite.TYPE = 'http://www.w3.org/ns/oa#Composite';
+	return Composite;
 })();

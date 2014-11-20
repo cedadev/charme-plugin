@@ -405,3 +405,14 @@ textarea::-webkit-input-placeholder {
 .shift-anno-buttons-holder {
     position: absolute !important;
 }
+
+.nav-tabs a {
+    cursor: pointer;
+}
+
+.target-search-form .row {
+    margin-left: -17px;
+}
+.modifications h5 {
+    display: inline;
+}

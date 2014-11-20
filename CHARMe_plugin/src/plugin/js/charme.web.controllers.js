@@ -442,7 +442,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                     //Process graph
                     var annoList = graph.getAnnotations();
                     if (annoList.length > 0) {
-                        var anno = annoList[0];
+                        var anno = graph.getNode(annoId);
                         var motivations = anno.getValues(annoType.MOTIVATED_BY);
                         if (motivations && motivations.length > 0) {
                             $scope.motivationTags = [];
@@ -456,68 +456,71 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         var textType = jsonoa.types.Text;
                         var citoSpec = jsonoa.types.CitationAct;
                         angular.forEach(bodies, function(body){
-                            if (body.hasType(textType.TEXT) || body.hasType(textType.CONTENT_AS_TEXT)){
-                                $scope.comment = body.getValue(textType.CONTENT_CHARS);
-                            }
-                            else if (body.hasType(citoSpec.TYPE)) {
-                                var citingEntity = body.getValue(citoSpec.CITING_ENTITY);
-                                //Check if the returned value is an object, or a primitive (should be an object, but some historical data might have primitives in this field)
-                                if (citingEntity.getValue){
-                                    var citoURI = citingEntity.getValue(jsonoa.types.Common.ID);
-                                    $scope.citation = {};
-                                    $scope.citation.loading=true;
-                                    $scope.citation.uri = citoURI;
+							if (jsonoa.util.isWrapped(body)) { // Sometimes bodies are just a string, and not parseable as a jsonoa object.
+								if (body.hasType(textType.TEXT) ||
+									body.hasType(textType.CONTENT_AS_TEXT)) {
+									$scope.comment = body.getValue(textType.CONTENT_CHARS);
+								} else if (body.hasType(citoSpec.TYPE)) {
+									var citingEntity = body.getValue(citoSpec.CITING_ENTITY);
+									//Check if the returned value is an object, or a primitive (should be an object, but some historical data might have primitives in this field)
+									if (citingEntity.getValue) {
+										var citoURI = citingEntity.getValue(jsonoa.types.Common.ID);
+										$scope.citation = {};
+										$scope.citation.loading = true;
+										$scope.citation.uri = citoURI;
 
-                                    //Match the citation type to a text description.
-                                    var citoTypes = citingEntity.getValues(citingEntity.TYPE_ATTR_NAME);
-                                    angular.forEach(fabioTypes, function(fType){
-                                        if (citoTypes.indexOf(fType.resource)>=0){
-                                            if (!$scope.citation.types){
-                                                    $scope.citation.types = [];
-                                            }
-                                            $scope.citation.types.push(fType.label);
-                                            //$scope.citation.citoTypeDesc = citoType.label;
-                                        }
-                                    });
+										//Match the citation type to a text description.
+										var citoTypes = citingEntity.getValues(citingEntity.TYPE_ATTR_NAME);
+										angular.forEach(fabioTypes, function (fType) {
+											if (citoTypes.indexOf(fType.resource) >= 0) {
+												if (!$scope.citation.types) {
+													$scope.citation.types = [];
+												}
+												$scope.citation.types.push(fType.label);
+												//$scope.citation.citoTypeDesc = citoType.label;
+											}
+										});
 
-                                    //Trim the 'doi:' from the front
-                                    var doiTxt = citoURI.substring(charme.logic.constants.DXDOI_URL.length, citoURI.length);
-                                    var criteria = {};
-                                    criteria[charme.logic.constants.DXDOI_CRITERIA_ID]=doiTxt;
-                                    charme.logic.fetchDxdoiMetaData(criteria).then(function(citation){
-                                        $scope.$apply(function(){
-                                            $scope.citation.text = citation;
-                                            $scope.citation.loading=false;
-                                        });
-                                    }, function(error){
-                                        $scope.$apply(function(){
-                                            $scope.citation.text = citoURI;
-                                            $scope.citation.error='Error: Could not fetch citation metadata';
-                                            $scope.citation.loading=false;
-                                        });
-                                    });
-                                } else {
-                                    $scope.link.uri = citingEntity;
-                                }
-                            }
-                            else if (body.hasType(jsonoa.types.SemanticTag.TYPE)){
-                                if (!$scope.domainTags){
-                                    $scope.domainTags = [];
-                                }
-                                var tagURI = body.getValue(jsonoa.types.Common.ID);
-                                var prefLabel = body.getValue(jsonoa.types.SemanticTag.PREF_LABEL);
-                                $scope.domainTags.push({uri: tagURI, desc: prefLabel});
-                            } else {
-                                //Match the citation type to a text description.
-                                var type = body.getValue(body.TYPE_ATTR_NAME);
-                                $scope.link = {};
-                                $scope.link.uri = body.getValue(jsonoa.types.Common.ID);
-                                angular.forEach(fabioTypes, function(fabioType){
-                                    if (type === fabioType.resource){
-                                        $scope.link.linkTypeDesc = fabioType.label;
-                                    }
-                                });
-                            }
+										//Trim the 'doi:' from the front
+										var doiTxt = citoURI.substring(charme.logic.constants.DXDOI_URL.length,
+											citoURI.length);
+										var criteria = {};
+										criteria[charme.logic.constants.DXDOI_CRITERIA_ID] = doiTxt;
+										charme.logic.fetchDxdoiMetaData(criteria).then(function (citation) {
+											$scope.$apply(function () {
+												$scope.citation.text = citation;
+												$scope.citation.loading = false;
+											});
+										}, function (error) {
+											$scope.$apply(function () {
+												$scope.citation.text = citoURI;
+												$scope.citation.error =
+													'Error: Could not fetch citation metadata';
+												$scope.citation.loading = false;
+											});
+										});
+									} else {
+										$scope.link.uri = citingEntity;
+									}
+								} else if (body.hasType(jsonoa.types.SemanticTag.TYPE)) {
+									if (!$scope.domainTags) {
+										$scope.domainTags = [];
+									}
+									var tagURI = body.getValue(jsonoa.types.Common.ID);
+									var prefLabel = body.getValue(jsonoa.types.SemanticTag.PREF_LABEL);
+									$scope.domainTags.push({uri: tagURI, desc: prefLabel});
+								} else {
+									//Match the citation type to a text description.
+									var type = body.getValue(body.TYPE_ATTR_NAME);
+									$scope.link = {};
+									$scope.link.uri = body.getValue(jsonoa.types.Common.ID);
+									angular.forEach(fabioTypes, function (fabioType) {
+										if (type === fabioType.resource) {
+											$scope.link.linkTypeDesc = fabioType.label;
+										}
+									});
+								}
+							}
                         });
 
                         var authorDetails = anno.getValues(annoType.ANNOTATED_BY);
@@ -532,7 +535,15 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 $scope.organizationUri = authorDetail.getValue(organizationSpec.URI);
                             }
                         });
-                        
+
+						var annoDate = anno.getValue(annoType.DATE);
+						$scope.annoDate = annoDate[jsonoa.types.Common.VALUE];
+
+						var modificationOf = anno.getValue(annoType.WAS_REVISION_OF);
+						if (typeof modificationOf !== 'undefined'){
+							$scope.modificationOf = modificationOf.getValue(jsonoa.types.Common.ID);
+						}
+
                         //Extract the targetid(s) of the annotation
                         var targets = anno.getValues(annoType.TARGET);
                         if (targets && targets.length > 0) {
@@ -559,11 +570,6 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         $scope.targetListDisplay = targetId;
                         
                         $timeout(function() {
-                            var targetDropdown = document.getElementById('targetList');
-                            // Avoid first option being shown twice (doesn't happen in IE, but don't need to check if browser is IE here)
-                            targetDropdown.options[0].style.display = 'none';
-                            targetDropdown.selectedIndex = 0; // Fix for Firefox to make first option displayed (rather than blank)
-                            
                             if($scope.targetList.length > 1)
                                 $scope.multipleTargets = true;
                             
@@ -580,6 +586,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         var auth = loginService.getAuth();
                         if (loginService.isLoggedIn() && auth && $scope.userName === auth.user.username) {
                                 $scope.deleteAnnotationFlag = true;
+								$scope.modifyAnnotationFlag = true;
                                 
                                 $scope.getConfirm = function(confirmDelete) {
                                     $scope.confirmDelete = confirmDelete;
@@ -587,7 +594,11 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 $scope.noDelete = function() {
                                     $rootScope.$broadcast('noDelete');
                                 };
-                                
+
+								$scope.modify = function () {
+									$location.path('/' + encodeURIComponent(targetId) + '/annotations/' + encodeURIComponent(annoId) + '/edit/');
+								};
+
                                 $scope.deleteAnnotation = function () {
                                     $scope.processing=true;
                                     $('.ajaxModal').height($('.modal-body-view')[0].scrollHeight);
@@ -810,71 +821,115 @@ charme.web.controllers.controller('ListTargetsCtrl', ['$scope', '$routeParams', 
         );
     }]);
 
-
-
-
-
 /**
  * New annotation screen.
  */
-charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchTargetTypeVocab', 'fetchAllMotivations', 'fetchKeywords', 'fetchFabioTypes', 'searchAnnotations', 'targetService',
-    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchTargetTypeVocab, fetchAllMotivations, fetchKeywords, fetchFabioTypes, searchAnnotations, targetService){
+charme.web.controllers.controller('EditAnnotationCtrl', ['$scope', '$routeParams', '$location', '$window', '$timeout', 'saveAnnotation', 'loginService', 'fetchTargetTypeVocab', 'fetchAllMotivations', 'fetchKeywords', 'fetchFabioTypes', 'searchAnnotations', 'targetService', 'fetchAnnotation', 'annotationService',
+    function ($scope, $routeParams, $location, $window, $timeout, saveAnnotation, loginService, fetchTargetTypeVocab, fetchAllMotivations, fetchKeywords, fetchFabioTypes, searchAnnotations, targetService, fetchAnnotation, annotationService){
         searchAnnotations.clearListeners();
         $scope.newAnnotationFlag=true;
         var targetId = $routeParams.targetId;
         $scope.targetId=targetId;
         $scope.commentMaxLength = charme.settings.COMMENT_LENGTH ? charme.settings.COMMENT_LENGTH : 500; // Maximum no. of characters for free text
-        
-        $scope.anno = {};
+		var annoId = $routeParams.annotationId;
+		var pristineModel;
+		$scope.anno = {motivation: [], targets: []};
+
+		/*
+		 Add all selected targets to this annotation;
+		 */
+		var addSelectedTargets = function(){
+			var selectedTargets = targetService.targets;
+			//Iterate through each of the selected targets, and only add it if it's not already on the annotation
+			for (var key in selectedTargets) {
+				//Check if the key is an object attribute
+				if (selectedTargets.hasOwnProperty(key)) {
+					//search the targets already defined on the annotations
+					var targetFound = false;
+					for (var i=0; i < $scope.anno.targets.length; i++){
+						if ($scope.anno.targets[i].id===key){
+							targetFound=true;
+							break;
+						}
+					}
+					if (!targetFound){
+						var selectedTargetDetails = selectedTargets[key];
+						$scope.anno.targets.push({id: selectedTargetDetails[0], typeId: jsonoa.types[selectedTargetDetails[1]].TYPE});
+					}
+				}
+			}
+			$scope.anno.targets.push();
+		}
+
+		/*
+		Validate data provider's targets, displaying an appropriate error message if unknown types exist
+		 */
+		var validateTargets = function(types){
+			//This fetches a short list of the known target types, and their labels. This is used for displaying the short name of targets attached to this annotation
+			$scope.knownTargetTypeLabels = {};
+			angular.forEach(types, function(type){
+				$scope.knownTargetTypeLabels[type.resource] = type.label;
+			});
+
+			/*
+				This code validates the targets that the user has selected to ensure they all have valid target types. This should be refactored to use the above knownTargetList
+			*/
+			var validTargetTypeLabels = {};
+			$scope.targetList = targetService.targets;
+			for(var i = 0; i < types.length; i++) {
+				var label = types[i].label.replace(" ", "");
+				validTargetTypeLabels[label] = '';
+			}
+
+			var numTargets = 0;
+			for(target in $scope.targetList) {
+				numTargets++;
+				if(!validTargetTypeLabels.hasOwnProperty($scope.targetList[target][1])){
+					console.error('Invalid target type defined for ' + target[0]);
+					$scope.errorMsg = 'Error: Invalid/undefined target type(s). Annotation may not be saved';
+				}
+			};
+
+		};
+
+		//Pre-populate model if editing existing annotation.
+		if (annoId){
+			$scope.loading = true;
+			Promise.every(fetchAnnotation(annoId), fetchTargetTypeVocab()).then(function(results){
+				var graph = results[0];
+				validateTargets(results[1]);
+				var annotation = graph.getNode(annoId);
+				var anno = annotationService.createSimpleAnnotationObject(annotation);
+				pristineModel = angular.copy(anno);
+				$scope.$apply(function(){
+					$scope.anno = anno;
+					$scope.loading = false;
+				})
+			}, function(error){
+				$scope.$apply(function() {
+					console.error(error);
+					$scope.errorMsg = 'Unable to fetch annotation';
+					$scope.loading = false;
+				});
+			});
+		} else {
+			$scope.anno = annotationService.createSimpleAnnotationObject();
+			addSelectedTargets();
+
+			// Validate the data provider's target types
+			fetchTargetTypeVocab().then(function(types) {
+				validateTargets(types);
+			}, function(error) {
+				$scope.$apply(function() {
+					$scope.errorMsg = error;
+				});
+			});
+		}
         
         $scope.loggedIn=loginService.isLoggedIn();
-        $scope.targetList = targetService.targets;
-        
+
         // Remove the empty option from the dropdown by initialising the model value
         $scope.selectedTarget = targetId;
-        
-        // Validate the data provider's anchor tag labels
-        var validTargetTypeLabels = {}, invalidFlag;
-        fetchTargetTypeVocab().then(function(types) {
-            for(var i = 0; i < types.length; i++) {
-                var label = types[i].label.replace(" ", "");
-                validTargetTypeLabels[label] = '';
-            }
-            
-            var numTargets = 0;
-            for(target in $scope.targetList) {
-                numTargets++;
-                if(validTargetTypeLabels.hasOwnProperty($scope.targetList[target][1]))
-                    $scope.targetList[target].push('valid');
-                else {
-                    $scope.targetList[target].push('invalid');
-                    invalidFlag = true;
-                }
-            };
-            
-            $timeout(function() {
-                if(numTargets > 1) // Would use Object.keys(obj).length method, but not supported in IE8
-                    $scope.multipleTargets = true;
-            });
-            
-            var targetDropdown = document.getElementById('selectedTarget');
-            // Avoid first option being shown twice (doesn't happen in IE, but don't need to check if browser is IE here)
-            targetDropdown.options[0].style.display = 'none';
-            targetDropdown.selectedIndex = 0; // Fix for Firefox to make first option displayed (rather than blank)
-            
-            if(invalidFlag) {
-                // Ensure correct className for <select> if first option in dropdown is invalid 
-                // (otherwise className will simply be 'target-type-' (see HTML))
-                if($scope.targetList[targetDropdown.options[0].value][3] === 'invalid')
-                    $(targetDropdown).addClass('target-type-invalid');
-
-                $scope.errorMsg = 'Error: Invalid/undefined target type(s) - check list below';
-            };
-        }, function(error) {
-            $scope.$apply(function() {
-                $scope.errorMsg = error;
-            });
-        });
         
         fetchAllMotivations().then(function(categories){
             $scope.$apply(function(){
@@ -898,37 +953,32 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
             });
         });
         
-        // Function for allowing user to define target type (kept here for now, in case we decide to allow them to)
-        /*fetchTargetTypeVocab().then(function(types) {
-            var options = [];
-            angular.forEach(types, function(type){
-                options.push({text: type.label, value: type.resource});
-            });
-            $scope.$apply(function(){
-                $scope.targetTypes = options;
-                $scope.anno.target = $scope.targetTypes[0].text;
-            });
-        });*/
-        
         $scope.cancel = function(){
             if($scope.loading)
                 return;
             
             window.history.back();
         };
-        $scope.changeURI = function(uri){
-            $scope.anno.citoText='';
+
+        var changeURI = function(uri){
+            $scope.citoText='';
             var doiVal = charme.logic.findDOI(uri);
             if (doiVal){
                 var criteria = {};
                 criteria[charme.logic.constants.DXDOI_CRITERIA_ID]=doiVal;
                 charme.logic.fetchDxdoiMetaData(criteria).then(function(citation){    
                     $scope.$apply(function(){
-                        $scope.anno.citoText = citation;
+                        $scope.citoText = citation;
                     });
                 });
             }
         };
+
+		/**
+		 * Watch for changes in the URI entered and fetch cito data if available.
+		 */
+		$scope.$watch('anno.linkURI', changeURI);
+
         $scope.login = function(){
             //window.addEventListener('message', loginService._loginEvent, false);
             window.addEventListener('message', loginService.handshake, false);
@@ -939,6 +989,36 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
                 });
             });
         };
+		var findTargetInList = function(targetToFind, listOfTargets){
+			var matchIndex = -1;
+			angular.forEach(listOfTargets, function(target, index){
+				if (target.id === targetToFind.id){
+					matchIndex = index;
+				}
+			});
+			return matchIndex;
+		};
+
+		$scope.deleteTarget = function(targetToDelete){
+			if(typeof targetToDelete === 'undefined'){
+				//Delete all selected targets
+				var selectedTargets = angular.copy($scope.filteredTargets || $scope.anno.targets);
+				angular.forEach( selectedTargets, function(selectedTarget){
+					var matchIndex = findTargetInList(selectedTarget, $scope.anno.targets);
+					$scope.anno.targets.splice(matchIndex, 1);
+
+				});
+				$scope.searchText = '';
+			} else {
+				var matchIndex = findTargetInList(targetToDelete, $scope.anno.targets);
+				$scope.anno.targets.splice(matchIndex, 1);
+			}
+		};
+
+
+		$scope.addSelected = function(){
+			addSelectedTargets();
+		}
 
         $scope.save = function(annoModel){
             if ($scope.loading)
@@ -948,7 +1028,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
             $('.ajaxModal').height($('.modal-body-new')[0].scrollHeight);
             
             var auth = loginService.getAuth();
-            saveAnnotation(annoModel, targetId, $scope.targetList, auth).then(
+            saveAnnotation(targetId, $scope.targetList, auth, annoModel, pristineModel).then(
                 function(){
                     $scope.$apply(function(){
                         $scope.loading=false;

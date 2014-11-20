@@ -210,13 +210,19 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                             });
                         });
                     });
-                    
-                    //Load initial values
-                    if ($ngModel.$modelValue instanceof Array){
-                        angular.forEach($ngModel.$modelValue, function(value){
-                            el.addItem(value.value);
-                        });
-                    }
+
+					//Load initial values
+					//Modified to load values on change
+					$scope.$parent.$watch(attrs.ngModel, function(){
+						$timeout(function(){
+							console.log('Watch triggered for domains');
+							if ($ngModel.$modelValue instanceof Array){
+								angular.forEach($ngModel.$modelValue, function(value){
+									el.addItem(value.value);
+								});
+							}
+						});
+					});
                 });
             }
     };
@@ -297,11 +303,17 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                     });
 
                     //Load initial values
-                    if ($ngModel.$modelValue instanceof Array){
-                            angular.forEach($ngModel.$modelValue, function(value){
-                                    el.addItem(value.value);
-                            });
-                    }
+					//Modified to load values on change
+					$scope.$parent.$watch(attrs.ngModel, function(){
+						$timeout(function() {
+							if ($ngModel.$modelValue instanceof Array) {
+								angular.forEach($ngModel.$modelValue, function (value) {
+									el.addItem(value.value);
+								});
+							}
+						});
+					});
+
                 });
             }
     };
@@ -323,7 +335,8 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
 		}
 	};
 }]);
-        
+
+
 /*.directive('charmeCito', ['fetchFabioTypes', function (fetchFabioTypes) {
     return {
             restrict: 'A',
