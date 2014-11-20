@@ -566,7 +566,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
 
                                 //Match the citation type to a text description.
                                 var citoTypes = citingEntity.getValues(citingEntity.TYPE_ATTR_NAME);
-                                angular.forEach(fabioTypes, function(fType){
+                                angular.forEach(targetTypeVocab, function(fType){
                                     if (citoTypes.indexOf(fType.resource)>=0){
                                         if (!$scope.citation.types){
                                             $scope.citation.types = [];
@@ -682,13 +682,19 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         //Extract the targetid(s) of the annotation
                         //var targets = anno.getValues(annoType.TARGET);
                         var targets = [];
-                        var composite = anno.getValue(annoType.TARGET);
 
-                        if(composite.hasType(jsonoa.types.Composite.TYPE)) {
-                            var items = composite.getValues(jsonoa.types.Composite.ITEM);
-                            angular.forEach(items, function(element){
-                                targets.push(element);
+                        //If  a composite type is found, exract the multiple targets from the composite
+                        //else just extarct the single target
+                        var composite = anno.getValues(annoType.TARGET);
+                        if (composite.hasType(jsonoa.types.Composite.TYPE))
+                        {
+                            angular.forEach(composite, function(element){
+                                targets.push(element.getValue(jsonoa.types.Composite.ITEM))
                             });
+                        }
+                        else
+                        {
+                            targets = anno.getValues(annoType.TARGET);
                         }
                         
                         if(targets && targets.length > 0) {
@@ -806,6 +812,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     $scope.confirmDelete = false;
                                     $rootScope.$broadcast('noDelete');
                                 };
+                                
                                 $scope.deleteAnnotation = function () {
                                     $scope.confirmDelete = false;
                                     $scope.processing=true;
@@ -1162,6 +1169,7 @@ charme.web.controllers.controller('ListTargetsCtrl', ['$scope', '$routeParams', 
 
 
 
+
 /**
  * New annotation screen.
  */
@@ -1172,6 +1180,7 @@ charme.web.controllers.controller('NewAnnotationCtrl', ['$scope', '$routeParams'
         var targetId = $routeParams.targetId;
         $scope.targetId=targetId;
         $scope.commentMaxLength = charme.settings.COMMENT_LENGTH ? charme.settings.COMMENT_LENGTH : 500; // Maximum no. of characters for free text
+        
         $scope.anno = {};
         
         $scope.loggedIn=loginService.isLoggedIn();
