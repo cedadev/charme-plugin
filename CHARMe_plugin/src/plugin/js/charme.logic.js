@@ -40,7 +40,7 @@ charme.logic = {};
 charme.logic.authToken = {};
 
 charme.logic.constants = {
-    ANNO_DEPTH : 99, // A depth specifier for the graph depth that is
+    ANNO_DEPTH : 3, // A depth specifier for the graph depth that is
     // returned when viewing annotations
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
@@ -92,6 +92,9 @@ charme.logic.urls.existRequest = function(uri) {
 };
 charme.logic.urls.createRequest = function() {
 	return charme.logic.urls._baseURL() + 'insert/annotation';
+};
+charme.logic.urls.updateRequest = function() {
+	return charme.logic.urls._baseURL() + 'modify/annotation';
 };
 charme.logic.urls.stateRequest = function(newState) {
 	return charme.logic.urls._baseURL() + 'advance_status/';
@@ -641,10 +644,15 @@ charme.logic.createAnnotation = function(annotation, successCB, errorCB) {
  * Parameters: successCB: a callback to be invoked on successful completion
  * errorCB: a callback to be invoked on error
  */
-charme.logic.saveGraph = function(graph, token) {
+charme.logic.saveGraph = function(graph, token, url) {
 	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.createRequest();
+		var reqUrl = url;
+		if (!reqUrl) {
+			reqUrl = charme.logic.urls.createRequest();
+		}
+
 		var jsonSrc = graph.toJSON();
+
 		$.ajax(reqUrl, {
 			dataType : 'text',
 			type : 'POST',
@@ -746,15 +754,22 @@ charme.logic.fetchAllSearchFacets = function(criteria){
 };
 
 charme.logic.shortAnnoTitle = function(anno){
-	var out='';
+	var out;
 	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
 	angular.forEach(bodies, function(body){
-            if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)){
-                    out=body.getValue(jsonoa.types.Text.CONTENT_CHARS);
-            } else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length===0){
-                    out=body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
-            }
+		if (body.hasType) { // Check is necessary as sometimes the body of a value is simply a string, not a jsonoa object
+			if (body.hasType(jsonoa.types.Text.TEXT) ||
+				body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)) {
+				out = body.getValue(jsonoa.types.Text.CONTENT_CHARS);
+			} else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length === 0) {
+				out =
+					body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
+			}
+		}
 	});
+	if (typeof out === 'undefined'){
+		return 'No title.';
+	}
 	return out;
 };
 

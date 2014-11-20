@@ -59,8 +59,11 @@ charme.web.app.config(['$routeProvider',
                     templateUrl: 'templates/init.html',
                     controller: 'InitCtrl'
             }).when('/:targetId/annotations/new/', {
-                    templateUrl: 'templates/newannotation.html',
-                    controller: 'NewAnnotationCtrl'
+                    templateUrl: 'templates/editannotation.html',
+                    controller: 'EditAnnotationCtrl'
+			}).when('/:targetId/annotations/:annotationId/edit/', {
+				templateUrl: 'templates/editannotation.html',
+				controller: 'EditAnnotationCtrl'
             }).when('/:targetId/annotations/', {
                     templateUrl: 'templates/listannotations.html',
                     controller: 'ListAnnotationsCtrl',
