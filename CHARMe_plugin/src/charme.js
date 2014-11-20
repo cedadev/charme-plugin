@@ -472,21 +472,10 @@ charme.plugin.getByClass = function (className, searchType, rootElement) {
 	}
 };
 
-
-
-//---------------------------------------------------------------------------------------------------//
-//                                         Rescan Stub                                               //
-//---------------------------------------------------------------------------------------------------//
-// 1. Create a div elemet "charme-placeholder-refresh" on the test data provider page
-// 2. Uncomment the block below to obtain a button in the div on page load.
-// 3. Ensure that the function "charme.plugin.setRefreshEventOnPage" is uncommented
-//
-    charme.plugin.setRefreshEventOnPage = function (button) {
-        charme.common.addEvent(button, 'click', function(){charme.plugin.markupTags(false, true)} );
-    };
-//
-//---------------------------------------------------------------------------------------------------//
-
+//Function to trigger the rescan on a data provider's page
+charme.plugin.rescanPage = function () {
+    charme.plugin.markupTags(false, true);
+}
 
 /**
  * This function is used to create and refresh charme plugin entry points on the data provider screens.
@@ -562,21 +551,6 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
         text.innerHTML = 'All targets';	
         allTargetsContainer.insertBefore(text, anchor);
 
-        //---------------------------------------------------------------------------------------------------//
-        //                                         Rescan Stub                                               //
-        //---------------------------------------------------------------------------------------------------//
-        // 1. Create a div elemet "charme-placeholder-refresh" on the test data provider page
-        // 2. Uncomment the block below to obtain a button in the div on page load.
-        // 3. Ensure that the function "charme.plugin.setRefreshEventOnPage" is uncommented
-        //
-            var refreshButtonContainer = document.getElementById('charme-placeholder-refresh');
-            var btn = document.createElement('button');
-            var btnLabel = document.createTextNode('Refresh');
-            btn.appendChild(btnLabel);
-            charme.plugin.setRefreshEventOnPage(btn);
-            refreshButtonContainer.appendChild(btn, refreshButtonContainer);
-        //
-        //---------------------------------------------------------------------------------------------------//
     }
     
     var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL);
