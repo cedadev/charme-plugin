@@ -264,6 +264,10 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
                 reloadTarget.className = 'charme-reload-icon';
                 el.parentNode.insertBefore(reloadTarget, el.nextSibling);
 
+                //Clear the showCount element
+                var showCount = charme.plugin.getByClass('charme-count', charme.plugin.constants.MATCH_EXACT, el.parentNode);
+                showCount[0].innerHTML = '';
+
                 charme.common.addEvent(reloadTarget, 'click', function(e) {
                     var reloadTarget = document.getElementById('reload' + el.href);
                     reloadTarget.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
@@ -579,7 +583,9 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
                 els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
                 els[i].style.backgroundSize = '18px 18px';
                 els[i].style.backgroundPosition = '10px';
-                
+                els[i].style.marginLeft = '10px';
+                els[i].style.marginRight = '-5px';
+
                 // Insert checkboxes and attach selection events
                 if(els[i].href !== charme.common.ALL_TARGETS) {
                     //Create a checkbox only if its already not preset on this target.
