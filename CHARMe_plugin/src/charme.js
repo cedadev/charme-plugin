@@ -538,11 +538,16 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
         selectAllBox.type = 'checkbox';
         selectAllContainer.parentNode.insertBefore(selectAllBox, selectAllContainer);
         charme.plugin.setSelectionEventOnTarget(selectAllBox, 'all');
-        
+
         var text = document.createElement('span');
         text.id='charme-select-all';
-        text.innerHTML = 'Select/unselect all';	
+        text.innerHTML = 'Select/unselect all';
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
+
+        var selectCountText = document.createElement('span');
+        selectCountText.id='charme-select-count';
+        selectCountText.innerHTML = '';
+        selectAllContainer.parentNode.insertBefore(selectCountText, selectAllContainer);
         
         var allTargetsContainer = document.getElementById('charme-placeholder-all-targets');
         var anchor = document.createElement('a');
@@ -613,6 +618,7 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
         //}
 
         charme.plugin.selectedTargets = {};
+        charme.plugin.numSelected = 0;
 
         var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
         for (var i = 0; i < targetCheckboxs.length; i++) {
@@ -622,8 +628,8 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
 
 
     
-    var text = document.getElementById('charme-select-all');
-    text.innerHTML += ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
+    var selectCountText = document.getElementById('charme-select-count');
+    selectCountText.innerHTML = ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
 };
 
 /**
