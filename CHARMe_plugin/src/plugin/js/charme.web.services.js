@@ -565,8 +565,16 @@ charme.web.services.factory('saveAnnotation', function () {
 					composite.addValue(compositeSpec.ITEM, graph.createStub(annoTarget.id));
 				}
 				anno.setValue(annoSpec.TARGET, composite);
+			} else if (annoModel.targets.length == 1){
+				var annoTarget = annoModel.targets[0];
+				if (typeof annoTarget.typeId === 'undefined'){
+					resolver.reject('Annotations may not be saved with unknown types');
+				}
+				var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+				var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
+				anno.setValue(annoSpec.TARGET, target);
 			} else {
-				var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
+				resolver.reject('An annotation must have at least one target');
 			}
 
 			//insert or update?

@@ -937,6 +937,7 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$scope', '$routeParams
 		var validateTargets = function(types){
 			//This fetches a short list of the known target types, and their labels. This is used for displaying the short name of targets attached to this annotation
 			$scope.knownTargetTypeLabels = {};
+			var citoTypeOptions = [];
 			angular.forEach(types, function(type){
 				$scope.knownTargetTypeLabels[type.resource] = type.label;
 			});
@@ -949,7 +950,9 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$scope', '$routeParams
 			for(var i = 0; i < types.length; i++) {
 				var label = types[i].label.replace(" ", "");
 				validTargetTypeLabels[label] = '';
+				citoTypeOptions.push({text: types[i].label, value: types[i].resource});
 			}
+			$scope.citoTypes = citoTypeOptions;
 
 			var numTargets = 0;
 			for(target in $scope.targetList) {
