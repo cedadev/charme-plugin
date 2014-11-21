@@ -9,7 +9,7 @@
     <thead>
     <th>URL</th>
     <th>Type</th>
-    <th class="pull-right"><button class="btn btn-danger btn-small" data-ng-click="deleteTarget(filteredTargets); searchText=''">Delete All{{searchText ? ' Matches' : ''}}</button>&nbsp;<a data-ng-click="addSelected()" class="btn btn-default btn-small" title="Add currently selected targets to this annotations"><i class="icon icon-plus"></i>&nbsp; Add selected targets</a></th>
+    <th class="pull-right"><button class="btn btn-danger btn-small" data-ng-click="deleteTarget(filteredTargets); searchText=''">Delete All{{searchText ? ' Matches' : ''}}</button>&nbsp;<a data-ng-click="addSelected()" class="btn btn-default btn-small" title="Targets can be added by minimising this window and selecting them clicking on the corresponding checkboxes. Clicking on this button will then add them to the annotation."><i class="icon icon-plus"></i>&nbsp; Add selected targets</a></th>
     </thead>
     <tbody>
     <tr data-ng-repeat="target in filteredTargets = (anno.targets | filter:searchText)">

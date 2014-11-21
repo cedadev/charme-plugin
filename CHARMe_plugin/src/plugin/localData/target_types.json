@@ -4,10 +4,6 @@
   "resource": "http://purl.org/dc/dcmitype/Dataset"
  },
  {
-  "label": "CHARMe Annotation",
-  "resource": "http://charme.cems.rl.ac.uk/2014/charme#CHARMeAnnotation"
- },
- {
   "label": "Semantic Tag",
   "resource": "http://www.w3.org/ns/oa#SemanticTag"
  },
