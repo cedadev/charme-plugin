@@ -27,7 +27,7 @@
         
         <div data-ng-show="listAnnotationsFlag">
             <!--<div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="viewTargets()">View Target(s)</div>-->
-            <div class="btn btn-primary" data-ng-show="loggedIn" data-ng-click="newAnnotation()">New Annotation</div>
+            <div class="btn btn-primary" data-ng-show="loggedIn && !allTargets" data-ng-click="newAnnotation()">New Annotation</div>
             <div data-ng-show="loggedIn" class="btn-group userMenu">
                 <button class="btn">{{author}}</button>
                 <button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
@@ -58,7 +58,7 @@
             
             <button class="btn" title="Flag this annotation as inappropriate" data-ng-disabled="confirmDelete || processing" 
                     data-ng-click="flag()">Flag</button>
-            <button class="btn" title="Modify this annotation" data-ng-show="modifyAnnotationFlag" data-ng-disabled="processing"
+            <button class="btn" title="Modify this annotation" data-ng-show="modifyAnnotationFlag && !allTargets" data-ng-disabled="processing"
                     data-ng-click="modify()">Modify</button>
             <button class="btn btn-danger" title="Delete this annotation" data-ng-show="creatorOfAnnotationFlag" data-ng-disabled="confirmDelete || processing" 
                     data-ng-click="confirmDelete=true; getConfirm()">Delete</button>

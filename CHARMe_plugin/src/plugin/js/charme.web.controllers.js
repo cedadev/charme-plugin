@@ -114,6 +114,7 @@ function($rootScope, $scope, $timeout){
 charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$filter', '$timeout', 'fetchAnnotationsForTarget', 'loginService', 'searchAnnotations', 'targetService', 'searchBarService', 'shiftAnnoService', 'minimisedService',
     function ($rootScope, $scope, $routeParams, $location, $filter, $timeout, fetchAnnotationsForTarget, loginService, searchAnnotations, targetService, searchBarService, shiftAnnoService, minimisedService){
         $scope.listAnnotationsFlag=true;
+       	$scope.allTargets = targetService.targets[charme.common.ALL_TARGETS];
         $scope.loadingList = $scope.loadingFacets = true;
         $scope.targets = targetService.targets;
         $scope.close = function() {
@@ -387,7 +388,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 
         var cachedTarget;
         var waitAnotherClickFlag = true;
-        $('#chooseTarget')
+        /*$('#chooseTarget')
             .focus(function() {
                 cachedIsSearchOpen = $scope.isSearchOpen;
                 cachedTarget = $scope.selectedTarget;
@@ -428,7 +429,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                     waitAnotherClickFlag = false;
                 else if($scope.selectedTarget === cachedTarget)
                     $(this).blur();
-            });
+            });*/
     }]);
 
 /**
@@ -437,6 +438,7 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchAnnotation', 'fetchKeywords', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService', 'shiftAnnoService', 'targetService', 'replyToAnnoService', 
     function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchAnnotation, fetchKeywords, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService, shiftAnnoService, targetService, replyToAnnoService){
         $scope.viewAnnotationFlag=true;
+		$scope.allTargets = targetService.targets[charme.common.ALL_TARGETS];
         searchAnnotations.clearListeners();
         $scope.loading=true;
         var targetId = $routeParams.targetId;
@@ -1115,7 +1117,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         targetId = targetId === charme.common.ALL_TARGETS ? '' : targetId;
         
         $scope.loading = true;
-        $scope.resultsPerPage = [10, 20, 30, 'All'];  // first value in this array must be a number (not 'All')
+        $scope.resultsPerPage = [10, 20, 30];  // first value in this array must be a number (not 'All')
         //$scope.listOrderOptions = [{text: 'Newest', sortNum: -1}, {text: 'Oldest', sortNum: 1}];
 
         $scope.criteria = {

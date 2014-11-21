@@ -750,7 +750,7 @@ charme.plugin.closeFunc = function (isOneTarget, targetId) { //targetId) {
         charme.plugin.maximiseFunc(); // In case GUI was closed while minimised
 	plugin.style.display = 'none';
 
-        if(isOneTarget && !targetId.hasOwnProperty(charme.common.ALL_TARGETS)) {
+        if(isOneTarget && !(targetId === charme.common.ALL_TARGETS)) {
             var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
             targetCheckboxs[targetId].click();
         }
