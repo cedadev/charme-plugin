@@ -32,7 +32,9 @@ charme.web.constants = {
     PARAM_MOTIVATIONS: 'motivations',
     PARAM_DOMAINS: 'domains',
     PARAM_ORGANIZATION: 'organization',
-    PARAM_CREATOR: 'userName'
+    PARAM_CREATOR: 'userName',
+	UNKNOWN_TYPE: 'Unknown'
+
 };
 
 charme.web._closeListeners = [];

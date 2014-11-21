@@ -230,12 +230,14 @@ charme.web.services.factory('annotationService', function(){
 		var textSpec = jsonoa.types.Text;
 		var targets = [];
 		var targetAttr = annoGraphNode.getValues(annoSpec.TARGET);
+
 		if (targetAttr.length > 0){
-			targets = targetAttr;
-		} else if (targetAttr.hasType && targetAttr.hasType(jsonoa.types.Composite.TYPE)){
-			targets = targetAttr.getValues(jsonoa.types.Composite.ITEM);
-		} else {
-			targets = [targetAttr];
+			if (targetAttr[0].hasType && targetAttr[0].hasType(jsonoa.types.Composite.TYPE)) {
+				//Is composite type, so take only element in array (which will be the composite itself).
+				targets = targetAttr[0].getValues(jsonoa.types.Composite.ITEM);
+			} else {
+				targets = targetAttr;
+			}
 		}
 
 		var bodies = annoGraphNode.getValues(annoSpec.BODY);
@@ -451,7 +453,6 @@ charme.web.services.factory('saveAnnotation', function () {
 			var bodyId = charme.logic.constants.BODY_ID_PREFIX + 'bodyID';
 			var commentId = bodyId;
             var compositeSpec = jsonoa.types.Composite;
-            var composite = graph.createNode({type: jsonoa.types.Composite, id: charme.logic.constants.COMPOSITE_ID_PREFIX + 'targetID'});
 
 			/**
 			 * If this is an update (a 'pristine' model was provided), check if comments have changed. If they have not, DO NOT include a body node, just a reference to the existing node.
@@ -552,38 +553,21 @@ charme.web.services.factory('saveAnnotation', function () {
             //Else attach the target directly to the annotation
 
             //if(targetMap.length > 1)
-            if(Object.keys(targetMap).length > 1 )
-            {
-
-                // Save each of the selected targetids into the annotation target
-                for(target in targetMap)
-                {
-                    var targetTargetId = target;
-                    var targetDesc = targetMap[target].desc;
-
-                    var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
-                    composite.addValue(compositeSpec.ITEM, graph.createStub(targetTargetId));
-                }
-
-                //Attach the composite to the Annotation
-                anno.setValue(annoSpec.TARGET, composite);
-
-            }
-            else
-            {
-                for(target in targetMap)
-                {
-                    var targetTargetId = target;
-                    var targetDesc = targetMap[target][1];
-
-                    var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetId});
-                    anno.setValue(annoSpec.TARGET, graph.createStub(targetTargetId));
-                }
-                //Attach the target to the Annotation
-                anno.setValue(annoSpec.TARGET, target);
-            }
-
-
+			if (annoModel.targets.length > 1){
+				var composite = graph.createNode({type: jsonoa.types.Composite, id: charme.logic.constants.COMPOSITE_ID_PREFIX + 'targetID'});
+				for (var i = 0; i < annoModel.targets.length; i++){
+					var annoTarget = annoModel.targets[i];
+					if (typeof annoTarget.typeId === 'undefined'){
+						resolver.reject('Annotations may not be saved with unknown types');
+					}
+					var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+					var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
+					composite.addValue(compositeSpec.ITEM, graph.createStub(annoTarget.id));
+				}
+				anno.setValue(annoSpec.TARGET, composite);
+			} else {
+				var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
+			}
 
 			//insert or update?
 			var saveUrl;

@@ -49,12 +49,11 @@ charme.web.controllers.controller('InitCtrl', ['$scope', '$routeParams', '$locat
 /**
  * A controller specific to the plugin header
  */
-charme.web.controllers.controller('HeaderCtrl', ['$scope', 'targetService', 'minimisedService', 
-function ($scope, targetService, minimisedService){
+charme.web.controllers.controller('HeaderCtrl', ['$scope', 'targetService', 'minimisedService', '$routeParams',
+function ($scope, targetService, minimisedService, $routeParams){
     $scope.close = function() {
-        //var targetId = $routeParams.targetId;
-        //charme.web.close($.map(targetService.targets, function(value, index){return index;}).length === 1, targetId);
-        charme.web.close($.map(targetService.targets, function(value, index){return index;}).length === 1, targetService.targets);
+        var targetId = $routeParams.targetId;
+        charme.web.close($.map(targetService.targets, function(value, index){return index;}).length === 1, targetId);
     };
 
     $scope.size = 'max';
@@ -658,8 +657,18 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
 
                             var targetType;
                             var targetTypes = (target.getValues(jsonoa.types.Common.TYPE));
-                            targetType = targetTypes[0].substring(targetTypes[0].lastIndexOf('/') + 1);
-                            $scope.targetList.push({uri: targetHref, name: targetName, desc: validTargetTypeLabels[targetType]});
+							var targetTypeLabel = charme.web.constants.UNKNOWN_TYPE;
+							if (typeof targetTypes !== 'undefined' && targetTypes.length > 0) {
+								targetType =
+									targetTypes[0].substring(targetTypes[0].lastIndexOf('/') + 1);
+								targetTypeLabel = validTargetTypeLabels[targetType];
+								if (typeof targetTypeLabel === 'undefined'){
+									console.error('Unknown target type ' + targetType);
+								}
+							} else {
+								console.error('No target type available for ' + targetHref);
+							}
+                            $scope.targetList.push({uri: targetHref, name: targetName, desc: targetTypeLabel});
                         });
 
                         // Remove the empty option from the dropdown by initialising the model value

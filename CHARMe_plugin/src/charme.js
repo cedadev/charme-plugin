@@ -665,7 +665,6 @@ charme.plugin.setRescanIconForTarget = function (el, rescanImgSrc) {
         showCount.className = 'charme-count';
         el.parentNode.insertBefore(showCount, el.nextSibling);
     }
-    showCount.innerHTML = 'Scanning ...';
 };
 
 
@@ -675,16 +674,6 @@ charme.plugin.extractTargetType = function(className) {
 		return(targetType);
 	else
 		return('Type undefined');
-
-	/*var targetType = className.split('-');
-
-	 if(targetType.length > 1 && targetType[1].length > 0) {
-	 targetType = targetType[1];
-	 targetType = targetType[0].toUpperCase() + targetType.substr(1).toLowerCase();
-	 return(targetType[0].toUpperCase() + targetType.substr(1).toLowerCase());
-	 }
-	 else
-	 return('Type undefined');*/
 };
 
 /* ============================================================================================  */
@@ -766,21 +755,15 @@ charme.plugin.loadPlugin = function () {
 /**
  * A callback function used for hiding the plugin. Because the iFrame that the plugin is held in is created outside of the plugin itself (within the scope of the hosted environment), it must also be hidden from this scope. Using a callback avoids the plugin having to know anything about its hosted environment.
  */
-charme.plugin.closeFunc = function (isOneTarget, targetIds) { //targetId) {
+charme.plugin.closeFunc = function (isOneTarget, targetId) { //targetId) {
 	var plugin = document.getElementById('charme-plugin-frame');
 	plugin.contentWindow.location.href = 'about:blank';
         charme.plugin.maximiseFunc(); // In case GUI was closed while minimised
 	plugin.style.display = 'none';
 
-        /*if(isOneTarget && targetId !== charme.common.ALL_TARGETS) {
+        if(isOneTarget && !targetId.hasOwnProperty(charme.common.ALL_TARGETS)) {
             var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
             targetCheckboxs[targetId].click();
-        }*/
-        if(isOneTarget && !targetIds.hasOwnProperty(charme.common.ALL_TARGETS)) {
-            var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
-            for(var targetId in targetIds) {
-                targetCheckboxs[targetId].click();
-            }
         }
         
         if(charme.plugin.selectedTargets.hasOwnProperty(charme.common.ALL_TARGETS))
