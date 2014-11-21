@@ -228,7 +228,16 @@ charme.web.services.factory('annotationService', function(){
 
 		var annoSpec = jsonoa.types.Annotation;
 		var textSpec = jsonoa.types.Text;
-		var targets = annoGraphNode.getValues(annoSpec.TARGET);
+		var targets = [];
+		var targetAttr = annoGraphNode.getValues(annoSpec.TARGET);
+		if (targetAttr.length > 0){
+			targets = targetAttr;
+		} else if (targetAttr.hasType && targetAttr.hasType(jsonoa.types.Composite.TYPE)){
+			targets = targetAttr.getValues(jsonoa.types.Composite.ITEM);
+		} else {
+			targets = [targetAttr];
+		}
+
 		var bodies = annoGraphNode.getValues(annoSpec.BODY);
 		var motivations = annoGraphNode.getValues(annoSpec.MOTIVATED_BY);
 
@@ -474,20 +483,13 @@ charme.web.services.factory('saveAnnotation', function () {
 						 * Create a citation act for the body. 
 						 */
 						var citoType = jsonoa.types.CitationAct;
-						//var citation = graph.createNode({type: citoType, id: citoId});
-						//citation.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
-						//citation.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
-						//anno.addValue(annoSpec.BODY, citation);
 
 						//Create node for link uri, with typing information
 						var uriLink = graph.createNode({type: type, id: linkURI});
 
                         //Add the "citationAct type" to annotation
                         anno.addValue('@type', citoType.TYPE);
-                        //anno.setValue(annoSpec.CITED_ENTITY, graph.createStub(targetId));
                         anno.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
-                        //anno.setValue(annoSpec.CITING_ENTITY, graph.createStub(linkURI));
-                        //anno.setValue(citoType.CITING_ENTITY, uriLink);
                         anno.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
 
 					} else {
@@ -557,7 +559,7 @@ charme.web.services.factory('saveAnnotation', function () {
                 for(target in targetMap)
                 {
                     var targetTargetId = target;
-                    var targetDesc = targetMap[target][1];
+                    var targetDesc = targetMap[target].desc;
 
                     var target = graph.createNode({type: jsonoa.types[targetDesc], id: targetTargetId});
                     composite.addValue(compositeSpec.ITEM, graph.createStub(targetTargetId));

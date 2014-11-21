@@ -111,31 +111,6 @@
         <div class="text-warning" data-ng-show="citation.error">{{citation.error}}</div>
         </div>
 
-        <div>
-            <br>
-            <h4>Replies</h4>
-            <table class="table search-results-table">
-                <div class="alert alert-error" data-ng-show="repliesErrorMsg">{{repliesErrorMsg}}</div>
-                <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
-                <tbody>
-                    <tr data-ng-hide="!loadingReplies">
-                        <td colspan="4" class="spinner spinner-small">
-                            <img src ="img/ajaxspinner.gif" />
-                        </td>
-                    </tr>
-                    <tr data-ng-show="!loadingReplies && !repliesErrorMsg && entries.length===0"><td colspan="4">No annotations</td></tr>
-                    <tr data-ng-repeat="entry in entries">
-                        <td><a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
-                               title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
-
-                        <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('userName', entry.userName, $event)">{{entry.author}}</a></td>
-                        <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('organization', entry.organizationUri, $event);">{{entry.organizationName}}</a></td>
-                        <td>{{entry.date | date:'d/M/yyyy'}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
         <div data-ng-show="confirmDelete"
             confirm-box content="confirmBoxContent" on-confirm="deleteAnnotation()" on-cancel="noDelete()">
         </div>

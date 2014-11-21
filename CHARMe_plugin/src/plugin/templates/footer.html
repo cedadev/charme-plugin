@@ -60,28 +60,10 @@
                     data-ng-click="flag()">Flag</button>
             <button class="btn" title="Modify this annotation" data-ng-show="modifyAnnotationFlag" data-ng-disabled="processing"
                     data-ng-click="modify()">Modify</button>
-            <button class="btn" data-ng-show="loggedIn" title="Reply to this annotation" data-ng-disabled="confirmDelete || processing" 
-                    data-ng-click="replyToAnno()">Reply</button>
             <button class="btn btn-danger" title="Delete this annotation" data-ng-show="creatorOfAnnotationFlag" data-ng-disabled="confirmDelete || processing" 
                     data-ng-click="confirmDelete=true; getConfirm()">Delete</button>
-            <!--<button class="btn" title="Go back to previous page" data-ng-disabled="confirmDelete || processing" 
-                    data-ng-click="back();">Back</button>
-            <button class="btn" title="Go forward to next page" data-ng-disabled="confirmDelete || processing" 
-                    data-ng-click="forward();">Forward</button>-->
             <button class="btn" title="Return to annotation list page" data-ng-disabled="confirmDelete || processing" 
                     data-ng-click="return();">Return</button>
-            
-            <!--<button class="btn btn-danger"
-                    data-ng-show="deleteAnnotationFlag && !confirmDelete"
-                     data-ng-disabled="processing" data-ng-click="confirmDelete=true;">Delete</button>
-            <button class="btn btn-danger"
-                    data-ng-show="confirmDelete"
-                    data-ng-disabled="processing" data-ng-click="confirmDelete=false; deleteAnnotation()">Delete this
-                annotation?</button>
-            <button class="btn btn-default"
-                    data-ng-show="confirmDelete"
-                    data-ng-disabled="processing" data-ng-click="confirmDelete = false">Cancel</button>
-            <button class="btn" data-ng-show="!confirmDelete" data-ng-click="cancel()">Back</button>-->
         </div>
 
         <div data-ng-show="viewTargetsFlag">

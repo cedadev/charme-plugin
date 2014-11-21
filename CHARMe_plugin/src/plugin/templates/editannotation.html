@@ -30,7 +30,6 @@
         </div>
     </div>
     <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-    <form name="newAnnoForm">
         <div class="tabbable"> <!-- Only required for left/right tabs -->
             <ul class="nav nav-tabs">
                 <li class="active"><a data-target="#tab1" data-toggle="tab">Details</a></li>
@@ -87,10 +86,9 @@
                 </div>
             </div>
         </div>
-        <div class="modifications">
+        <div class="modifications" data-ng-show="anno.id">
             <h5>{{anno.modificationOf ? 'Modified by:' : 'Created by:'}}</h5> {{anno.author}} &nbsp;
             <h5>{{anno.modificationOf ? 'Modified at:' : 'Created at:'}}</h5> {{anno.date | date}}
         </div>
-    </form>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

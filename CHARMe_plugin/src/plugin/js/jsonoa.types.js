@@ -254,8 +254,3 @@ jsonoa.types.Activity=(function Activity(){
 	Activity.STARTED_BY='http://www.w3.org/ns/prov#wasStartedBy';
 	return Activity;
 })();
-
-jsonoa.types.Composite=(function Composite() {
-	Composite.TYPE = 'http://www.w3.org/ns/oa#Composite';
-	return Composite;
-})();
