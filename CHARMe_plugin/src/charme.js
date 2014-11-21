@@ -566,7 +566,7 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
 
     //Initially set all charme icon placeholders to "scanning" display
     for(var i = 0; i < els.length; i++) {
-        if(els[i].href) {
+		if(els[i].href) {
             charme.plugin.setRescanIconForTarget(els[i], reScanImage.src);
         }
     }
@@ -577,7 +577,7 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
             els[i].style.backgroundSize = '18px 18px';
 
             //if(isFirstLoad || els[i].href === targetId)
-            if(isFirstLoad || isRescan || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
+            //if(isFirstLoad || isRescan || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
                 charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src, reloadImage.src);
 
             if(isFirstLoad || isRescan) {
@@ -728,18 +728,7 @@ charme.plugin.loadPlugin = function () {
     plugin.style.zIndex = 1000;
     plugin.allowTransparency = true;
     plugin.setAttribute('scrolling', 'no');
-    
-    /*
-    if(window.innerWidth <= charme.common.SMALL_WINDOW) {
-        plugin.style.minWidth = '1262px';
-    }
-    else {
-        plugin.style.minWidth = '1368px';
-        plugin.style.paddingTop = '50px';
-        plugin.style.paddingLeft = '25px';
-        plugin.style.paddingRight = '25px';
-    }*/
-    
+
     plugin.style.paddingTop = '50px';
     plugin.style.paddingLeft = '25px';
     plugin.style.paddingRight = '25px';
