@@ -32,7 +32,9 @@ charme.web.constants = {
     PARAM_MOTIVATIONS: 'motivations',
     PARAM_DOMAINS: 'domains',
     PARAM_ORGANIZATION: 'organization',
-    PARAM_CREATOR: 'userName'
+    PARAM_CREATOR: 'userName',
+	UNKNOWN_TYPE: 'Unknown'
+
 };
 
 charme.web._closeListeners = [];
@@ -59,8 +61,11 @@ charme.web.app.config(['$routeProvider',
                     templateUrl: 'templates/init.html',
                     controller: 'InitCtrl'
             }).when('/:targetId/annotations/new/', {
-                    templateUrl: 'templates/newannotation.html',
-                    controller: 'NewAnnotationCtrl'
+                    templateUrl: 'templates/editannotation.html',
+                    controller: 'EditAnnotationCtrl'
+			}).when('/:targetId/annotations/:annotationId/edit/', {
+				templateUrl: 'templates/editannotation.html',
+				controller: 'EditAnnotationCtrl'
             }).when('/:targetId/annotations/', {
                     templateUrl: 'templates/listannotations.html',
                     controller: 'ListAnnotationsCtrl',

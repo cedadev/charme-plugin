@@ -39,10 +39,6 @@
     </div>
 
     <div data-ng-class="['search-results', 'search-results-' + searchOpen]">
-        <!--
-        <form class="form-search">
-            <input data-ng-model="searchText" type="text" class="input-medium search-query annoListSearch" placeholder="Search this page of results...">
-        </form> -->
         <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
 
         <div class="target-list">
@@ -54,58 +50,6 @@
                   title="If target name is truncated, open dropdown to see name in full (search pane will temporarily collapse if necessary)"></span>
             <hr />
         </div>
-
-<!--
-            <div class="panel-group" id="accordion">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-                                Targets
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="collapseOne" class="panel-collapse collapse in">
-                        <div class="panel-body">
-                            <select size="3" style="width:400px" font-size="15px" multiple>
-                                <option data-ng-repeat="(key, value) in targets" value="{{key}}">{{key}}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
--->
-
-<!--
-        <div>
-            <table class="table">
-                <tr>
-                    <td>
-                        <label><b>Targets</b></label>
-                    </td>
-                    <td>
-                        <select size="3" style="width:400px" font-size="15px" multiple>
-                            <option data-ng-repeat="(key, value) in targets" value="{{key}}">{{key}}</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-        </div>
--->
-
-<!--
- <div class="control-group" >
-     <label class="control-label" >Target(s)</label>
-
-     <div class="controls" ng-controller="TargetCtrl">
-         <select ng-model="selectedTargets" ng-options="target.name for target in selectedTargets"
-                 placeholder="Selected targets...">
-         </select>
-     </div>
- </div>
- -->
-
-        
         <table class="table search-results-table">
             <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
             <tbody>

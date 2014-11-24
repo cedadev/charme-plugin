@@ -101,14 +101,7 @@
             Results per page:
             <span data-ng-repeat="rpp in resultsPerPage" data-ng-click="setResultsPerPage(rpp)">
                 &nbsp;&nbsp;<a data-ng-class="rpp === selectedRPP ? 'selected' : 'notSelected'" href="">{{rpp}}</a>
-            </span>
-            <span data-ng-show="!loading && numResults > 0">({{numResults}})</span>
+            </span><span data-ng-show="!loading && numResults > 0"> &nbsp;Result count: {{numResults}}</span>
         </div>
-        <!-- waiting for node to support date sorting <div> 
-            Sort by:
-            <span data-ng-repeat="option in listOrderOptions" data-ng-click="setListOrder(option.sortNum)">
-                &nbsp;&nbsp;<a data-ng-class="option.sortNum === selectedOrder ? 'selected' : 'notSelected'" href="">{{option.text}}</a>
-            </span>
-        </div>-->
     </div>
 </form>

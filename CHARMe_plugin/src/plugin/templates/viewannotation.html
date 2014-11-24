@@ -33,7 +33,35 @@
     <div data-ng-hide="!loading" class="spinner spinner-small">
         <img src ="img/ajaxspinner.gif"/>
     </div>
-    <div data-ng-show="!loading && !errorMsg">
+    <div data-ng-show="!loading && !errorMsg" class="tabbable"> <!-- Only required for left/right tabs -->
+        <ul class="nav nav-tabs">
+            <li class="active"><a data-target="#tab1" data-toggle="tab">Details</a></li>
+            <li><a data-target="#tab2" data-toggle="tab">Targets <span class="badge badge-info">{{targetList.length}}</span></a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane .fade" id="tab2">
+                <h4>Targets <span title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
+                <form class="target-search-form form-search">
+                    <div class="row">
+                        <div class="span8">
+                            Search: <input type="text" class="input-medium search-query span5" data-ng-model="searchText" />
+                        </div>
+                    </div>
+                </form>
+                <table class="table">
+                    <thead>
+                        <th>URI</th>
+                        <th>Type</th>
+                    </thead>
+                    <tbody>
+                    <tr data-ng-repeat="target in (filteredTargets = (targetList | filter:searchText))">
+                        <td>{{target.uri}}</td>
+                        <td>{{target.desc}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane active .fade" id="tab1">
         <div class="popover popover-visible">
             <!--<h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>-->
             <h3 class="popover-title"><a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
@@ -44,11 +72,6 @@
                 <p data-ng-show="noComment">No comment</p>
             </div>
         </div>
-        <h4>Target<span data-ng-show="multipleTargets">s</span> <span
-                title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
-        <select id="targetList" class="span12 targetList" data-ng-model="targetListDisplay">
-            <option disabled data-ng-repeat="target in targetList" value="{{target.uri}}">{{target.name}} ({{target.desc}})</option>
-        </select>
         <div data-ng-show="motivationTags">
             <h4>Motivation<span data-ng-show="multipleMotivations">s</span> <span title="Tag(s) describing the motivation of the annotation" class="icon-question-sign"></span></h4>
             <div>
@@ -88,34 +111,16 @@
         <div class="text-warning" data-ng-show="citation.error">{{citation.error}}</div>
         </div>
 
-        <div>
-            <br>
-            <h4>Replies</h4>
-            <table class="table search-results-table">
-                <div class="alert alert-error" data-ng-show="repliesErrorMsg">{{repliesErrorMsg}}</div>
-                <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
-                <tbody>
-                    <tr data-ng-hide="!loadingReplies">
-                        <td colspan="4" class="spinner spinner-small">
-                            <img src ="img/ajaxspinner.gif" />
-                        </td>
-                    </tr>
-                    <tr data-ng-show="!loadingReplies && !repliesErrorMsg && entries.length===0"><td colspan="4">No annotations</td></tr>
-                    <tr data-ng-repeat="entry in entries">
-                        <td><a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
-                               title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
-
-                        <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('userName', entry.userName, $event)">{{entry.author}}</a></td>
-                        <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('organization', entry.organizationUri, $event);">{{entry.organizationName}}</a></td>
-                        <td>{{entry.date | date:'d/M/yyyy'}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
         <div data-ng-show="confirmDelete"
             confirm-box content="confirmBoxContent" on-confirm="deleteAnnotation()" on-cancel="noDelete()">
         </div>
     </div>
+    </div>
+    <br />
+    <div class="modifications">
+        <h5>{{modificationOf ? 'Modified by:' : 'Created by:'}}</h5> {{author}} &nbsp;
+        <h5>{{modificationOf ? 'Modified at:' : 'Created at:'}}</h5> {{annoDate | date}}
+    </div>
+</div>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

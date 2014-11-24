@@ -1,0 +1,21 @@
+<h4>Targets <span title="Target(s) of this annotation" class="icon-question-sign"></span></h4>
+    <div class="row">
+        <div class="span8">
+            Search: <input type="text" class="input-medium search-query span5" data-ng-model="searchText" />
+        </div>
+    </div>
+
+<table class="table">
+    <thead>
+    <th>URL</th>
+    <th>Type</th>
+    <th class="pull-right"><button class="btn btn-danger btn-small" data-ng-click="deleteTarget(filteredTargets); searchText=''">Delete All{{searchText ? ' Matches' : ''}}</button>&nbsp;<a data-ng-click="addSelected()" class="btn btn-default btn-small" title="Targets can be added by minimising this window and selecting them clicking on the corresponding checkboxes. Clicking on this button will then add them to the annotation."><i class="icon icon-plus"></i>&nbsp; Add selected targets</a></th>
+    </thead>
+    <tbody>
+    <tr data-ng-repeat="target in filteredTargets = (anno.targets | filter:searchText)">
+        <td>{{target.id}}</td>
+        <td>{{knownTargetTypeLabels[target.typeId] ? knownTargetTypeLabels[target.typeId] : 'Unknown'}}</td>
+        <td style="text-align: right;"><button class="btn btn-danger btn-mini" data-ng-click="deleteTarget(target)">Delete</button></td>
+    </tr>
+    </tbody>
+</table>

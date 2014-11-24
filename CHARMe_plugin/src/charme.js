@@ -121,7 +121,7 @@ charme.plugin.request = {};
  * @returns {String}
  */
 charme.plugin.request.fetchForTarget = function (targetId) {
-
+    
         targetId = targetId === charme.common.ALL_TARGETS ? '' : targetId;
     
 	return (charme.settings.REMOTE_BASE_URL.match(/\/$/) ? charme.settings.REMOTE_BASE_URL :
@@ -264,6 +264,10 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
                 reloadTarget.className = 'charme-reload-icon';
                 el.parentNode.insertBefore(reloadTarget, el.nextSibling);
 
+                //Clear the showCount element
+                var showCount = charme.plugin.getByClass('charme-count', charme.plugin.constants.MATCH_EXACT, el.parentNode);
+                showCount[0].innerHTML = '';
+
                 charme.common.addEvent(reloadTarget, 'click', function(e) {
                     var reloadTarget = document.getElementById('reload' + el.href);
                     reloadTarget.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
@@ -318,7 +322,7 @@ charme.plugin.disableWholeTargetList = function(isDisabled) {
  */
 charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
     var targetHref = targetCheckbox.target.id;
-    
+
     var targetName = targetHref;//.substring(targetHref.lastIndexOf('/') + 1);
     var targetTypeLabel = targetCheckbox.target.name;
     var targetTypeDesc = targetTypeLabel.split('-');
@@ -472,14 +476,57 @@ charme.plugin.getByClass = function (className, searchType, rootElement) {
 	}
 };
 
+//Function to trigger the rescan on a data provider's page
+charme.plugin.rescanPage = function () {
+    charme.plugin.markupTags(false, true);
+}
+
+/**
+ * This function is used to create and refresh charme plugin entry points on the data provider screens.
+ *
+ * @param isFirstLoad
+ * @param isRescan
+ * @param targetId
+ *
+ * DESCRIPTION
+ * -----------
+ *
+ * There are broadly three paths of execution through this function
+ *
+ * 1) Firstly, this function is invoked at first page load. In this case..
+ *        -  The plugin elements, checkboxes etc are created and placed on the dataprovider's page
+ *        -  Each plugin placeholders is initially set to the "scanning" mode ( spinning icons )
+ *        -  for every target, the annotation count is fetched and the appropiate plugin icon is displayed.
+ *
+ *        This path is activated only when the function is invoked with "isFirstLoad" set to true
+ *        e.g : charme.plugin.markupTags(true);
+ *
+ * 2) Secondly, this function is used to update the annotation count of a particular target id. In this case..
+ *        -  Only the passed in target id's annotation count is refreshed
+ *
+ *         This path is activated only when function is invoked with "targetId" defined to a valid id of a target on the page
+ *         e.g :  charme.plugin.markupTags(false, false, targetId);
+ *
+ * 3) Finally, this function can be invoked to rescan for updates on all targets on an ad-hoc basic. In this case..
+ *        -  All current targets are rescanned for annotations
+ *        -  If a new target (i.e latest additions since first page load ) is found, plugin placeholder/checkbox is created for it
+ *        -  for every target, the annotation count is re-fetched.
+ *        -  All existing checkbox selections are cleared
+ *
+ *         This path is activated only when function is invoked with  "isFirstLoad" set false and "isRescan" set to true
+ *         e.g charme.plugin.markupTags(false, true);
+ */
+
 // Find CHARMe icon insertion points / refresh icon insertion point for specified targetId
-charme.plugin.markupTags = function (isFirstLoad, targetId) {
+charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
     var activeImage = new Image();
     activeImage.src = charme.settings.path + '/activebuttonsmall.png';
     var inactiveImage = new Image();
     inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
     var noConnectionImage = new Image();
     noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
+    var reScanImage = new Image();
+    reScanImage.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
     var loadImage = new Image();
     loadImage.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
     var reloadImage = new Image();
@@ -491,11 +538,16 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         selectAllBox.type = 'checkbox';
         selectAllContainer.parentNode.insertBefore(selectAllBox, selectAllContainer);
         charme.plugin.setSelectionEventOnTarget(selectAllBox, 'all');
-        
+
         var text = document.createElement('span');
         text.id='charme-select-all';
-        text.innerHTML = 'Select/unselect all';	
+        text.innerHTML = 'Select/unselect all';
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
+
+        var selectCountText = document.createElement('span');
+        selectCountText.id='charme-select-count';
+        selectCountText.innerHTML = '';
+        selectAllContainer.parentNode.insertBefore(selectCountText, selectAllContainer);
         
         var allTargetsContainer = document.getElementById('charme-placeholder-all-targets');
         var anchor = document.createElement('a');
@@ -507,16 +559,28 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
         text.id = 'charme-all-targets';
         text.innerHTML = 'All targets';	
         allTargetsContainer.insertBefore(text, anchor);
+
     }
     
     var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL);
+
+    //Initially set all charme icon placeholders to "scanning" display
+    for(var i = 0; i < els.length; i++) {
+		if(els[i].href) {
+            charme.plugin.setRescanIconForTarget(els[i], reScanImage.src);
+        }
+    }
+
     for(var i = 0; i < els.length; i++) {
         if(els[i].href) {
+
+            els[i].style.backgroundSize = '18px 18px';
+
             //if(isFirstLoad || els[i].href === targetId)
-            if(isFirstLoad || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
+            //if(isFirstLoad || isRescan || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
                 charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src, reloadImage.src);
 
-            if(isFirstLoad) {
+            if(isFirstLoad || isRescan) {
                 els[i].style.display = 'inline-block';
                 els[i].style.width = '36px';
                 els[i].style.height = '26px';
@@ -524,25 +588,85 @@ charme.plugin.markupTags = function (isFirstLoad, targetId) {
                 els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
                 els[i].style.backgroundSize = '18px 18px';
                 els[i].style.backgroundPosition = '10px';
-                
+                els[i].style.marginLeft = '10px';
+                els[i].style.marginRight = '-5px';
+
                 // Insert checkboxes and attach selection events
                 if(els[i].href !== charme.common.ALL_TARGETS) {
-                    var targetCheckbox = document.createElement('input');
-                    targetCheckbox.type = 'checkbox';
-                    targetCheckbox.className = 'charme-select';
-                    targetCheckbox.id = els[i].href;
-                    targetCheckbox.name = charme.plugin.extractTargetType(els[i].className);
-                    els[i].parentNode.insertBefore(targetCheckbox, els[i]);
-                    charme.plugin.setSelectionEventOnTarget(targetCheckbox, 'target');
-                    charme.plugin.numTags++;
+                    //Create a checkbox only if its already not preset on this target.
+                    if(charme.plugin.checkboxAbsent(els[i].href)) {
+                        var targetCheckbox = document.createElement('input');
+                        targetCheckbox.type = 'checkbox';
+                        targetCheckbox.className = 'charme-select';
+                        targetCheckbox.id = els[i].href;
+                        targetCheckbox.name = charme.plugin.extractTargetType(els[i].className);
+                        els[i].parentNode.insertBefore(targetCheckbox, els[i]);
+                        charme.plugin.setSelectionEventOnTarget(targetCheckbox, 'target');
+                        charme.plugin.numTags++;
+                    }
                 }
             }
         }
     }
+
+    //If this function is executing a rescan, clear all selected targets and and un-click all checkboxes
+    if(isRescan) {
+
+        //check why this doesnot work later : - http://stackoverflow.com/questions/1232040/empty-an-array-in-javascript
+        //while(charme.plugin.selectedTargets.length > 0) {
+        //    charme.plugin.selectedTargets.pop();
+        //}
+
+        charme.plugin.selectedTargets = {};
+        charme.plugin.numSelected = 0;
+
+        var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
+        for (var i = 0; i < targetCheckboxs.length; i++) {
+            targetCheckboxs[i].checked = false;
+        }
+    }
+
+
     
-    var text = document.getElementById('charme-select-all');
-    text.innerHTML += ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
+    var selectCountText = document.getElementById('charme-select-count');
+    selectCountText.innerHTML = ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
 };
+
+/**
+ * This function searches for a named element of checkbox type, and if absent, returns true.
+ * @param cbId
+ */
+charme.plugin.checkboxAbsent = function(cbId) {
+    var cbElement =  document.getElementById(cbId);
+    if (typeof(cbElement) != 'undefined' && cbElement != null && cbElement.type == 'checkbox')
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+};
+
+/**
+ * Fetches the number of annotations that are defined against the given target
+ * @param el
+ * @param rescanImgSrc
+ */
+charme.plugin.setRescanIconForTarget = function (el, rescanImgSrc) {
+    el.title = 'CHARMe annotations exist';
+    el.style.background = 'url("' + rescanImgSrc + '") no-repeat left top';
+
+    var showCount = charme.plugin.getByClass('charme-count', charme.plugin.constants.MATCH_EXACT, el.parentNode);
+    if(showCount.length > 0)
+        showCount = showCount[0];
+    else {
+        showCount = document.createElement('span');
+        showCount.className = 'charme-count';
+        el.parentNode.insertBefore(showCount, el.nextSibling);
+    }
+};
+
 
 charme.plugin.extractTargetType = function(className) {
 	var targetType = className.substring('charme-'.length);
@@ -550,16 +674,6 @@ charme.plugin.extractTargetType = function(className) {
 		return(targetType);
 	else
 		return('Type undefined');
-
-	/*var targetType = className.split('-');
-
-	 if(targetType.length > 1 && targetType[1].length > 0) {
-	 targetType = targetType[1];
-	 targetType = targetType[0].toUpperCase() + targetType.substr(1).toLowerCase();
-	 return(targetType[0].toUpperCase() + targetType.substr(1).toLowerCase());
-	 }
-	 else
-	 return('Type undefined');*/
 };
 
 /* ============================================================================================  */
@@ -572,7 +686,7 @@ function listenMessage(msg) {
 	var n = _msg.lastIndexOf(':::');
 	var targetId = _msg.substring(n + 3);
 
-	charme.plugin.markupTags(false, targetId);
+	charme.plugin.markupTags(false, false, targetId);
 }
 
 if (window.addEventListener) {
@@ -614,18 +728,7 @@ charme.plugin.loadPlugin = function () {
     plugin.style.zIndex = 1000;
     plugin.allowTransparency = true;
     plugin.setAttribute('scrolling', 'no');
-    
-    /*
-    if(window.innerWidth <= charme.common.SMALL_WINDOW) {
-        plugin.style.minWidth = '1262px';
-    }
-    else {
-        plugin.style.minWidth = '1368px';
-        plugin.style.paddingTop = '50px';
-        plugin.style.paddingLeft = '25px';
-        plugin.style.paddingRight = '25px';
-    }*/
-    
+
     plugin.style.paddingTop = '50px';
     plugin.style.paddingLeft = '25px';
     plugin.style.paddingRight = '25px';
@@ -641,21 +744,15 @@ charme.plugin.loadPlugin = function () {
 /**
  * A callback function used for hiding the plugin. Because the iFrame that the plugin is held in is created outside of the plugin itself (within the scope of the hosted environment), it must also be hidden from this scope. Using a callback avoids the plugin having to know anything about its hosted environment.
  */
-charme.plugin.closeFunc = function (isOneTarget, targetIds) { //targetId) {
+charme.plugin.closeFunc = function (isOneTarget, targetId) { //targetId) {
 	var plugin = document.getElementById('charme-plugin-frame');
 	plugin.contentWindow.location.href = 'about:blank';
         charme.plugin.maximiseFunc(); // In case GUI was closed while minimised
 	plugin.style.display = 'none';
 
-        /*if(isOneTarget && targetId !== charme.common.ALL_TARGETS) {
+        if(isOneTarget && !(targetId === charme.common.ALL_TARGETS)) {
             var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
             targetCheckboxs[targetId].click();
-        }*/
-        if(isOneTarget && !targetIds.hasOwnProperty(charme.common.ALL_TARGETS)) {
-            var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
-            for(var targetId in targetIds) {
-                targetCheckboxs[targetId].click();
-            }
         }
         
         if(charme.plugin.selectedTargets.hasOwnProperty(charme.common.ALL_TARGETS))
