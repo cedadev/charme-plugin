@@ -40,6 +40,7 @@
                     <div data-ng-include="'templates/targetlist.html'"></div>
                 </div>
                 <div class="tab-pane active .fade" id="tab1">
+                    <form name="annoForm">
                     <h4>Comments <span title="Free text comments (&le;{{commentMaxLength}} characters) go here; a link may be included below" class="icon-question-sign"></span></h4>
                     <textarea data-ng-model="anno.comment" maxlength="{{commentMaxLength}}" rows="3"></textarea>
 
@@ -66,23 +67,25 @@
                             <select class="input-large" data-ng-model="anno.linkType"
                                     title="Please select a link subtype"
                                     data-ng-options="type.value as type.text for type in citoTypes"
-                                    data-ng-required="anno.linkType">
+                                    data-ng-required="anno.linkType"
+                                    data-ng-change="changeType()">
                                 <option value="">No link</option>
                             </select>
                         </div>
                         <div class="span1"></div>
                         <div class="span7" data-ng-show="anno.linkType">
-                            <div data-ng-class="{'control-group error':anno.linkType && !anno.linkURI, 'control-group success':citoText}">
+                            <div data-ng-class="{'control-group error': (annoForm.annoURI.$invalid) || (anno.linkType && !anno.linkURI), 'control-group success': citoText}">
                                 <input name="annoURI" data-ng-model="anno.linkURI" type="text"
                                        class="input-block-level"
                                        title="Please enter a URI. Use DOI where available."
-                                       placeholder="Annotation URI" data-ng-required="anno.linkType">
+                                       placeholder="Annotation URI" data-ng-required="anno.linkType" data-validated-uri>
                             </div>
                         </div>
                         <div class="span1" data-ng-show="citoText">
                             <span class="icon-tag" title="{{citoText}}"></span>
                         </div>
                     </div>
+                 </form>
                 </div>
             </div>
         </div>
