@@ -960,3 +960,81 @@ charme.logic.filterAnnoList = function(annoList, annoType) {
 
     return(newAnnoList[0]);
 };
+
+
+
+charme.logic.modelEdited = function(annoModel, annoModelPristine) {
+    var editedFlag = false;
+    //check comment text
+    if((annoModelPristine.comment !== annoModel.comment) ||
+       ((annoModelPristine.linkType !== annoModel.linkType) || (annoModelPristine.linkURI !== annoModel.linkURI)) ||
+       (annoModelPristine.domain.length != annoModel.domain.length) ||
+       (annoModelPristine.motivation.length != annoModel.motivation.length) ||
+       (annoModelPristine.targets.length != annoModel.targets.length))
+    {
+        editedFlag = true;
+    }
+
+    if(!editedFlag)
+    {   //Check if the set of motivations match exactly
+        var len = annoModel.motivation.length;
+        for(var i=0; i<len; i++ )
+        {
+            if(!charme.logic.isInArray(annoModelPristine.motivation, annoModel.motivation[i]))
+            {
+                editedFlag = true;
+                break;
+            }
+        }
+    }
+
+    if(!editedFlag)
+    {   //Check if the set of domains match exactly
+        var len = annoModel.domain.length;
+        for(var i=0; i<len; i++ )
+        {
+            if(!charme.logic.isInArray(annoModelPristine.domain, annoModel.domain[i]))
+            {
+                editedFlag = true;
+                break;
+            }
+        }
+    }
+
+    if(!editedFlag)
+    {   //Check if the set of targets match exactly
+        var modelTargetIds = [];
+        var pristineTargetIds = [];
+        var len = annoModel.targets.length;
+        var plen = annoModelPristine.targets.length;
+
+        for(var i=0; i<len; i++ )
+        {
+            modelTargetIds.push(annoModel.targets[i].id);
+        }
+
+        for(var j=0; j<plen; j++ )
+        {
+            pristineTargetIds.push(annoModelPristine.targets[j].id);
+        }
+
+        for(var i=0; i<len; i++ )
+        {
+            if(!charme.logic.isInArray(pristineTargetIds, modelTargetIds[i]))
+            {
+                editedFlag = true;
+                break;
+            }
+        }
+    }
+
+    return(editedFlag);
+
+};
+
+
+charme.logic.isInArray = function(array, searchTerm)
+{
+    return (array.indexOf(searchTerm) >= 0) ? true : false;
+}
+
