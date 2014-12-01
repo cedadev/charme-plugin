@@ -441,21 +441,13 @@ charme.web.services.factory('saveAnnotation', function () {
 
 	return function(targetId, targetMap, auth, annoModel, annoModelPristine){
 
-        //check to see if annoModel has changed
-        if(annoModelPristine && charme.logic.modelEdited(annoModel, annoModelPristine))
-        {
-            alert("Model edited. Saving...");
-        }
-        else
-        {
-            alert("Model unchanged");
-            return;
-        }
+       var promise = new Promise(function(resolver) {
 
-
-
-            var promise = new Promise(function(resolver) {
-
+         //If the save is on a new annotation then pristine model is undefined.
+         //If the save is on a modification, then pristine model is defined. Check to see if the annoModel is dirty before saving
+         if((!annoModelPristine) || (annoModelPristine && charme.logic.modelEdited(annoModel, annoModelPristine)))
+         {
+            //alert("Model edited. Saving...");
 
             var annoSpec = jsonoa.types.Annotation;
             var graph = new jsonoa.core.Graph();
@@ -610,8 +602,15 @@ charme.web.services.factory('saveAnnotation', function () {
                 }
             );
 
-		});
-		return promise;
+        } // if model changed
+        else
+        {
+             //alert("Model unchanged");
+             resolver.fulfill();
+        }
+
+       });
+    return promise;
 
 
 	};
