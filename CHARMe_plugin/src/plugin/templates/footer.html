@@ -41,7 +41,7 @@
         </div>
         
         <div data-ng-show="newAnnotationFlag">
-            <button class="btn btn-primary" data-ng-disabled="newAnnoForm.$invalid || loading || errorMsg || anno.targets.length == 0" data-ng-click="save(anno)">Save</button>
+            <button class="btn btn-primary" data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length == 0" data-ng-click="save(anno)">Save</button>
             <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
         </div>
 

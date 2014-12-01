@@ -1032,6 +1032,12 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$scope', '$routeParams
 			}
 		};
 
+		$scope.changeType = function(){
+			if (!$scope.anno.linkType) {
+				$scope.anno.linkURI = '';
+			}
+		}
+
 		/**
 		 * Watch for changes in the URI entered and fetch cito data if available.
 		 */

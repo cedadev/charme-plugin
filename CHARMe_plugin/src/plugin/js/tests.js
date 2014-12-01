@@ -398,6 +398,31 @@ module(' Non-network Tests');
 				start();
 		});
 	});
+test( "UT-028: URI validation.", function () {
+	var validURIs = [
+		'http://www.google.com',
+		'http://www.guardian.co.uk',
+		'doi://10.2.3/1232',
+		'ftp://something.or.other',
+		'http://something'
+	];
+
+	var invalidURIs = [
+		'http:/www.google.com',
+		'sdfdsfdsfsddssdf',
+		'http://www google.com',
+		'doi:something'
+	];
+
+	for (var index in validURIs){
+		ok(charme.logic.validURI(validURIs[index]));
+	}
+
+	for (var index in invalidURIs){
+		equal(charme.logic.validURI(invalidURIs[index]), false);
+	}
+});
+
 	test( "UT-JOA-005: Test TEMPLATE checking", function () {
 		var graph = new jsonoa.core.Graph();
 		var anno = graph.createNode({type: jsonoa.types.Annotation, id: 'http://localhost/annoID'});
@@ -440,3 +465,4 @@ test( "UT-JOA-006: Set multiple types, and test for typiness.", function () {
 	ok(textBody.hasType(jsonoa.types.Text.TEXT), 'Has text type');
 	ok(anno.hasType(jsonoa.types.Annotation.TYPE), 'Has annotation type');
 });
+

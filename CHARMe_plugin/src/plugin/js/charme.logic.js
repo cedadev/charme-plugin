@@ -274,6 +274,17 @@ charme.logic.generateId = function() {
 	return charme.logic.urls._baseURL() + 'resource/' + charme.logic.generateGUID();
 };
 
+charme.logic.validURI = function(uri){
+	var regex = charme.logic.uriMatcher;
+	var matches = regex.exec(uri);
+	//Did we find a match, and does it match the entire string?
+	if (matches && matches.length > 0 && matches[0].length === uri.length){
+		return true
+	} else {
+		return false;
+	}
+}
+
 /*
  * Functions for fetching data
  */
@@ -364,54 +375,6 @@ charme.logic.fetchMotivationVocab = function() {
     //return $.getJSON("motivations.json").done();
 
     var promise = new Promise(function(resolver) {
-
-
-// ATTEMPT 1 : Using getJSON()....   couldnot make it work
-
-//        $.getJSON("motivations.json")
-//            .done(function (jsonResp) {
-//                var keywords = [];
-//                $(jsonResp.results.bindings).each(function (index, binding) {
-//                    var word = binding.l.value;
-//                    word = word.substring(word.lastIndexOf('>') + 1);
-//                    keywords.push({
-//                        uri: binding.p.value,
-//                        desc: word
-//                    });
-//                });
-//                resolver.fulfill(keywords);
-//            })
-//            //.fail(function (e) {
-//            //    resolver.reject(e);
-//            //});
-
-
-// ATTEMPT 2 : Using .ajax()....   couldnot make it work
-//
-//        $.ajax({
-//            type: 'GET',
-//            url: 'motivations.json',
-//            dataType: 'json',
-//            success: function (jsonResp) {
-//                var keywords = [];
-//                $(jsonResp.results.bindings).each(function (index, binding) {
-//                    var word = binding.l.value;
-//                    word = word.substring(word.lastIndexOf('>') + 1);
-//                    keywords.push({
-//                        uri: binding.p.value,
-//                        desc: word
-//                    });
-//                });
-//                resolver.fulfill(keywords);
-//            },
-//            error: function(e) {
-//                resolver.reject(e);
-//            }
-//        });
-
-
-
-// ATTEMPT 3 : Reading in the motivations from a json formatted string... Works !
 
         try {
 
