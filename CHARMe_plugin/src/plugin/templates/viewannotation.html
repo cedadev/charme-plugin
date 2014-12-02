@@ -50,12 +50,12 @@
                 </form>
                 <table class="table">
                     <thead>
-                        <th>URI</th>
+                        <th>Target</th>
                         <th>Type</th>
                     </thead>
                     <tbody>
                     <tr data-ng-repeat="target in (filteredTargets = (targetList | filter:searchText))">
-                        <td>{{target.uri}}</td>
+                        <td>{{target.name | truncate: shortTitleLength}}</td>
                         <td>{{target.desc}}</td>
                     </tr>
                     </tbody>
@@ -66,7 +66,8 @@
             <!--<h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>-->
             <h3 class="popover-title"><a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
                                       <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> - 
-                                      {{date | date:'d/M/yyyy, hh:mm'}}</h3>
+                                      <span>{{modificationOf ? 'Edited at' : 'Created at'}}</span>
+                                      {{date | date:' HH:mm, d MMM yyyy'}}</h3>
             <div class="popover-content">
                 <p data-ng-show="comment">"{{comment}}"</p>
                 <p data-ng-show="noComment">No comment</p>
@@ -110,17 +111,42 @@
         <a href="{{citation.uri}}" target="_blank">{{citation.uri | truncate:100}}</a>
         <div class="text-warning" data-ng-show="citation.error">{{citation.error}}</div>
         </div>
+                
+        <div>
+            <br>
+            <h4>Replies</h4>
+            <table class="table search-results-table">
+                <div class="alert alert-error" data-ng-show="repliesErrorMsg">{{repliesErrorMsg}}</div>
+                <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
+                <tbody>
+                    <tr data-ng-hide="!loadingReplies">
+                        <td colspan="4" class="spinner spinner-small">
+                            <img src ="img/ajaxspinner.gif" />
+                        </td>
+                    </tr>
+                    <tr data-ng-show="!loadingReplies && !repliesErrorMsg && entries.length===0"><td colspan="4">No annotations</td></tr>
+                    <tr data-ng-repeat="entry in entries">
+                        <td><a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
+                               title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
 
-        <div data-ng-show="confirmDelete"
+                        <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('userName', entry.userName, $event)">{{entry.author}}</a></td>
+                        <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('organization', entry.organizationUri, $event);">{{entry.organizationName}}</a></td>
+                        <td>{{entry.date | date:'d MMM yyyy'}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+                
+        <div data-ng-show="confirmingDelete"
             confirm-box content="confirmBoxContent" on-confirm="deleteAnnotation()" on-cancel="noDelete()">
         </div>
     </div>
     </div>
     <br />
-    <div class="modifications">
+    <!--<div class="modifications">
         <h5>{{modificationOf ? 'Modified by:' : 'Created by:'}}</h5> {{author}} &nbsp;
         <h5>{{modificationOf ? 'Modified at:' : 'Created at:'}}</h5> {{annoDate | date}}
-    </div>
+    </div>-->
 </div>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

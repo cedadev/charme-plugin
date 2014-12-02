@@ -216,6 +216,7 @@ charme.web.services.factory('annotationService', function(){
 			motivation: [],
 			modificationOf: '',
 			author: '',
+                        organizationName: '',
 			date: '',
 			domain: [],
 			linkType: '',
@@ -252,10 +253,15 @@ charme.web.services.factory('annotationService', function(){
 				anno.author = author.getValue(jsonoa.types.Person.GIVEN_NAME) + ' ' +
 					author.getValue(jsonoa.types.Person.FAMILY_NAME);
 			}
+                        else if(author.hasType(jsonoa.types.Organization.TYPE)){
+                            anno.organizationName = author.getValue(jsonoa.types.Organization.NAME);
+                        }
 		});
-
-		var annoDate = annoGraphNode.getValue(annoSpec.DATE);
-		anno.date = annoDate[jsonoa.types.Common.VALUE];
+                
+		//var annoDate = annoGraphNode.getValue(annoSpec.DATE);
+		//anno.date = annoDate[jsonoa.types.Common.VALUE];
+                var annoDate = annoGraphNode.getValues(annoSpec.DATE);
+                anno.date = charme.logic.filterDates(annoDate);
 
 		var modificationOf = annoGraphNode.getValue(annoSpec.WAS_REVISION_OF);
 		if (typeof modificationOf !== 'undefined'){
@@ -293,7 +299,7 @@ charme.web.services.factory('annotationService', function(){
 				id: target.getValue(jsonoa.types.Common.ID),
 				typeId: target.getValue(jsonoa.types.Common.TYPE)
 				//type description etc. should go here.
-			}
+			};
 			anno.targets.push(targetDescriptor);
 		});
 
@@ -364,15 +370,17 @@ charme.web.services.factory('searchAnnotations', function(){
 				angular.forEach(feed.entries, function(value, key){
 					var anno = value.annotation;
 					var title = charme.logic.shortAnnoTitle(anno);
-					var updated = value.updated;
+					//var updated = value.updated;
 					var person = anno.getValues(annoSpec.ANNOTATED_BY);
 					var author = '';
 					var userName = '';
 					var organizationName = '';
                                         var organizationUri = '';
-                                        
-					var date = anno.getValue(annoSpec.DATE);
-					date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
+
+					//var date = anno.getValue(annoSpec.DATE);
+					//date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
+                                        var date = anno.getValues(annoSpec.DATE);
+                                        date = charme.logic.filterDates(date);
 
 					angular.forEach(person, function(detail){
                         var personType = jsonoa.types.Person; //Alias the Person type locally so that we don't need to use fully qualified path to reference constants
@@ -386,20 +394,35 @@ charme.web.services.factory('searchAnnotations', function(){
                         }
 					});
                                         
+                                        var targets;
+                                        var composite = anno.getValue(jsonoa.types.Annotation.TARGET);
+                                        if (composite.hasType(jsonoa.types.Composite.TYPE))
+                                            targets = composite.getValues(jsonoa.types.Composite.ITEM);
+                                        else
+                                            targets = anno.getValues(jsonoa.types.Annotation.TARGET);
+                                        
+                                        var targetIds = [];
+                                        angular.forEach(targets, function(target) {
+                                            targetIds.push(target.getValue(jsonoa.types.Common.ID));
+                                        });
+                                        
 					results.push(
 						{
                                                     'id': value.id,
 						    'title': title,
-						    'updated': updated,
+						    //'updated': updated,
 						    'author': author,
                                                     'userName': userName,
                                                     'organizationName': organizationName,
                                                     'organizationUri': organizationUri,
                                                     'date': date,
-                                                    'targets': criteria.targets
+                                                    //'targets': criteria.targets
+                                                    'targets': targetIds
 						}
 					);
 				});
+
+                                results.sort(function(a, b) {return (Date.parse(b.date) - Date.parse(a.date));});
 
 				var pages = [];
                                 var lastPage = Math.ceil(feed.totalResults / criteria.resultsPerPage);
@@ -411,11 +434,11 @@ charme.web.services.factory('searchAnnotations', function(){
                                             Math.abs(i - criteria.pageNum) <= Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
                                         pages.push({status: 'notCurrent'});
 				}
-                                
+
                                 var targetIsAnno = criteria.targetIsAnno || false;
                                 
 				searchService.tellListeners(searchService.listenerTypes.SUCCESS, results, pages, criteria.pageNum, lastPage, feed.totalResults, targetIsAnno);
-				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);   
+				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH);
 			},
 			function(error){
 				searchService.tellListeners(searchService.listenerTypes.ERROR, 'Error: ' + error);
@@ -560,7 +583,13 @@ charme.web.services.factory('saveAnnotation', function () {
 					if (typeof annoTarget.typeId === 'undefined'){
 						resolver.reject('Annotations may not be saved with unknown types');
 					}
-					var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                                        
+					//var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                                        if(annoTarget.typeId === jsonoa.types.Annotation.TYPE)
+                                        var annoTargetType = jsonoa.types.CHARMeAnnotation;
+                                    else
+                                        var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                                        
 					var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
 					composite.addValue(compositeSpec.ITEM, graph.createStub(annoTarget.id));
 				}
@@ -570,7 +599,13 @@ charme.web.services.factory('saveAnnotation', function () {
 				if (typeof annoTarget.typeId === 'undefined'){
 					resolver.reject('Annotations may not be saved with unknown types');
 				}
-				var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                                
+                                //var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                                if(annoTarget.typeId === jsonoa.types.Annotation.TYPE)
+                                    var annoTargetType = jsonoa.types.CHARMeAnnotation;
+                                else
+                                    var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+
 				var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
 				anno.setValue(annoSpec.TARGET, target);
 			} else {
@@ -756,6 +791,7 @@ charme.web.services.factory('shiftAnnoService', function() {
 
 charme.web.services.factory('replyToAnnoService', function() {
         return {
+            replying: false,
             comments: '',
             initialTarget: ''
         };

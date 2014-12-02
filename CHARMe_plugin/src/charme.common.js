@@ -58,6 +58,9 @@ charme.common.LARGE_WIDTH = 1368;
 // Dummy URL for when we view annotations for all targets
 charme.common.ALL_TARGETS = 'http://alltargets/';
 
+// Length of target title in targets tab (viewAnno, editAnno)
+charme.common.shortTargetTitle = 75;
+
 /**
  * Finds the path to the current script (for referencing images etc.) DO NOT INVOKE THIS FUNCTION
  * DIRECTLY

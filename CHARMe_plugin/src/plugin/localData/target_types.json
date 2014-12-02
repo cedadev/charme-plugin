@@ -1,11 +1,11 @@
 [
  {
-  "label": "Dataset",
-  "resource": "http://purl.org/dc/dcmitype/Dataset"
+  "label": "Annotation",
+  "resource": "http://www.w3.org/ns/oa#Annotation"
  },
  {
-  "label": "Semantic Tag",
-  "resource": "http://www.w3.org/ns/oa#SemanticTag"
+  "label": "Dataset",
+  "resource": "http://purl.org/dc/dcmitype/Dataset"
  },
  {
   "label": "Document",

@@ -36,13 +36,13 @@
         </div>
     </div>
     <div class="control-group">
-        <label class="control-label" for="chooseBodyType">Body type</label>
+        <label class="control-label" for="chooseCitingType">Link type</label>
         <div class="controls controls-row">
-            <select id="chooseBodyType" class="span5 body-types" data-body-type-keywords multiple
-                    data-body-types-to-show="bodyTypeCategoriesForSearch" 
-                    data-ng-model="criteria.selectedBodyTypes"
+            <select id="chooseCitingType" class="span5 citing-types" data-citing-type-keywords multiple
+                    data-citing-types-to-show="citingTypeCategoriesForSearch" 
+                    data-ng-model="criteria.selectedCitingTypes"
                     placeholder=" Select tags...">
-            </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving bodyTypeCategoriesForSearch -->
+            </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving citingTypeCategoriesForSearch -->
             <span class="span1 search-question-icon icon-question-sign"
                   title="Search by type of the annotation’s body"></span>
         </div>
@@ -101,7 +101,10 @@
             Results per page:
             <span data-ng-repeat="rpp in resultsPerPage" data-ng-click="setResultsPerPage(rpp)">
                 &nbsp;&nbsp;<a data-ng-class="rpp === selectedRPP ? 'selected' : 'notSelected'" href="">{{rpp}}</a>
-            </span><span data-ng-show="!loading && numResults > 0"> &nbsp;Result count: {{numResults}}</span>
+            </span>
+            <span data-ng-show="!loading && numResults > 0">
+                &nbsp; Total: {{numResults}}
+            </span>
         </div>
     </div>
 </form>

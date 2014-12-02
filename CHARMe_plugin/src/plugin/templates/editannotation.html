@@ -24,13 +24,16 @@
 
 <div data-ng-include="'templates/header.html'"></div>
 <div class="modal-body modal-body-new">
-    <div data-ng-show="loading" class="ajaxModal">
+    <div data-ng-show="processing" class="ajaxModal">
         <div class="modalProgress spinner">
             <img src="img/ajaxspinner.gif"/>
         </div>
     </div>
+    <div data-ng-hide="!loading" class="spinner spinner-small">
+        <img src ="img/ajaxspinner.gif"/>
+    </div>
     <div class="alert alert-error" data-ng-show="errorMsg">{{errorMsg}}</div>
-        <div class="tabbable"> <!-- Only required for left/right tabs -->
+        <div data-ng-show="!loading" class="tabbable"> <!-- Only required for left/right tabs -->
             <ul class="nav nav-tabs">
                 <li class="active"><a data-target="#tab1" data-toggle="tab">Details</a></li>
                 <li><a data-target="#tab2" data-toggle="tab">Targets <span class="badge badge-info">{{anno.targets.length}}</span></a></li>
@@ -40,6 +43,10 @@
                     <div data-ng-include="'templates/targetlist.html'"></div>
                 </div>
                 <div class="tab-pane active .fade" id="tab1">
+                    <div data-ng-show="anno.id">
+                        {{anno.organizationName}} - {{anno.author}} - Edited at {{anno.date | date:' hh:mm, d/M/yyyy'}}
+                    </div>
+                    
                     <h4>Comments <span title="Free text comments (&le;{{commentMaxLength}} characters) go here; a link may be included below" class="icon-question-sign"></span></h4>
                     <textarea data-ng-model="anno.comment" maxlength="{{commentMaxLength}}" rows="3"></textarea>
 
@@ -86,9 +93,13 @@
                 </div>
             </div>
         </div>
-        <div class="modifications" data-ng-show="anno.id">
+        <!--<div class="modifications" data-ng-show="anno.id">
             <h5>{{anno.modificationOf ? 'Modified by:' : 'Created by:'}}</h5> {{anno.author}} &nbsp;
             <h5>{{anno.modificationOf ? 'Modified at:' : 'Created at:'}}</h5> {{anno.date | date}}
+        </div>-->
+        
+        <div data-ng-show="confirmingModify"
+            confirm-box content="confirmBoxContent" on-confirm="save(anno)" on-cancel="noModify()">
         </div>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

@@ -303,8 +303,10 @@ charme.plugin.setSelectionEventOnTarget = function (checkbox, boxType) {
 charme.plugin.setWholeTargetList = function(checkbox) {
 	var els = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
 	for(var i = 0 ; i < els.length; i++) {
+            if(els[i].id !== charme.common.ALL_TARGETS) {
 		els[i].checked = !checkbox.target.checked;
 		els[i].click();
+            }
 	}
 };
 
@@ -338,19 +340,30 @@ charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
     if(targetCheckbox.target.checked) {
         if(!(targetHref in charme.plugin.selectedTargets)) {
             // Add the target to the list
-            charme.plugin.selectedTargets[targetHref] = {
-                name: targetName,
-                label: targetTypeLabel,
-                desc: targetTypeDesc
-            };
-            charme.plugin.numSelected++;
+            if(targetHref === charme.common.ALL_TARGETS) {
+                charme.plugin.selectedTargets[targetHref] = {
+                    name: 'All Targets',
+                    label: 'Alltypes',
+                    desc: 'All types'
+                };
+            }
+            else {
+                charme.plugin.selectedTargets[targetHref] = {
+                    name: targetName,
+                    label: targetTypeLabel,
+                    desc: targetTypeDesc
+                };
+                charme.plugin.numSelected++;
+            }
         }
     }
     else {
         if(targetHref in charme.plugin.selectedTargets) {
             // Remove the target from the list
             delete charme.plugin.selectedTargets[targetHref];
-            charme.plugin.numSelected--;
+            
+            if(targetHref !== charme.common.ALL_TARGETS)
+                charme.plugin.numSelected--;
         }
     }
     
@@ -530,7 +543,7 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
     var loadImage = new Image();
     loadImage.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
     var reloadImage = new Image();
-    reloadImage.src = charme.settings.path + '/reloadbuttonsmall.PNG';
+    reloadImage.src = charme.settings.path + '/reloadbuttonsmall.png';
     
     if(isFirstLoad) {
         var selectAllContainer = document.getElementById('charme-placeholder');
@@ -557,28 +570,34 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
         
         text = document.createElement('span');
         text.id = 'charme-all-targets';
-        text.innerHTML = 'All targets';	
+        text.innerHTML = 'All targets ';	
         allTargetsContainer.insertBefore(text, anchor);
 
     }
     
     var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL);
 
-    //Initially set all charme icon placeholders to "scanning" display
-    for(var i = 0; i < els.length; i++) {
-		if(els[i].href) {
-            charme.plugin.setRescanIconForTarget(els[i], reScanImage.src);
+    if(isRescan) {
+        //Initially set all charme icon placeholders to "scanning" display
+        for(var i = 0; i < els.length; i++) {
+                    if(els[i].href) {
+                charme.plugin.setRescanIconForTarget(els[i], reScanImage.src);
+            }
         }
     }
 
     for(var i = 0; i < els.length; i++) {
         if(els[i].href) {
-
-            els[i].style.backgroundSize = '18px 18px';
-
             //if(isFirstLoad || els[i].href === targetId)
             //if(isFirstLoad || isRescan || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
+            if(isFirstLoad || isRescan || els[i].href === targetId) {
+                if(els[i].href === targetId) {
+                    els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
+                    els[i].style.backgroundSize = '18px 18px';
+                }
+                
                 charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src, reloadImage.src);
+            }
 
             if(isFirstLoad || isRescan) {
                 els[i].style.display = 'inline-block';
@@ -587,12 +606,12 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
 
                 els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
                 els[i].style.backgroundSize = '18px 18px';
-                els[i].style.backgroundPosition = '10px';
+                els[i].style.backgroundPosition = '2px';
                 els[i].style.marginLeft = '10px';
                 els[i].style.marginRight = '-5px';
 
                 // Insert checkboxes and attach selection events
-                if(els[i].href !== charme.common.ALL_TARGETS) {
+                //if(els[i].href !== charme.common.ALL_TARGETS) {
                     //Create a checkbox only if its already not preset on this target.
                     if(charme.plugin.checkboxAbsent(els[i].href)) {
                         var targetCheckbox = document.createElement('input');
@@ -602,9 +621,11 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
                         targetCheckbox.name = charme.plugin.extractTargetType(els[i].className);
                         els[i].parentNode.insertBefore(targetCheckbox, els[i]);
                         charme.plugin.setSelectionEventOnTarget(targetCheckbox, 'target');
-                        charme.plugin.numTags++;
+                        
+                        if(els[i].href !== charme.common.ALL_TARGETS)
+                            charme.plugin.numTags++;
                     }
-                }
+                //}
             }
         }
     }
@@ -848,10 +869,10 @@ charme.plugin.showPlugin = function (e) {
                 //targetType = charme.plugin.extractTargetType(e.target.className);
 	}
         
-        if(targetHref === charme.common.ALL_TARGETS) {
-            charme.plugin.selectedTargets[targetHref] = {name: 'All Targets', label: 'Alltypes', desc: 'all types'};
-            charme.plugin.disableWholeTargetList(true);
-        }
+        /*if(targetHref === charme.common.ALL_TARGETS) {
+            charme.plugin.selectedTargets[targetHref] = {name: 'All Targets', label: 'Alltypes', desc: 'All types'};
+            //charme.plugin.disableWholeTargetList(true);
+        }*/
         
         // If data provider allows the plugin GUI to be dragged, insert script (first removing it if already present) and set 
         // option to allow dragging off screen. We remove the script first as dragiframe.js has no clear/removeHandle() method.

@@ -28,7 +28,8 @@ charme.web={};
 charme.web.constants = {
     CHARME_TK: 'CHARME_AT',
     PARAM_TARGET_TYPES: 'dataType',
-    PARAM_BODY_TYPES: 'bodyType',
+    PARAM_CITING_TYPES: 'citingType',
+    //PARAM_BODY_TYPES: 'bodyType',
     PARAM_MOTIVATIONS: 'motivations',
     PARAM_DOMAINS: 'domains',
     PARAM_ORGANIZATION: 'organization',

@@ -68,7 +68,8 @@ charme.logic.constants = {
     //FABIO_XP_CLASSES : '//owl:Class',
 
     FACET_TYPE_TARGET_TYPE: 'dataType',
-    FACET_TYPE_BODY_TYPE: 'bodyType',
+    FACET_TYPE_CITING_TYPE: 'citingType',
+    //FACET_TYPE_BODY_TYPE: 'bodyType',
     FACET_TYPE_MOTIVATION: 'motivation',
     FACET_TYPE_DOMAIN: 'domainOfInterest',
     FACET_TYPE_ORGANIZATION: 'organization',
@@ -173,8 +174,8 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
         if (typeof criteria.targetTypes !== 'undefined' && criteria.targetTypes.length > 0){
 		url+='&dataType=' + encodeURIComponent(criteria.targetTypes.join(' '));
 	}
-        if (typeof criteria.bodyTypes !== 'undefined' && criteria.bodyTypes.length > 0){
-		url+='&bodyType=' + encodeURIComponent(criteria.bodyTypes.join(' '));
+        if (typeof criteria.citingTypes !== 'undefined' && criteria.citingTypes.length > 0){
+		url+='&citingType=' + encodeURIComponent(criteria.citingTypes.join(' '));    
 	}
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
@@ -570,6 +571,9 @@ charme.logic.fetchTargetTypeVocab = function() {
                 accept: 'application/json; charset=utf-8'
             }
         }).then(function(jsonResp) {
+            if (typeof jsonResp === 'string'){
+                jsonResp = JSON.parse(jsonResp);
+            }
             resolver.fulfill(jsonResp);
         }, function(error) {
             console.error('Error fetching target types');
@@ -754,7 +758,7 @@ charme.logic.fetchAllSearchFacets = function(criteria){
 };
 
 charme.logic.shortAnnoTitle = function(anno){
-	var out;
+	var out = '';
 	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
 	angular.forEach(bodies, function(body){
 		if (body.hasType) { // Check is necessary as sometimes the body of a value is simply a string, not a jsonoa object
@@ -762,14 +766,13 @@ charme.logic.shortAnnoTitle = function(anno){
 				body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)) {
 				out = body.getValue(jsonoa.types.Text.CONTENT_CHARS);
 			} else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length === 0) {
-				out =
-					body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
+				out = body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
 			}
 		}
 	});
-	if (typeof out === 'undefined'){
-		return 'No title.';
-	}
+	//if (typeof out === 'undefined'){
+	//	return 'No title.';
+	//}
 	return out;
 };
 
@@ -785,15 +788,17 @@ charme.logic.shortDomainLabel = function(label) {
 };
 
 charme.logic.shortTargetName = function(name, length) {
+    var out = '';
+    var ellipsis = '...';
+    
     if(name && length) {
-        var out = name.substring(0, length);
         if(name.length > length)
-            out += '...';
-        
-        return out;
+            out = name.substring(0, length - ellipsis.length) + ellipsis;
+        else
+            out = name.substring(0, length);
     }
-    else
-        return '';
+
+    return out;
 };
 
 /**
@@ -803,48 +808,63 @@ charme.logic.shortTargetName = function(name, length) {
  * 	criteria: The values which will be used to search the annotations
  */
 charme.logic.searchAnnotations = function(criteria) {
-	var promise = new Promise(function(resolver) {
-		var reqUrl = charme.logic.urls.fetchAnnotations(criteria);
-		$.ajax(reqUrl, {
-			type : 'GET'
-		}).then(function(data) {          
-			// Data is returned as ATOM wrapped json-ld
-			var result = new charme.atom.Result(data);
-			// Extract json-ld from the multiple 'content' payloads returned
-			var resultArr = [];
-			/*
-			 * Collect all entries so that they can be processed at the same
-			 * time
-			 */
-			$.each(result.entries, function(index, entry) {
-				var shortGraph = $.parseJSON(entry.content);
-				if (typeof shortGraph[jsonoa.constants.GRAPH]!== 'undefined'){
-					resultArr.push(shortGraph[jsonoa.constants.GRAPH]);
-				} else {
-					resultArr.push(shortGraph);
-				}
+    var promise = new Promise(function(resolver) {
+        var reqUrl = charme.logic.urls.fetchAnnotations(criteria);
+        $.ajax(reqUrl, {
+            type : 'GET'
+        }).then(function(data) {          
+            // Data is returned as ATOM wrapped json-ld
+            var result = new charme.atom.Result(data);
+            // Extract json-ld from the multiple 'content' payloads returned
+            var resultArr = [];
+            /*
+             * Collect all entries so that they can be processed at the same
+             * time
+             */
+            $.each(result.entries, function(index, entry) {
+                var shortGraph = $.parseJSON(entry.content);
+                if(typeof shortGraph[jsonoa.constants.GRAPH] !== 'undefined') {
+                    resultArr.push(shortGraph[jsonoa.constants.GRAPH]);
+                } else {
+                    resultArr.push(shortGraph);
+                }
+            });
+            var graphSrc = {};
+            graphSrc[jsonoa.constants.GRAPH]=resultArr;
 
-			});
-			var graphSrc = {};
-			graphSrc[jsonoa.constants.GRAPH]=resultArr;
-                        
-			var graph = new jsonoa.core.Graph();
-			graph.load(graphSrc, false).then(function(graph) {
-				$.each(result.entries, function(index, value) {
-					var graphAnno = graph.getNode(value.id);
-					if (graphAnno)
-						value.annotation = graphAnno;
-				});
-				resolver.fulfill(result);
-			}, function(e) {
-				resolver.reject(e);
-			});
+            var graph = new jsonoa.core.Graph();
+            graph.load(graphSrc, false).then(function(graph) {
+                var annoList = graph.getAnnotations();
+                annoList = charme.logic.filterAnnoList(annoList, jsonoa.types.Annotation);
 
-		}, function(jqXHR, textStatus, errorThrown) {    
-			resolver.reject();
-		});
-	});
-	return promise;
+                var newResult = [];
+                $.each(annoList, function(index, anno) {
+                    anno = charme.logic.filterAnnoList([anno], jsonoa.types.Annotation);
+                    anno = anno[0];
+                    var id = anno.getValue(jsonoa.types.Common.ID);
+
+                    newResult.push({
+                        id: id,
+                        annotation: anno
+                    });
+                });
+
+                /*$.each(result.entries, function(index, value) {
+                        var graphAnno = graph.getNode(value.id);
+                        if (graphAnno)
+                                value.annotation = graphAnno;
+                });*/
+
+                result.entries = newResult;
+                resolver.fulfill(result);
+            }, function(e) {
+                resolver.reject(e);
+            });
+        }, function(jqXHR, textStatus, errorThrown) {    
+                resolver.reject();
+        });
+    });
+    return promise;
 };
 
 /*
@@ -931,13 +951,17 @@ charme.logic.debounce = function(func, wait, immediate) {
 };
 
 charme.logic.filterAnnoList = function(annoList, annoType) {
-    var _anno, _annoTargets, _targetIds = [];
+    var composite, _annoTargets, _targetIds = [];
     var newAnnoList = [];
     
     for(var i = 0; i < annoList.length; i++) {
-        _anno = annoList[i].getValue(annoType.TARGET);
-        _annoTargets = _anno.getValues(jsonoa.types.Composite.ITEM);
-        angular.forEach(_annoTargets, function(target){
+        composite = annoList[i].getValue(annoType.TARGET);
+        if(composite.hasType(jsonoa.types.Composite.TYPE))
+            _annoTargets = composite.getValues(jsonoa.types.Composite.ITEM);
+        else
+            _annoTargets = annoList[i].getValues(annoType.TARGET);
+
+        angular.forEach(_annoTargets, function(target) {
             _targetIds.push(target.getValue(jsonoa.types.Common.ID));
         });
     }
@@ -955,8 +979,65 @@ charme.logic.filterAnnoList = function(annoList, annoType) {
             newAnnoList.push(annoList[i]);
     }
     
-    if(newAnnoList.length > 1)
-        console.error('newAnnoList array contains multiple annotations');
+    //if(newAnnoList.length > 1)
+    //    console.error('newAnnoList array contains multiple annotations');
 
-    return(newAnnoList[0]);
+    //return(newAnnoList[0]);
+    return(newAnnoList);
+};
+
+// Temporary fix to deal with annotations having array of dates
+charme.logic.filterDates = function(dates) {
+    var _date, sortedDates = [];
+    angular.forEach(dates, function(date) {
+        _date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
+        
+        if(_date !== 'undefined')
+            sortedDates.push(_date);
+    });
+                        
+    sortedDates.sort(function(b, a) {return (Date.parse(b) - Date.parse(a));});
+    return(sortedDates[0]);
+};
+
+charme.logic.fetchTargetComment = function(fetchAnnotation, targetHref, annoType) {
+    var targetComment;
+    
+    var promise = new Promise(function(resolver) {
+            var reqUrl = charme.logic.urls.fetchRequest(shortId);
+            $.ajax(reqUrl, {
+                    type : 'GET'
+            }).then(function(data) {
+                    var graph = new jsonoa.core.Graph();
+                    graph.load(data, true).then(function(graph) {
+                            resolver.fulfill(graph);
+                    }, function(e) {
+                            resolver.reject(e);
+                    });
+            }, function(jqXHR, textStatus, errorThrown) {
+                    resolver.reject();
+            });
+    });
+    return promise;
+    
+    fetchAnnotation(targetHref).then(function(graph) {
+        var annoList = graph.getAnnotations();
+        if(annoList.length > 0) {
+            //var anno = annoList[0];
+            var anno = charme.logic.filterAnnoList(annoList, annoType);
+            anno = anno[0];
+            var bodies = anno.getValues(annoType.BODY);
+            var textType = jsonoa.types.Text;
+            targetComment = '(No comment)';
+            angular.forEach(bodies, function(body){
+                if(body.hasType(textType.TEXT) || body.hasType(textType.CONTENT_AS_TEXT)){
+                   targetComment = body.getValue(textType.CONTENT_CHARS);
+                }
+            });
+       }
+    }, function(error) {
+        targetComment = 'Error loading text';
+    });
+    
+    return targetComment;
 };

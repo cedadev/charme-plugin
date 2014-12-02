@@ -107,11 +107,11 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             });
         }
     };
-}).directive('bodyTypeKeywords', function($timeout) {
+}).directive('citingTypeKeywords', function($timeout) {
 	return {
 		restrict: 'A',
 		require: '?ngModel',
-		scope: {bodyTypesToShow: '@'},
+		scope: {citingTypesToShow: '@'},
 		link: function ($scope, element, attrs, $ngModel) {
 			var optgroups = [];
 			var options = [];
@@ -119,7 +119,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
 				persist: true
 			})[0].selectize;
 
-			$scope.$on($scope.bodyTypesToShow, function(event, categories) {
+			$scope.$on($scope.citingTypesToShow, function(event, categories) {
 				angular.forEach(categories, function (cat) {
 					optgroups.push({value: cat.name, label: cat.name});
 					// Could just use el.addOptionGroup here instead, and have no optgroups array at all, but we might perhaps want to have this array in future
@@ -164,12 +164,12 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
 					});
 				});
 
-				$scope.$on('newBodyTypes', function(event, newBodyTypes) {
+				$scope.$on('newCitingTypes', function(event, newCitingTypes) {
 					// $timeout used to avoid 'apply already in progress' error
 					$timeout(function() {
 						el.clear();
 						el.refreshItems();
-						angular.forEach(newBodyTypes, function(value) {
+						angular.forEach(newCitingTypes, function(value) {
 							el.addItem(value);
 						});
 					});
@@ -409,7 +409,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             confirmFunc: '&onConfirm',
             cancelFunc: '&onCancel'
         },
-        templateUrl: 'templates/confirmbox.html'
+        templateUrl: 'templates/confirmbox.html'  // Don't delete this line!
     };
 });
 

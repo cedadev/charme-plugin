@@ -141,7 +141,7 @@ jsonoa.types.Dataset=(function Dataset(){
 	return Dataset;
 })();
 jsonoa.types.CHARMeAnnotation=(function CHARMeAnnotation(){
-	CHARMeAnnotation.TYPE = 'http://charme.cems.rl.ac.uk/2014/charme#CHARMeAnnotation'; // This is a dummy URL
+	CHARMeAnnotation.TYPE = 'http://www.w3.org/ns/oa#Annotation';
         CHARMeAnnotation.TEMPLATE = {"@id": "?", "@type": [CHARMeAnnotation.TYPE]};
 	return CHARMeAnnotation;
 })();

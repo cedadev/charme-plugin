@@ -68,7 +68,7 @@
 
                     <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('userName', entry.userName, $event)">{{entry.author}}</a></td>
                     <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('organization', entry.organizationUri, $event);">{{entry.organizationName}}</a></td>
-                    <td>{{entry.date | date:'d/M/yyyy'}}</td>
+                    <td>{{entry.date | date:'d MMM yyyy'}}</td>
                 </tr>
             </tbody>
         </table>
