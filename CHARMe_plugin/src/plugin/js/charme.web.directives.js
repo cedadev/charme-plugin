@@ -401,6 +401,18 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
     };
 })
 
+.directive('validatedUri', function() {
+	return {
+		restrict: 'A',
+		require: 'ngModel',
+		link: function ($scope, element, attrs, input) {
+			$scope.$watch(attrs.ngModel, function() {
+				input.$setValidity('validURI', !(input.$viewValue) || (input.$viewValue.length==0) || charme.logic.validURI(input.$viewValue));
+			});
+		}
+	};
+})
+
 .directive('confirmBox', function() {
     return {
         restrict: 'A',

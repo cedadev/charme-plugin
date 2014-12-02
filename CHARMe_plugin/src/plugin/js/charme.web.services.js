@@ -463,107 +463,115 @@ charme.web.services.factory('deleteAnnotation', function(){
 charme.web.services.factory('saveAnnotation', function () {
 
 	return function(targetId, targetMap, auth, annoModel, annoModelPristine){
-		var promise = new Promise(function(resolver){
-			var annoSpec = jsonoa.types.Annotation;
-			var graph = new jsonoa.core.Graph();
-			var anno;
-			if (annoModel.id){
-				anno = graph.createNode({type: jsonoa.types.Annotation, id: annoModel.id});
-			} else {
-				anno = graph.createNode({type: jsonoa.types.Annotation, id: charme.logic.constants.ATN_ID_PREFIX +
-					'annoID'});
-			}
-			var bodyId = charme.logic.constants.BODY_ID_PREFIX + 'bodyID';
-			var commentId = bodyId;
+
+       var promise = new Promise(function(resolver) {
+
+         //If the save is on a new annotation then pristine model is undefined.
+         //If the save is on a modification, then pristine model is defined. Check to see if the annoModel is dirty before saving
+         if((!annoModelPristine) || (annoModelPristine && charme.logic.modelEdited(annoModel, annoModelPristine)))
+         {
+            //alert("Model edited. Saving...");
+
+            var annoSpec = jsonoa.types.Annotation;
+            var graph = new jsonoa.core.Graph();
+            var anno;
+            if (annoModel.id) {
+                anno = graph.createNode({type: jsonoa.types.Annotation, id: annoModel.id});
+            } else {
+                anno = graph.createNode({type: jsonoa.types.Annotation, id: charme.logic.constants.ATN_ID_PREFIX +
+                    'annoID'});
+            }
+            var bodyId = charme.logic.constants.BODY_ID_PREFIX + 'bodyID';
+            var commentId = bodyId;
             var compositeSpec = jsonoa.types.Composite;
 
-			/**
-			 * If this is an update (a 'pristine' model was provided), check if comments have changed. If they have not, DO NOT include a body node, just a reference to the existing node.
-			 */
-			if (annoModelPristine && annoModelPristine.comment===annoModel.comment){
-				anno.setValue(jsonoa.types.Annotation.BODY, graph.createStub(annoModelPristine.commentId));
-			} else if (annoModel.comment){
-				var comment = graph.createNode({type: jsonoa.types.Text, id: commentId});
-				comment.setValue(jsonoa.types.Text.CONTENT_CHARS, annoModel.comment);
-				anno.addValue(annoSpec.BODY, comment);
-			}
-			if (annoModel.linkType){
-				var type = jsonoa.util.templateFromType(annoModel.linkType);
-				if (typeof type !== 'function'){
-					resolver.reject('Invalid selection ' + annoModel.linkType);
-				}
-				if (annoModel.linkURI){
-					var linkURI = encodeURI(annoModel.linkURI);
-					var doiVal = charme.logic.findDOI(linkURI);
-					
-					//If a DOI is provided, create a citation act for the body
-					if (doiVal){
-						//Create a fully qualified canonical URI for the DOI
-						linkURI=charme.logic.constants.DXDOI_URL + doiVal;
-						//Auto-generating IDs at the moment on client side, which shouldn't happen. The Node must take responsibility for this, but no method is available yet for multiple bodies
-						var citoId = charme.logic.generateId();
-						
-						/*
-						 * Create a citation act for the body. 
-						 */
-						var citoType = jsonoa.types.CitationAct;
+            /**
+             * If this is an update (a 'pristine' model was provided), check if comments have changed. If they have not, DO NOT include a body node, just a reference to the existing node.
+             */
+            if (annoModelPristine && annoModelPristine.comment === annoModel.comment) {
+                anno.setValue(jsonoa.types.Annotation.BODY, graph.createStub(annoModelPristine.commentId));
+            } else if (annoModel.comment) {
+                var comment = graph.createNode({type: jsonoa.types.Text, id: commentId});
+                comment.setValue(jsonoa.types.Text.CONTENT_CHARS, annoModel.comment);
+                anno.addValue(annoSpec.BODY, comment);
+            }
+            if (annoModel.linkType) {
+                var type = jsonoa.util.templateFromType(annoModel.linkType);
+                if (typeof type !== 'function') {
+                    resolver.reject('Invalid selection ' + annoModel.linkType);
+                }
+                if (annoModel.linkURI) {
+                    var linkURI = encodeURI(annoModel.linkURI);
+                    var doiVal = charme.logic.findDOI(linkURI);
 
-						//Create node for link uri, with typing information
-						var uriLink = graph.createNode({type: type, id: linkURI});
+                    //If a DOI is provided, create a citation act for the body
+                    if (doiVal) {
+                        //Create a fully qualified canonical URI for the DOI
+                        linkURI = charme.logic.constants.DXDOI_URL + doiVal;
+                        //Auto-generating IDs at the moment on client side, which shouldn't happen. The Node must take responsibility for this, but no method is available yet for multiple bodies
+                        var citoId = charme.logic.generateId();
+
+                        /*
+                         * Create a citation act for the body.
+                         */
+                        var citoType = jsonoa.types.CitationAct;
+
+                        //Create node for link uri, with typing information
+                        var uriLink = graph.createNode({type: type, id: linkURI});
 
                         //Add the "citationAct type" to annotation
                         anno.addValue('@type', citoType.TYPE);
                         anno.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
                         anno.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
 
-					} else {
-						var linkBody =graph.createNode({type: type, id: linkURI});
-						anno.addValue(annoSpec.BODY, linkBody);
-					}
+                    } else {
+                        var linkBody = graph.createNode({type: type, id: linkURI});
+                        anno.addValue(annoSpec.BODY, linkBody);
+                    }
 
-					/*
-					 * Check if the annotation model already has a 'linking' type defined (selected manually by user, or on existing annotation. If it does not, add it.
-					 */
-					var linkingType = "http://www.w3.org/ns/oa#linking";
-					var match = false;
+                    /*
+                     * Check if the annotation model already has a 'linking' type defined (selected manually by user, or on existing annotation. If it does not, add it.
+                     */
+                    var linkingType = "http://www.w3.org/ns/oa#linking";
+                    var match = false;
                     //Automatically add the "Linking" Motivation
-					angular.forEach(annoModel.motivation, function(existingMotivation){
-						if (existingMotivation.value===linkingType){
-							match=true;
-						}
-					});
-					if (!match){
-						//Add it to the model, will be picked up later and added to annotation graph.
-						annoModel.motivation.push({value: linkingType});
-					}
-				} else {
-					resolver.reject('No URI entered');
-				}
-			}
-			if (annoModel.domain.length > 0){
-				angular.forEach(annoModel.domain, function(domain){
-					var tagId = domain.value;
-					var tag = graph.createNode({type: jsonoa.types.SemanticTag, id: tagId});
-					tag.setValue(jsonoa.types.SemanticTag.PREF_LABEL, domain.textLong);
-					anno.addValue(annoSpec.BODY, tag);
-				});
+                    angular.forEach(annoModel.motivation, function (existingMotivation) {
+                        if (existingMotivation.value === linkingType) {
+                            match = true;
+                        }
+                    });
+                    if (!match) {
+                        //Add it to the model, will be picked up later and added to annotation graph.
+                        annoModel.motivation.push({value: linkingType});
+                    }
+                } else {
+                    resolver.reject('No URI entered');
+                }
+            }
+            if (annoModel.domain.length > 0) {
+                angular.forEach(annoModel.domain, function (domain) {
+                    var tagId = domain.value;
+                    var tag = graph.createNode({type: jsonoa.types.SemanticTag, id: tagId});
+                    tag.setValue(jsonoa.types.SemanticTag.PREF_LABEL, domain.textLong);
+                    anno.addValue(annoSpec.BODY, tag);
+                });
 
-				var taggingType = "http://www.w3.org/ns/oa#tagging";
-				var match = false;
-				//Automatically add the "tagging" Motivation
-				angular.forEach(annoModel.motivation, function(existingMotivation){
-					if (existingMotivation.value===linkingType){
-						match=true;
-					}
-				});
-				if (!match){
-					//Add it to the model, will be picked up later and added to annotation graph.
-					annoModel.motivation.push({value: taggingType});
-				}
-			}
+                var taggingType = "http://www.w3.org/ns/oa#tagging";
+                var match = false;
+                //Automatically add the "tagging" Motivation
+                angular.forEach(annoModel.motivation, function (existingMotivation) {
+                    if (existingMotivation.value === linkingType) {
+                        match = true;
+                    }
+                });
+                if (!match) {
+                    //Add it to the model, will be picked up later and added to annotation graph.
+                    annoModel.motivation.push({value: taggingType});
+                }
+            }
 
-            if (annoModel.motivation){
-                angular.forEach(annoModel.motivation, function(motivation){
+            if (annoModel.motivation) {
+                angular.forEach(annoModel.motivation, function (motivation) {
                     //var tagId = charme.logic.generateId();
                     var page = graph.createStub(motivation.value);
                     //var tag = graph.createNode(jsonoa.types.SemanticTag, tagId);
@@ -576,62 +584,60 @@ charme.web.services.factory('saveAnnotation', function () {
             //Else attach the target directly to the annotation
 
             //if(targetMap.length > 1)
-			if (annoModel.targets.length > 1){
-				var composite = graph.createNode({type: jsonoa.types.Composite, id: charme.logic.constants.COMPOSITE_ID_PREFIX + 'targetID'});
-				for (var i = 0; i < annoModel.targets.length; i++){
-					var annoTarget = annoModel.targets[i];
-					if (typeof annoTarget.typeId === 'undefined'){
-						resolver.reject('Annotations may not be saved with unknown types');
-					}
-                                        
-					//var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
-                                        if(annoTarget.typeId === jsonoa.types.Annotation.TYPE)
-                                        var annoTargetType = jsonoa.types.CHARMeAnnotation;
-                                    else
-                                        var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
-                                        
-					var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
-					composite.addValue(compositeSpec.ITEM, graph.createStub(annoTarget.id));
-				}
-				anno.setValue(annoSpec.TARGET, composite);
-			} else if (annoModel.targets.length == 1){
-				var annoTarget = annoModel.targets[0];
-				if (typeof annoTarget.typeId === 'undefined'){
-					resolver.reject('Annotations may not be saved with unknown types');
-				}
-                                
-                                //var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
-                                if(annoTarget.typeId === jsonoa.types.Annotation.TYPE)
-                                    var annoTargetType = jsonoa.types.CHARMeAnnotation;
-                                else
-                                    var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+            if (annoModel.targets.length > 1) {
+                var composite = graph.createNode({type: jsonoa.types.Composite, id: charme.logic.constants.COMPOSITE_ID_PREFIX + 'targetID'});
+                for (var i = 0; i < annoModel.targets.length; i++) {
+                    var annoTarget = annoModel.targets[i];
+                    if (typeof annoTarget.typeId === 'undefined') {
+                        resolver.reject('Annotations may not be saved with unknown types');
+                    }
+                    var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                    var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
+                    composite.addValue(compositeSpec.ITEM, graph.createStub(annoTarget.id));
+                }
+                anno.setValue(annoSpec.TARGET, composite);
+            } else if (annoModel.targets.length == 1) {
+                var annoTarget = annoModel.targets[0];
+                if (typeof annoTarget.typeId === 'undefined') {
+                    resolver.reject('Annotations may not be saved with unknown types');
+                }
+                var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
+                anno.setValue(annoSpec.TARGET, target);
+            } else {
+                resolver.reject('An annotation must have at least one target');
+            }
 
-				var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
-				anno.setValue(annoSpec.TARGET, target);
-			} else {
-				resolver.reject('An annotation must have at least one target');
-			}
+            //insert or update?
+            var saveUrl;
+            if (!annoModel.id)
+                saveUrl = charme.logic.urls.createRequest();
+            else
+                saveUrl = charme.logic.urls.updateRequest();
 
-			//insert or update?
-			var saveUrl;
-			if (!annoModel.id)
-				saveUrl = charme.logic.urls.createRequest();
-			else
-				saveUrl = charme.logic.urls.updateRequest();
+            charme.logic.saveGraph(graph, auth.token, saveUrl).then(
+                function (data) {
+                    resolver.fulfill(data);
+                },
+                function (error) {
+                    console.error(error);
+                    resolver.reject('Unable to save annotation');
+                }
+            );
 
-			charme.logic.saveGraph(graph, auth.token, saveUrl).then(
+        } // if model changed
+        else
+        {
+             //alert("Model unchanged");
+             resolver.fulfill();
+        }
 
-				function(data){
-					resolver.fulfill(data);
-				}, 
-				function(error){
-					console.error(error);
-					resolver.reject('Unable to save annotation');
-				}
-			);
-		});
-		return promise;
+       });
+    return promise;
+
+
 	};
+
 });
 
 charme.web.services.factory('fetchKeywords', function(){
