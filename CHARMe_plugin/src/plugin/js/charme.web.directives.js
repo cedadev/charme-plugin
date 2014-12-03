@@ -421,7 +421,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             confirmFunc: '&onConfirm',
             cancelFunc: '&onCancel'
         },
-        templateUrl: 'templates/confirmbox.html'  // Don't delete this line!
+        templateUrl: 'templates/confirmbox.html'
     };
 });
 

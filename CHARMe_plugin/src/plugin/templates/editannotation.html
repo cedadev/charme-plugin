@@ -43,6 +43,7 @@
                     <div data-ng-include="'templates/targetlist.html'"></div>
                 </div>
                 <div class="tab-pane active .fade" id="tab1">
+                    <form name="annoForm">
                     <div data-ng-show="anno.id">
                         {{anno.organizationName}} - {{anno.author}} - Edited at {{anno.date | date:' hh:mm, d/M/yyyy'}}
                     </div>

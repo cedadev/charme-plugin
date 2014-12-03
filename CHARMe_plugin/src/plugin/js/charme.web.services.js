@@ -461,11 +461,9 @@ charme.web.services.factory('deleteAnnotation', function(){
  * Saves the provided annotation model. A 'pristine' version of the model may optionally be provided for the case of updates, where comparisons are required to see whether anything has changed.
  */
 charme.web.services.factory('saveAnnotation', function () {
-
-	return function(targetId, targetMap, auth, annoModel, annoModelPristine){
+    return function(targetId, targetMap, auth, annoModel, annoModelPristine){
 
        var promise = new Promise(function(resolver) {
-
          //If the save is on a new annotation then pristine model is undefined.
          //If the save is on a modification, then pristine model is defined. Check to see if the annoModel is dirty before saving
          if((!annoModelPristine) || (annoModelPristine && charme.logic.modelEdited(annoModel, annoModelPristine)))
@@ -591,7 +589,13 @@ charme.web.services.factory('saveAnnotation', function () {
                     if (typeof annoTarget.typeId === 'undefined') {
                         resolver.reject('Annotations may not be saved with unknown types');
                     }
-                    var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                                        
+                    //var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                    if(annoTarget.typeId === jsonoa.types.Annotation.TYPE)
+                        var annoTargetType = jsonoa.types.CHARMeAnnotation;
+                    else
+                        var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                    
                     var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
                     composite.addValue(compositeSpec.ITEM, graph.createStub(annoTarget.id));
                 }
@@ -601,7 +605,13 @@ charme.web.services.factory('saveAnnotation', function () {
                 if (typeof annoTarget.typeId === 'undefined') {
                     resolver.reject('Annotations may not be saved with unknown types');
                 }
-                var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                                
+                //var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                if(annoTarget.typeId === jsonoa.types.Annotation.TYPE)
+                    var annoTargetType = jsonoa.types.CHARMeAnnotation;
+                else
+                    var annoTargetType = jsonoa.util.templateFromType(annoTarget.typeId);
+                
                 var target = graph.createNode({type: annoTargetType, id: annoTarget.id});
                 anno.setValue(annoSpec.TARGET, target);
             } else {
@@ -634,10 +644,7 @@ charme.web.services.factory('saveAnnotation', function () {
 
        });
     return promise;
-
-
 	};
-
 });
 
 charme.web.services.factory('fetchKeywords', function(){

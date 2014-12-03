@@ -42,13 +42,13 @@
         
         <div data-ng-show="editAnnotationFlag && !modifying">
             <button class="btn btn-primary" 
-                    data-ng-disabled="newAnnoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing" 
+                    data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing" 
                     data-ng-click="save(anno)">Save</button>
             <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
         </div>
         <div data-ng-show="editAnnotationFlag && modifying">
             <button class="btn btn-primary" 
-                    data-ng-disabled="newAnnoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing || confirmingModify" 
+                    data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing || confirmingModify" 
                     data-ng-click="confirmingModify=true; getConfirm();">Save</button>
             <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
         </div>

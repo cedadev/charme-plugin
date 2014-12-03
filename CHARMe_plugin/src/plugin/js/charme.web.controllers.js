@@ -1134,7 +1134,7 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                             else
                                 target.desc = 'Invalid type';
 
-                            target.label = target.desc.replace(" ", "");
+                            target.label = target.desc.replace(/ /g, "");
 
                             if(target.label !== 'Annotation') {
                                 target.name = target.id
