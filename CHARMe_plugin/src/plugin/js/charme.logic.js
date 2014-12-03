@@ -570,6 +570,9 @@ charme.logic.fetchTargetTypeVocab = function() {
                 accept: 'application/json; charset=utf-8'
             }
         }).then(function(jsonResp) {
+            if (typeof jsonResp === 'string'){
+                jsonResp = JSON.parse(jsonResp);
+            }
             resolver.fulfill(jsonResp);
         }, function(error) {
             console.error('Error fetching target types');
