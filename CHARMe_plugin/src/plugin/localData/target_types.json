@@ -1,15 +1,11 @@
 [
  {
-  "label": "Annotation",
-  "resource": "http://www.w3.org/ns/oa#Annotation"
- },
- {
   "label": "Dataset",
   "resource": "http://purl.org/dc/dcmitype/Dataset"
  },
  {
-  "label": "Document",
-  "resource": "http://purl.org/spar/fabio#Document"
+  "label": "Annotation",
+  "resource": "http://www.w3.org/ns/oa#Annotation"
  },
  {
   "label": "Technical Report",
@@ -42,5 +38,25 @@
  {
   "label": "Known Product Disruption",
   "resource": "http://charme.cems.rl.ac.uk/2014/charme#KnownProductDisruption"
+ },
+ {
+  "label": "Conference Paper",
+  "resource": "http://purl.org/spar/fabio/ConferencePaper"
+ },
+ {
+  "label": "Journal Article",
+  "resource": "http://purl.org/spar/fabio/JournalArticle"
+ },
+ {
+  "label": "Article",
+  "resource": "http://purl.org/spar/fabio/Article"
+ },
+ {
+  "label": "Metadata Document",
+  "resource": "http://purl.org/spar/fabio/MetadataDocument"
+ },
+ {
+  "label": "Academic Proceedings",
+  "resource": "http://purl.org/spar/fabio/AcademicProceedings"
  }
 ]
