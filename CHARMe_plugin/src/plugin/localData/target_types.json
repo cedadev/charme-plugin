@@ -1,9 +1,5 @@
 [
  {
-  "label": "Annotation",
-  "resource": "http://www.w3.org/ns/oa#Annotation"
- },
- {
   "label": "Dataset",
   "resource": "http://purl.org/dc/dcmitype/Dataset"
  },
