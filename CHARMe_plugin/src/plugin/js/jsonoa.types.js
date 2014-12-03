@@ -410,15 +410,6 @@ jsonoa.types.Gregorian=(function Gregorian(){
         Gregorian.TEMPLATE = {"@id": "?", "@type": [Gregorian.TYPE]};
 	return Gregorian;
 })();
-
-// Not a target type, but included in the node response so included here to avoid 'unknown node type' error
-jsonoa.types.ConceptScheme=(function ConceptScheme(){
-	ConceptScheme.TYPE='http://www.w3.org/2004/02/skos/core#ConceptScheme';
-        ConceptScheme.TEMPLATE = {"@id": "?", "@type": [ConceptScheme.TYPE]};
-	return ConceptScheme;
-})();
-
-// Old types no longer valid but kept here for now, as used by old annotations still in the node
 jsonoa.types.ConferencePaper=(function ConferencePaper(){
 	ConferencePaper.TYPE='http://purl.org/spar/fabio/ConferencePaper';
 	ConferencePaper.TEMPLATE = {"@id": "?", "@type": [ConferencePaper.TYPE]};
@@ -444,6 +435,15 @@ jsonoa.types.AcademicProceedings=(function AcademicProceedings(){
 	AcademicProceedings.TEMPLATE = {"@id": "?", "@type": [AcademicProceedings.TYPE]};
 	return AcademicProceedings;
 })();
+
+// Not a target type, but included in the node response so included here to avoid 'unknown node type' error
+jsonoa.types.ConceptScheme=(function ConceptScheme(){
+	ConceptScheme.TYPE='http://www.w3.org/2004/02/skos/core#ConceptScheme';
+        ConceptScheme.TEMPLATE = {"@id": "?", "@type": [ConceptScheme.TYPE]};
+	return ConceptScheme;
+})();
+
+// Old types no longer valid but kept here for now, as used by old annotations still in the node
 jsonoa.types.Instrument=(function Instrument(){
 	Instrument.TYPE='http://blah.org/blah/Instrument';
 	Instrument.TEMPLATE = {"@id": "?", "@type": [Instrument.TYPE]};

@@ -16,6 +16,26 @@
   "resource": "http://purl.org/spar/fabio/TechnicalReport"
  },
  {
+  "label": "Conference Paper",
+  "resource": "http://purl.org/spar/fabio/ConferencePaper"
+ },
+ {
+  "label": "Journal Article",
+  "resource": "http://purl.org/spar/fabio/JournalArticle"
+ },
+ {
+  "label": "Article",
+  "resource": "http://purl.org/spar/fabio/Article"
+ },
+ {
+  "label": "Metadata Document",
+  "resource": "http://purl.org/spar/fabio/MetadataDocument"
+ },
+ {
+  "label": "Academic Proceedings",
+  "resource": "http://purl.org/spar/fabio/AcademicProceedings"
+ },
+ {
   "label": "Algorithm Theoretical Basis Document",
   "resource": "http://purl.org/voc/charme#AlgorithmTheoreticalBasisDocument"
  },
