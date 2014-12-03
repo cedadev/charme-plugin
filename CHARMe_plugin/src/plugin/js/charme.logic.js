@@ -757,7 +757,7 @@ charme.logic.fetchAllSearchFacets = function(criteria){
 };
 
 charme.logic.shortAnnoTitle = function(anno){
-	var out;
+	var out = '';
 	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
 	angular.forEach(bodies, function(body){
 		if (body.hasType) { // Check is necessary as sometimes the body of a value is simply a string, not a jsonoa object
