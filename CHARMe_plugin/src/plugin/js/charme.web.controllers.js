@@ -948,7 +948,7 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$scope', '$routeParams
 			var validTargetTypeLabels = {};
 			$scope.targetList = targetService.targets;
 			for(var i = 0; i < types.length; i++) {
-				var label = types[i].label.replace(" ", "");
+				var label = types[i].label.replace(/ /g, "");
 				validTargetTypeLabels[label] = '';
 				citoTypeOptions.push({text: types[i].label, value: types[i].resource});
 			}

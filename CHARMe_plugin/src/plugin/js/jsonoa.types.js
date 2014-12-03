@@ -141,12 +141,12 @@ jsonoa.types.Dataset=(function Dataset(){
 	return Dataset;
 })();
 jsonoa.types.CHARMeAnnotation=(function CHARMeAnnotation(){
-	CHARMeAnnotation.TYPE = 'http://charme.cems.rl.ac.uk/2014/charme#CHARMeAnnotation'; // This is a dummy URL
+	CHARMeAnnotation.TYPE = 'http://www.w3.org/ns/oa#Annotation';
         CHARMeAnnotation.TEMPLATE = {"@id": "?", "@type": [CHARMeAnnotation.TYPE]};
 	return CHARMeAnnotation;
 })();
 jsonoa.types.Document=(function Document(){
-	Document.TYPE='http://purl.org/spar/fabio#Document';
+	Document.TYPE='http://purl.org/voc/charme#DocType';
         Document.TEMPLATE = {"@id": "?", "@type": [Document.TYPE]};
 	return Document;
 })();
@@ -156,55 +156,260 @@ jsonoa.types.TechnicalReport=(function TechnicalReport(){
 	return TechnicalReport;
 })();
 jsonoa.types.AlgorithmTheoreticalBasisDocument=(function AlgorithmTheoreticalBasisDocument(){
-	AlgorithmTheoreticalBasisDocument.TYPE='http://charme.cems.rl.ac.uk/2014/charme#AlgorithmTheoreticalBasisDocument';
+	AlgorithmTheoreticalBasisDocument.TYPE='http://purl.org/voc/charme#AlgorithmTheoreticalBasisDocument';
         AlgorithmTheoreticalBasisDocument.TEMPLATE = {"@id": "?", "@type": [AlgorithmTheoreticalBasisDocument.TYPE]};
 	return AlgorithmTheoreticalBasisDocument;
 })();
 jsonoa.types.ProductUserManual=(function ProductUserManual(){
-	ProductUserManual.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ProductUserManual';
+	ProductUserManual.TYPE='http://purl.org/voc/charme#ProductUserManual';
         ProductUserManual.TEMPLATE = {"@id": "?", "@type": [ProductUserManual.TYPE]};
 	return ProductUserManual;
 })();
 jsonoa.types.ValidationReport=(function ValidationReport(){
-	ValidationReport.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ValidationReport';
+	ValidationReport.TYPE='http://purl.org/voc/charme#ValidationReport';
         ValidationReport.TEMPLATE = {"@id": "?", "@type": [ValidationReport.TYPE]};
 	return ValidationReport;
 })();
 jsonoa.types.OperationReport=(function OperationReport(){
-	OperationReport.TYPE='http://charme.cems.rl.ac.uk/2014/charme#OperationReport';
+	OperationReport.TYPE='http://purl.org/voc/charme#OperationReport';
         OperationReport.TEMPLATE = {"@id": "?", "@type": [OperationReport.TYPE]};
 	return OperationReport;
 })();
 jsonoa.types.ServiceMessage=(function ServiceMessage(){
-	ServiceMessage.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ServiceMessage';
+	ServiceMessage.TYPE='http://purl.org/voc/charme#ServiceMessage';
         ServiceMessage.TEMPLATE = {"@id": "?", "@type": [ServiceMessage.TYPE]};
 	return ServiceMessage;
 })();
 jsonoa.types.ProductChangeLog=(function ProductChangeLog(){
-	ProductChangeLog.TYPE='http://charme.cems.rl.ac.uk/2014/charme#ProductChangeLog';
+	ProductChangeLog.TYPE='http://purl.org/voc/charme#ProductChangeLog';
         ProductChangeLog.TEMPLATE = {"@id": "?", "@type": [ProductChangeLog.TYPE]};
 	return ProductChangeLog;
 })();
 jsonoa.types.KnownProductDisruption=(function KnownProductDisruption(){
-	KnownProductDisruption.TYPE='http://charme.cems.rl.ac.uk/2014/charme#KnownProductDisruption';
+	KnownProductDisruption.TYPE='http://purl.org/voc/charme#KnownProductDisruption';
         KnownProductDisruption.TEMPLATE = {"@id": "?", "@type": [KnownProductDisruption.TYPE]};
 	return KnownProductDisruption;
 })();
-/*jsonoa.types.DatasetCollection=(function DatasetCollection(){
-	DatasetCollection.TYPE='http://purl.org/spar/fabio/MetadataDocument';
-	DatasetCollection.TEMPLATE={"@id": "?", "@type": [DatasetCollection.TYPE]};
-	return DatasetCollection;
+jsonoa.types.SignificantEvents=(function SignificantEvents(){
+	SignificantEvents.TYPE='http://purl.org/voc/charme#SignificantEvents';
+        SignificantEvents.TEMPLATE = {"@id": "?", "@type": [SignificantEvents.TYPE]};
+	return SignificantEvents;
 })();
-jsonoa.types.DiscoveryMetadata=(function DiscoveryMetadata(){
-	DiscoveryMetadata.TYPE='http://purl.org/spar/fabio/MetadataDocument';
-	DiscoveryMetadata.TEMPLATE={"@id": "?", "@type": [DiscoveryMetadata.TYPE]};
-	return DiscoveryMetadata;
+jsonoa.types.SignificantEvent=(function SignificantEvent(){
+	SignificantEvent.TYPE='http://purl.org/voc/charme#SignificantEvent';
+        SignificantEvent.TEMPLATE = {"@id": "?", "@type": [SignificantEvent.TYPE]};
+	return SignificantEvent;
 })();
-jsonoa.types.BrowseMetadata=(function BrowseMetadata(){
-	BrowseMetadata.TYPE='http://purl.org/spar/fabio/MetadataDocument';
-	BrowseMetadata.TEMPLATE={"@id": "?", "@type": [BrowseMetadata.TYPE]};
-	return BrowseMetadata;
-})();*/
+jsonoa.types.Location=(function Location(){
+	Location.TYPE='http://purl.org/voc/charme#Location';
+        Location.TEMPLATE = {"@id": "?", "@type": [Location.TYPE]};
+	return Location;
+})();
+jsonoa.types.country=(function country(){
+	country.TYPE='http://purl.org/voc/charme#country';
+        country.TEMPLATE = {"@id": "?", "@type": [country.TYPE]};
+	return country;
+})();
+jsonoa.types.namedRegion=(function namedRegion(){
+	namedRegion.TYPE='http://purl.org/voc/charme#namedRegion';
+        namedRegion.TEMPLATE = {"@id": "?", "@type": [namedRegion.TYPE]};
+	return namedRegion;
+})();
+jsonoa.types.location=(function location(){
+	location.TYPE='http://purl.org/voc/charme#location';
+        location.TEMPLATE = {"@id": "?", "@type": [location.TYPE]};
+	return location;
+})();
+jsonoa.types.eventName=(function eventName(){
+	eventName.TYPE='http://purl.org/voc/charme#eventName';
+        eventName.TEMPLATE = {"@id": "?", "@type": [eventName.TYPE]};
+	return eventName;
+})();
+jsonoa.types.eventSummary=(function eventSummary(){
+	eventSummary.TYPE='http://purl.org/voc/charme#eventSummary';
+        eventSummary.TEMPLATE = {"@id": "?", "@type": [eventSummary.TYPE]};
+	return eventSummary;
+})();
+jsonoa.types.ClimateEvent=(function ClimateEvent(){
+	ClimateEvent.TYPE='http://purl.org/voc/charme#ClimateEvent';
+        ClimateEvent.TEMPLATE = {"@id": "?", "@type": [ClimateEvent.TYPE]};
+	return ClimateEvent;
+})();
+jsonoa.types.HurricaneEvent=(function HurricaneEvent(){
+	HurricaneEvent.TYPE='http://purl.org/voc/charme#HurricaneEvent';
+        HurricaneEvent.TEMPLATE = {"@id": "?", "@type": [HurricaneEvent.TYPE]};
+	return HurricaneEvent;
+})();
+jsonoa.types.VolcanicEruptionEvent=(function VolcanicEruptionEvent(){
+	VolcanicEruptionEvent.TYPE='http://purl.org/voc/charme#VolcanicEruptionEvent';
+        VolcanicEruptionEvent.TEMPLATE = {"@id": "?", "@type": [VolcanicEruptionEvent.TYPE]};
+	return VolcanicEruptionEvent;
+})();
+jsonoa.types.ElNinoEvent=(function ElNinoEvent(){
+	ElNinoEvent.TYPE='http://purl.org/voc/charme#ElNinoEvent';
+        ElNinoEvent.TEMPLATE = {"@id": "?", "@type": [ElNinoEvent.TYPE]};
+	return ElNinoEvent;
+})();
+jsonoa.types.DroughtEvent=(function DroughtEvent(){
+	DroughtEvent.TYPE='http://purl.org/voc/charme#DroughtEvent';
+        DroughtEvent.TEMPLATE = {"@id": "?", "@type": [DroughtEvent.TYPE]};
+	return DroughtEvent;
+})();
+jsonoa.types.StormEvent=(function StormEvent(){
+	StormEvent.TYPE='http://purl.org/voc/charme#StormEvent';
+        StormEvent.TEMPLATE = {"@id": "?", "@type": [StormEvent.TYPE]};
+	return StormEvent;
+})();
+jsonoa.types.WildfiresEvent=(function WildfiresEvent(){
+	WildfiresEvent.TYPE='http://purl.org/voc/charme#WildfiresEvent';
+        WildfiresEvent.TEMPLATE = {"@id": "?", "@type": [WildfiresEvent.TYPE]};
+	return WildfiresEvent;
+})();
+jsonoa.types.SoftwareAndSystemEvent=(function SoftwareAndSystemEvent(){
+	SoftwareAndSystemEvent.TYPE='http://purl.org/voc/charme#SoftwareAndSystemEvent';
+        SoftwareAndSystemEvent.TEMPLATE = {"@id": "?", "@type": [SoftwareAndSystemEvent.TYPE]};
+	return SoftwareAndSystemEvent;
+})();
+jsonoa.types.IfsEvent=(function IfsEvent(){
+	IfsEvent.TYPE='http://purl.org/voc/charme#IfsEvent';
+        IfsEvent.TEMPLATE = {"@id": "?", "@type": [IfsEvent.TYPE]};
+	return IfsEvent;
+})();
+jsonoa.types.SystemEvent=(function SystemEvent(){
+	SystemEvent.TYPE='http://purl.org/voc/charme#SystemEvent';
+        SystemEvent.TEMPLATE = {"@id": "?", "@type": [SystemEvent.TYPE]};
+	return SystemEvent;
+})();
+jsonoa.types.DataAndObservingSystemEvents=(function DataAndObservingSystemEvents(){
+	DataAndObservingSystemEvents.TYPE='http://purl.org/voc/charme#DataAndObservingSystemEvents';
+        DataAndObservingSystemEvents.TEMPLATE = {"@id": "?", "@type": [DataAndObservingSystemEvents.TYPE]};
+	return DataAndObservingSystemEvents;
+})();
+jsonoa.types.SatelliteEvent=(function SatelliteEvent(){
+	SatelliteEvent.TYPE='http://purl.org/voc/charme#SatelliteEvent';
+        SatelliteEvent.TEMPLATE = {"@id": "?", "@type": [SatelliteEvent.TYPE]};
+	return SatelliteEvent;
+})();
+jsonoa.types.DropsondeEvent=(function DropsondeEvent(){
+	DropsondeEvent.TYPE='http://purl.org/voc/charme#DropsondeEvent';
+        DropsondeEvent.TEMPLATE = {"@id": "?", "@type": [DropsondeEvent.TYPE]};
+	return DropsondeEvent;
+})();
+jsonoa.types.AircraftEvent=(function AircraftEvent(){
+	AircraftEvent.TYPE='http://purl.org/voc/charme#AircraftEvent';
+        AircraftEvent.TEMPLATE = {"@id": "?", "@type": [AircraftEvent.TYPE]};
+	return AircraftEvent;
+})();
+jsonoa.types.BuoyEvent=(function BuoyEvent(){
+	BuoyEvent.TYPE='http://purl.org/voc/charme#BuoyEvent';
+        BuoyEvent.TEMPLATE = {"@id": "?", "@type": [BuoyEvent.TYPE]};
+	return BuoyEvent;
+})();
+jsonoa.types.ShipEvent=(function ShipEvent(){
+	ShipEvent.TYPE='http://purl.org/voc/charme#ShipEvent';
+        ShipEvent.TEMPLATE = {"@id": "?", "@type": [ShipEvent.TYPE]};
+	return ShipEvent;
+})();
+jsonoa.types.LandStationEvent=(function LandStationEvent(){
+	LandStationEvent.TYPE='http://purl.org/voc/charme#LandStationEvent';
+        LandStationEvent.TEMPLATE = {"@id": "?", "@type": [LandStationEvent.TYPE]};
+	return LandStationEvent;
+})();
+jsonoa.types.MobileEvent=(function MobileEvent(){
+	MobileEvent.TYPE='http://purl.org/voc/charme#MobileEvent';
+        MobileEvent.TEMPLATE = {"@id": "?", "@type": [MobileEvent.TYPE]};
+	return MobileEvent;
+})();
+jsonoa.types.AlarmEvent=(function AlarmEvent(){
+	AlarmEvent.TYPE='http://purl.org/voc/charme#AlarmEvent';
+        AlarmEvent.TEMPLATE = {"@id": "?", "@type": [AlarmEvent.TYPE]};
+	return AlarmEvent;
+})();
+jsonoa.types.OperationalEvent=(function OperationalEvent(){
+	OperationalEvent.TYPE='http://purl.org/voc/charme#OperationalEvent';
+        OperationalEvent.TEMPLATE = {"@id": "?", "@type": [OperationalEvent.TYPE]};
+	return OperationalEvent;
+})();
+jsonoa.types.DatasetSubset=(function DatasetSubset(){
+	DatasetSubset.TYPE='http://purl.org/voc/charme#DatasetSubset';
+        DatasetSubset.TEMPLATE = {"@id": "?", "@type": [DatasetSubset.TYPE]};
+	return DatasetSubset;
+})();
+jsonoa.types.SubsetSelector=(function SubsetSelector(){
+	SubsetSelector.TYPE='http://purl.org/voc/charme#SubsetSelector';
+        SubsetSelector.TEMPLATE = {"@id": "?", "@type": [SubsetSelector.TYPE]};
+	return SubsetSelector;
+})();
+jsonoa.types.hasVariable=(function hasVariable(){
+	hasVariable.TYPE='http://purl.org/voc/charme#hasVariable';
+        hasVariable.TEMPLATE = {"@id": "?", "@type": [hasVariable.TYPE]};
+	return hasVariable;
+})();
+jsonoa.types.Variable=(function Variable(){
+	Variable.TYPE='http://purl.org/voc/charme#Variable';
+        Variable.TEMPLATE = {"@id": "?", "@type": [Variable.TYPE]};
+	return Variable;
+})();
+jsonoa.types.hasSpatialExtent=(function hasSpatialExtent(){
+	hasSpatialExtent.TYPE='http://purl.org/voc/charme#hasSpatialExtent';
+        hasSpatialExtent.TEMPLATE = {"@id": "?", "@type": [hasSpatialExtent.TYPE]};
+	return hasSpatialExtent;
+})();
+jsonoa.types.hasVerticalExtent=(function hasVerticalExtent(){
+	hasVerticalExtent.TYPE='http://purl.org/voc/charme#hasVerticalExtent';
+        hasVerticalExtent.TEMPLATE = {"@id": "?", "@type": [hasVerticalExtent.TYPE]};
+	return hasVerticalExtent;
+})();
+jsonoa.types.hasTemporalExtent=(function hasTemporalExtent(){
+	hasTemporalExtent.TYPE='http://purl.org/voc/charme#hasTemporalExtent';
+        hasTemporalExtent.TEMPLATE = {"@id": "?", "@type": [hasTemporalExtent.TYPE]};
+	return hasTemporalExtent;
+})();
+jsonoa.types.hasInternalName=(function hasInternalName(){
+	hasInternalName.TYPE='http://purl.org/voc/charme#hasInternalName';
+        hasInternalName.TEMPLATE = {"@id": "?", "@type": [hasInternalName.TYPE]};
+	return hasInternalName;
+})();
+jsonoa.types.hasCfName=(function hasCfName(){
+	hasCfName.TYPE='http://purl.org/voc/charme#hasCfName';
+        hasCfName.TEMPLATE = {"@id": "?", "@type": [hasCfName.TYPE]};
+	return hasCfName;
+})();
+jsonoa.types.hasNamedRegion=(function hasNamedRegion(){
+	hasNamedRegion.TYPE='http://purl.org/voc/charme#hasNamedRegion';
+        hasNamedRegion.TEMPLATE = {"@id": "?", "@type": [hasNamedRegion.TYPE]};
+	return hasNamedRegion;
+})();
+jsonoa.types.hasCalendar=(function hasCalendar(){
+	hasCalendar.TYPE='http://purl.org/voc/charme#hasCalendar';
+        hasCalendar.TEMPLATE = {"@id": "?", "@type": [hasCalendar.TYPE]};
+	return hasCalendar;
+})();
+jsonoa.types.hasTemporalStart=(function hasTemporalStart(){
+	hasTemporalStart.TYPE='http://purl.org/voc/charme#hasTemporalStart';
+        hasTemporalStart.TEMPLATE = {"@id": "?", "@type": [hasTemporalStart.TYPE]};
+	return hasTemporalStart;
+})();
+jsonoa.types.hasTemporalEnd=(function hasTemporalEnd(){
+	hasTemporalEnd.TYPE='http://purl.org/voc/charme#hasTemporalEnd';
+        hasTemporalEnd.TEMPLATE = {"@id": "?", "@type": [hasTemporalEnd.TYPE]};
+	return hasTemporalEnd;
+})();
+jsonoa.types.Calendars=(function Calendars(){
+	Calendars.TYPE='http://purl.org/voc/charme#Calendars';
+        Calendars.TEMPLATE = {"@id": "?", "@type": [Calendars.TYPE]};
+	return Calendars;
+})();
+jsonoa.types.Calendar=(function Calendar(){
+	Calendar.TYPE='http://purl.org/voc/charme#Calendar';
+        Calendar.TEMPLATE = {"@id": "?", "@type": [Calendar.TYPE]};
+	return Calendar;
+})();
+jsonoa.types.Gregorian=(function Gregorian(){
+	Gregorian.TYPE='http://purl.org/voc/charme#Gregorian';
+        Gregorian.TEMPLATE = {"@id": "?", "@type": [Gregorian.TYPE]};
+	return Gregorian;
+})();
 jsonoa.types.ConferencePaper=(function ConferencePaper(){
 	ConferencePaper.TYPE='http://purl.org/spar/fabio/ConferencePaper';
 	ConferencePaper.TEMPLATE = {"@id": "?", "@type": [ConferencePaper.TYPE]};
@@ -230,6 +435,15 @@ jsonoa.types.AcademicProceedings=(function AcademicProceedings(){
 	AcademicProceedings.TEMPLATE = {"@id": "?", "@type": [AcademicProceedings.TYPE]};
 	return AcademicProceedings;
 })();
+
+// Not a target type, but included in the node response so included here to avoid 'unknown node type' error
+jsonoa.types.ConceptScheme=(function ConceptScheme(){
+	ConceptScheme.TYPE='http://www.w3.org/2004/02/skos/core#ConceptScheme';
+        ConceptScheme.TEMPLATE = {"@id": "?", "@type": [ConceptScheme.TYPE]};
+	return ConceptScheme;
+})();
+
+// Old types no longer valid but kept here for now, as used by old annotations still in the node
 jsonoa.types.Instrument=(function Instrument(){
 	Instrument.TYPE='http://blah.org/blah/Instrument';
 	Instrument.TEMPLATE = {"@id": "?", "@type": [Instrument.TYPE]};

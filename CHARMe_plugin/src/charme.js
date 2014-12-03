@@ -325,7 +325,10 @@ charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
 
     var targetName = targetHref;//.substring(targetHref.lastIndexOf('/') + 1);
     var targetTypeLabel = targetCheckbox.target.name;
-    var targetTypeDesc = targetTypeLabel.split('-');
+    var targetTypeDesc = targetTypeLabel.replace(/-/g, " ");
+    targetTypeLabel = targetTypeLabel.replace(/-/g, "");
+    
+    /*var targetTypeDesc = targetTypeLabel.split('-');
     var tempArr = [];
     for(var i = 0; i < targetTypeDesc.length; i++) {
         var descFrag = targetTypeDesc[i];
@@ -333,7 +336,7 @@ charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
         tempArr.push(descFrag);
     }
     targetTypeLabel = tempArr.join('');
-    targetTypeDesc = tempArr.join(' ');
+    targetTypeDesc = tempArr.join(' ');*/
 
     if(targetCheckbox.target.checked) {
         if(!(targetHref in charme.plugin.selectedTargets)) {
@@ -988,4 +991,4 @@ charme.plugin.init = function () {
 
 charme.plugin.preInit();
 
-//master
+//Iteration6Fixes
