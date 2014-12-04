@@ -238,5 +238,17 @@
  {
   "label": "Gregorian",
   "resource": "http://purl.org/voc/charme#Gregorian"
- }
+ },
+{
+    "label": "Concept",
+    "resource": "http://www.w3.org/2004/02/skos/core#Concept"
+},
+{
+    "label": "Class",
+    "resource": "http://www.w3.org/2002/07/owl#Class"
+},
+{
+    "label": "ConceptScheme",
+    "resource": "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+}
 ]
