@@ -327,15 +327,7 @@ jsonoa.core.Graph = function(){
                                 }
                             }
 						}
-						if (!unknownType){
-							parentGraph.createNode({id: node['@id'], wrappedData:node });
-						} else {
-							if (!ignoreErrors){
-								resolver.reject('Unknown node type(s) in graph');
-
-								return;
-							}
-						}
+						parentGraph.createNode({id: node['@id'], wrappedData:node });
 					}
 					
 				}
