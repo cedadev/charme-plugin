@@ -502,8 +502,9 @@ charme.web.services.factory('saveAnnotation', function () {
                     var linkURI = encodeURI(annoModel.linkURI);
                     var doiVal = charme.logic.findDOI(linkURI);
 
-                    //If a DOI is provided, create a citation act for the body
-                    if (doiVal) {
+                    //If a DOI is provided, create a citation act for the body ( Only if the report type is a ConferencePaper or Journal Article )
+                    if ((doiVal) && (( type === jsonoa.types.ConferencePaper) || (type === jsonoa.types.JournalArticle)))
+                    {
                         //Create a fully qualified canonical URI for the DOI
                         linkURI = charme.logic.constants.DXDOI_URL + doiVal;
                         //Auto-generating IDs at the moment on client side, which shouldn't happen. The Node must take responsibility for this, but no method is available yet for multiple bodies
