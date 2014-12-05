@@ -464,12 +464,6 @@ jsonoa.types.Class=(function Class(){
     Class.TEMPLATE = {"@id": "?", "@type": [Class.TYPE]};
     return Class;
 })();
-jsonoa.types.ConceptScheme=(function ConceptScheme(){
-    ConceptScheme.TYPE='http://www.w3.org/2004/02/skos/core#ConceptScheme';
-    ConceptScheme.TEMPLATE = {"@id": "?", "@type": [ConceptScheme.TYPE]};
-    return ConceptScheme;
-})();
-
 
 /**
  * The following types should NOT be created on the client, and as such have no template
