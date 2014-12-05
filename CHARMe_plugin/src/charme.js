@@ -530,7 +530,7 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
     var loadImage = new Image();
     loadImage.src = charme.settings.path + '/plugin/img/ajaxspinner.gif';
     var reloadImage = new Image();
-    reloadImage.src = charme.settings.path + '/reloadbuttonsmall.PNG';
+    reloadImage.src = charme.settings.path + '/reloadbuttonsmall.png';
     
     if(isFirstLoad) {
         var selectAllContainer = document.getElementById('charme-placeholder');

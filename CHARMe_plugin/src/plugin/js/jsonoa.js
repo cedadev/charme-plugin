@@ -323,19 +323,11 @@ jsonoa.core.Graph = function(){
 							unknownType = !jsonoa.util.isKnownType(nodeTypes[j]);
                             if (unknownType){
                                 if (typeof console !== 'undefined') {
-                                    console.log('Unknown node type: ' + nodeTypes[j]);
+                                    console.error('Unknown node type: ' + nodeTypes[j]);
                                 }
                             }
 						}
-						if (!unknownType){
-							parentGraph.createNode({id: node['@id'], wrappedData:node });
-						} else {
-							if (!ignoreErrors){
-								resolver.reject('Unknown node type(s) in graph');
-
-								return;
-							}
-						}
+						parentGraph.createNode({id: node['@id'], wrappedData:node });
 					}
 					
 				}

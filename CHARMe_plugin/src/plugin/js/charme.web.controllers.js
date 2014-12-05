@@ -1094,8 +1094,7 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$scope', '$routeParams
 						$location.path(encodeURIComponent(targetId) + '/annotations/');
 
                         // Issue the refresh message(s)
-                        for(target in $scope.targetList)
-                            top.postMessage('refreshAnnotationCount' + ":::" + target, '*');
+                        top.postMessage('refreshAnnotationCount' + ":::" + target, '*');
                     });
                 },
                 function(error){
