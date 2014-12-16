@@ -408,7 +408,7 @@ textarea::-webkit-input-placeholder {
     text-align: center;
 }
 .confirm-box-message, .anno-comments {
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .shift-anno-buttons-holder {

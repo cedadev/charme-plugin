@@ -350,7 +350,7 @@ charme.logic.fetchGCMDVocab = function(removeDuplicates) {
                 for(var i = 0; i < keywords.length; i++) {
                     tempObj[charme.logic.shortDomainLabel(keywords[i].desc)] = keywords[i].uri;
                 }
-                for(desc in tempObj) {
+                for(var desc in tempObj) {
                     keywordsNoDuplicates.push({
                         uri: tempObj[desc],
                         desc: desc
@@ -835,18 +835,15 @@ charme.logic.searchAnnotations = function(criteria) {
 
 // Flags the annotation for review by moderator
 charme.logic.flagAnnotation = function(annotationId, username) {
-    alert('Flagging a dead annotation');
-    return; // Until node can deal with this request
-
     var shortId = charme.logic.shortAnnoId(annotationId);
     
     var url = charme.logic.urls.flagRequest(shortId);
     return new Promise(function(resolver) {
         $.ajax(url, {
             dataType: 'xml',
-            type: 'PUT',
+            type: 'POST',
             headers : {
-                'Username': username
+                //'Username': username
             },
             contentType: 'application/json'
         }).then(function(result){
