@@ -158,34 +158,28 @@ charme.plugin.parseXML = function (xmlString) {
  */
 charme.plugin.ajax = function (url, successCB, errorCB) {
 	var oReq;
-	var successFunc = function(){
-		var status = 200;
-		if (status === 200) {
-			try {
-				var xmlDoc = charme.plugin.parseXML(oReq.responseText);
-				successCB.call(oReq, xmlDoc);
-			} catch (err) {
-				errorCB.call(oReq);
-			}
+	var successFunc = function(resp) {
+		if(resp.target.status === 200) {
+                    try {
+                        var xmlDoc = charme.plugin.parseXML(oReq.responseText);
+                        successCB.call(oReq, xmlDoc);
+                    } catch(err) {
+                        errorCB.call(oReq);
+                    }
 		}
+                else
+                    errorCB.call(oReq);
 	};
-	var errorFunc = function(status){
+	var errorFunc = function() {
 		errorCB.call(oReq);
 	};
 
-	//Check first for presence of XDomainRequest as this is used by IE9 for making cross domain requests instead of XMLHttpRequest.
-	if (window.XDomainRequest){
-		oReq = new XDomainRequest();
-		oReq.onload = successFunc;
-		oReq.onerror = errorFunc;
-		oReq.open('GET', url);
-	} else if (window.XMLHttpRequest){
-		oReq = new XMLHttpRequest();
-		oReq.addEventListener("load", successFunc, false);
-		oReq.addEventListener("error", errorFunc, false);
-		oReq.open('GET', url, true);
+	if(window.XMLHttpRequest) {
+            oReq = new XMLHttpRequest();
+            oReq.addEventListener("load", successFunc, false);
+            oReq.addEventListener("error", errorFunc, false);
+            oReq.open('GET', url, true);
 	}
-
 
 	//Unfortunately, Internet explorer support for XPath is difficult. Need to force the response type, but only for IE.
 	//SHOULD use feature detection, but in this case it needs to apply to all IE versions, and does not relate to a specific feature that can be easily detected (the response type needs to be set because the feature in question even exists to be detected)
@@ -258,15 +252,16 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
                 reloadTarget.src = reloadImgSrc;
                 reloadTarget.style.width = '18px';
                 reloadTarget.style.height = '18px';
-                reloadTarget.style.paddingLeft = '10px';
+                reloadTarget.style.paddingLeft = '4px';
                 reloadTarget.title = 'Reload annotations';
                 reloadTarget.id = 'reload' + el.href;
                 reloadTarget.className = 'charme-reload-icon';
                 el.parentNode.insertBefore(reloadTarget, el.nextSibling);
 
-                //Clear the showCount element
+                // Clear the showCount element
                 var showCount = charme.plugin.getByClass('charme-count', charme.plugin.constants.MATCH_EXACT, el.parentNode);
-                showCount[0].innerHTML = '';
+                if(showCount.length > 0)
+                    showCount[0].innerHTML = '';
 
                 charme.common.addEvent(reloadTarget, 'click', function(e) {
                     var reloadTarget = document.getElementById('reload' + el.href);
@@ -310,13 +305,6 @@ charme.plugin.setWholeTargetList = function(checkbox) {
 	}
 };
 
-// Disable icons if plugin already launched
-charme.plugin.disableWholeTargetList = function(isDisabled) {
-    var els = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
-    for(var i = 0 ; i < els.length; i++)
-        els[i].disabled = isDisabled;
-};
-
 /**
  * Defines the function that executes when a checkbox on a target is clicked.
  * The event ensures that the charme.plugin.selectedTargets map is kept up-to-date
@@ -327,10 +315,10 @@ charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
 
     var targetName = targetHref;//.substring(targetHref.lastIndexOf('/') + 1);
     var targetTypeLabel = targetCheckbox.target.name;
-    var targetTypeDesc = targetTypeLabel.replace(/-/g, " ");
-    targetTypeLabel = targetTypeLabel.replace(/-/g, "");
+    //var targetTypeDesc = targetTypeLabel.replace(/-/g, " ");
+    //targetTypeLabel = targetTypeLabel.replace(/-/g, "");
     
-    /*var targetTypeDesc = targetTypeLabel.split('-');
+    var targetTypeDesc = targetTypeLabel.split('-');
     var tempArr = [];
     for(var i = 0; i < targetTypeDesc.length; i++) {
         var descFrag = targetTypeDesc[i];
@@ -338,7 +326,7 @@ charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
         tempArr.push(descFrag);
     }
     targetTypeLabel = tempArr.join('');
-    targetTypeDesc = tempArr.join(' ');*/
+    targetTypeDesc = tempArr.join(' ');
 
     if(targetCheckbox.target.checked) {
         if(!(targetHref in charme.plugin.selectedTargets)) {
@@ -372,6 +360,9 @@ charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
     
     var showNumSelected = document.getElementById('showNumSelected');
     showNumSelected.innerHTML = charme.plugin.numSelected;
+    
+    var plugin = document.getElementById('charme-plugin-frame').contentWindow;
+    plugin.postMessage('targetListChanged', '*');
 };
 
 /**
@@ -774,18 +765,12 @@ charme.plugin.closeFunc = function (isOneTarget, targetId) { //targetId) {
         charme.plugin.maximiseFunc(); // In case GUI was closed while minimised
 	plugin.style.display = 'none';
 
-        if(isOneTarget && !(targetId === charme.common.ALL_TARGETS)) {
+        if(isOneTarget) {
             var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
             targetCheckboxs[targetId].click();
         }
-        
-        if(charme.plugin.selectedTargets.hasOwnProperty(charme.common.ALL_TARGETS))
-            delete charme.plugin.selectedTargets[charme.common.ALL_TARGETS];
-            
-        charme.plugin.disableWholeTargetList(false);
+
         charme.plugin.isOpenFlag = false;
-        
-        //charme.plugin.loadPlugin();
 };
 
 charme.plugin.minimiseFunc = function(topOffset) {
@@ -872,11 +857,6 @@ charme.plugin.showPlugin = function (e) {
                 //targetType = charme.plugin.extractTargetType(e.target.className);
 	}
         
-        /*if(targetHref === charme.common.ALL_TARGETS) {
-            charme.plugin.selectedTargets[targetHref] = {name: 'All Targets', label: 'Alltypes', desc: 'All types'};
-            //charme.plugin.disableWholeTargetList(true);
-        }*/
-        
         // If data provider allows the plugin GUI to be dragged, insert script (first removing it if already present) and set 
         // option to allow dragging off screen. We remove the script first as dragiframe.js has no clear/removeHandle() method.
         var dragScript = document.getElementById("dragiframeScript");
@@ -916,8 +896,7 @@ charme.plugin.showPlugin = function (e) {
     ////charme.plugin.populateTargetList();
     //charme.plugin.setAsSelected(targetHref, targetType);
     
-    //if (!(targetHref in charme.plugin.selectedTargets)) {
-    if (!(targetHref in charme.plugin.selectedTargets) && targetHref !== charme.common.ALL_TARGETS) {
+    if (!(targetHref in charme.plugin.selectedTargets)) {
         var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
         targetCheckboxs[targetHref].click();
     }

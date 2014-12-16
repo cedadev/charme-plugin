@@ -405,9 +405,10 @@ textarea::-webkit-input-placeholder {
     padding: 10px;
     /*color: #0088cc;*/
     background-color: #f5f5f5;
-}
-.confirm-buttons {
     text-align: center;
+}
+.confirm-box-message, .anno-comments {
+    white-space: pre;
 }
 
 .shift-anno-buttons-holder {
@@ -421,6 +422,12 @@ textarea::-webkit-input-placeholder {
 .target-search-form .row {
     margin-left: -17px;
 }
-/*.modifications h5 {
-    display: inline;
-}*/
+
+.threading-indent {
+    color: transparent;
+}
+
+.more-replies-button {
+    cursor: default;
+    width: 25px;
+}

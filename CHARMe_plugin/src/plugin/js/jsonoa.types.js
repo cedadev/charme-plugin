@@ -140,11 +140,6 @@ jsonoa.types.Dataset=(function Dataset(){
         Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE]};
 	return Dataset;
 })();
-jsonoa.types.CHARMeAnnotation=(function CHARMeAnnotation(){
-	CHARMeAnnotation.TYPE = 'http://www.w3.org/ns/oa#Annotation';
-        CHARMeAnnotation.TEMPLATE = {"@id": "?", "@type": [CHARMeAnnotation.TYPE]};
-	return CHARMeAnnotation;
-})();
 jsonoa.types.Document=(function Document(){
 	Document.TYPE='http://purl.org/voc/charme#DocType';
         Document.TEMPLATE = {"@id": "?", "@type": [Document.TYPE]};

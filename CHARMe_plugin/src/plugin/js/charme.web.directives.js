@@ -31,9 +31,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
         link: function ($scope, element, attrs, $ngModel) {
             var optgroups = [];
             var options = [];
-            var el = $(element).selectize({
-                persist: true
-            })[0].selectize;
+            var el = $(element).selectize()[0].selectize;
             
             $scope.$on($scope.targetTypesToShow, function(event, categories) {
                 angular.forEach(categories, function (cat) {
@@ -108,88 +106,86 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
         }
     };
 }).directive('citingTypeKeywords', function($timeout) {
-	return {
-		restrict: 'A',
-		require: '?ngModel',
-		scope: {citingTypesToShow: '@'},
-		link: function ($scope, element, attrs, $ngModel) {
-			var optgroups = [];
-			var options = [];
-			var el = $(element).selectize({
-				persist: true
-			})[0].selectize;
+    return {
+            restrict: 'A',
+            require: '?ngModel',
+            scope: {citingTypesToShow: '@'},
+            link: function ($scope, element, attrs, $ngModel) {
+                var optgroups = [];
+                var options = [];
+                var el = $(element).selectize()[0].selectize;
 
-			$scope.$on($scope.citingTypesToShow, function(event, categories) {
-				angular.forEach(categories, function (cat) {
-					optgroups.push({value: cat.name, label: cat.name});
-					// Could just use el.addOptionGroup here instead, and have no optgroups array at all, but we might perhaps want to have this array in future
-					//el.addOptionGroup(cat.name, {label: cat.name});
+                $scope.$on($scope.citingTypesToShow, function(event, categories) {
+                    angular.forEach(categories, function (cat) {
+                        optgroups.push({value: cat.name, label: cat.name});
+                        // Could just use el.addOptionGroup here instead, and have no optgroups array at all, but we might perhaps want to have this array in future
+                        //el.addOptionGroup(cat.name, {label: cat.name});
 
-					angular.forEach(cat.keywords, function (kword) {
-						if(kword.hasOwnProperty('desc')) {
-							options.push({text: kword.desc, value: kword.uri, optgroup: cat.name, $order: kword.desc});
-						}
-						else if(kword.hasOwnProperty('label')) {
-							if(kword.label instanceof Array)
-								options.push({text: kword.label[0].trim(), value: kword.uri, optgroup: cat.name, $order: kword.label[0].trim()});
-							else if(kword.label !== undefined)
-								options.push({text: kword.label.trim(), value: kword.uri, optgroup: cat.name, $order: kword.label.trim()});
-						}
-					});
-				});
+                        angular.forEach(cat.keywords, function (kword) {
+                            if(kword.hasOwnProperty('desc')) {
+                                    options.push({text: kword.desc, value: kword.uri, optgroup: cat.name, $order: kword.desc});
+                            }
+                            else if(kword.hasOwnProperty('label')) {
+                                    if(kword.label instanceof Array)
+                                            options.push({text: kword.label[0].trim(), value: kword.uri, optgroup: cat.name, $order: kword.label[0].trim()});
+                                    else if(kword.label !== undefined)
+                                            options.push({text: kword.label.trim(), value: kword.uri, optgroup: cat.name, $order: kword.label.trim()});
+                            }
+                        });
+                    });
 
-				// $timeout used to avoid 'apply already in progress' error
-				$timeout(function() {
-					for(var i = 0; i < optgroups.length; i++) {
-						el.addOptionGroup(optgroups[i].value, {label: optgroups[i].label});
-					}
-					el.load(function(func) {
-						func(options);
-					});
-				});
+                    // $timeout used to avoid 'apply already in progress' error
+                    $timeout(function() {
+                        for(var i = 0; i < optgroups.length; i++) {
+                                el.addOptionGroup(optgroups[i].value, {label: optgroups[i].label});
+                        }
+                        el.load(function(func) {
+                                func(options);
+                        });
+                    });
 
-				function applyChange() {
-					var selectedOptions = [];
-					var values = el.getValue();
-					angular.forEach(options, function (option) {
-						if (values.indexOf(option.value) >= 0) {
-							selectedOptions.push(option);
-						}
-					});
-					$ngModel.$setViewValue(selectedOptions);
-				};
-				el.on('change', function () {
-					$timeout(function() {
-						$scope.$apply(applyChange);
-					});
-				});
+                    function applyChange() {
+                        var selectedOptions = [];
+                        var values = el.getValue();
+                        angular.forEach(options, function (option) {
+                                if (values.indexOf(option.value) >= 0) {
+                                        selectedOptions.push(option);
+                                }
+                        });
+                        $ngModel.$setViewValue(selectedOptions);
+                    };
+                    el.on('change', function () {
+                        $timeout(function() {
+                                $scope.$apply(applyChange);
+                        });
+                    });
 
-				$scope.$on('newCitingTypes', function(event, newCitingTypes) {
-					// $timeout used to avoid 'apply already in progress' error
-					$timeout(function() {
-						el.clear();
-						el.refreshItems();
-						angular.forEach(newCitingTypes, function(value) {
-							el.addItem(value);
-						});
-					});
-				});
+                    $scope.$on('newCitingTypes', function(event, newCitingTypes) {
+                        // $timeout used to avoid 'apply already in progress' error
+                        $timeout(function() {
+                                el.clear();
+                                el.refreshItems();
+                                angular.forEach(newCitingTypes, function(value) {
+                                        el.addItem(value);
+                                });
+                        });
+                    });
 
-				$scope.$on('reset', function() {
-					// $timeout used to avoid 'apply already in progress' error
-					$timeout(function() {
-						el.clear();  // Input box reset here with .clear(), view value reset in the controller
-					});
-				});
+                    $scope.$on('reset', function() {
+                        // $timeout used to avoid 'apply already in progress' error
+                        $timeout(function() {
+                                el.clear();  // Input box reset here with .clear(), view value reset in the controller
+                        });
+                    });
 
-				//Load initial values
-				if ($ngModel.$modelValue instanceof Array){
-					angular.forEach($ngModel.$modelValue, function(value){
-						el.addItem(value.value);
-					});
-				}
-			});
-		}
+                    //Load initial values
+                    if ($ngModel.$modelValue instanceof Array){
+                        angular.forEach($ngModel.$modelValue, function(value){
+                                el.addItem(value.value);
+                        });
+                    }
+                });
+            }
 	};
 }).directive('domainKeywords', function ($timeout) {
     return {
@@ -200,7 +196,6 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                 var optgroups = [];
                 var options = [];
                 var el = $(element).selectize({
-                    persist: true,
                     maxOptions: null,
                     onItemAdd: function(value) {
                         var updatedObj = $.extend({}, this.options[value], {text: this.options[value].textShort});
@@ -295,17 +290,17 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                         });
                     });
 
-					//Load initial values
-					//Modified to load values on change
-					$scope.$parent.$watch(attrs.ngModel, function(){
-						$timeout(function(){
-							if ($ngModel.$modelValue instanceof Array){
-								angular.forEach($ngModel.$modelValue, function(value){
-									el.addItem(value.value);
-								});
-							}
-						});
-					});
+                    //Load initial values
+                    //Modified to load values on change
+                    $scope.$parent.$watch(attrs.ngModel, function(){
+                            $timeout(function(){
+                                    if ($ngModel.$modelValue instanceof Array){
+                                            angular.forEach($ngModel.$modelValue, function(value){
+                                                    el.addItem(value.value);
+                                            });
+                                    }
+                            });
+                    });
                 });
             }
     };
@@ -317,9 +312,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
             link: function ($scope, element, attrs, $ngModel) {
                 var optgroups = [];
                 var options = [];
-                var el = $(element).selectize({
-                    persist: false
-                })[0].selectize;
+                var el = $(element).selectize()[0].selectize;
                 
                 $scope.$on($scope.motivationsToShow, function(event, categories){
                     angular.forEach(categories, function (cat) {
@@ -334,7 +327,7 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                                     else if(kword.hasOwnProperty('label')) {
                                         if(kword.label instanceof Array)
                                             options.push({text: kword.label[0].trim(), value: kword.uri, optgroup: cat.name, $order: kword.label[0].trim()});
-                                        else
+                                        else if(kword.label !== undefined)
                                             options.push({text: kword.label.trim(), value: kword.uri, optgroup: cat.name, $order: kword.label.trim()});
                                     }
                             });
@@ -385,17 +378,17 @@ charme.web.app.directive('targetTypeKeywords', function($timeout) {
                         });
                     });
 
-					//Load initial values
-					//Modified to load values on change
-					$scope.$parent.$watch(attrs.ngModel, function(){
-						$timeout(function(){
-							if ($ngModel.$modelValue instanceof Array){
-								angular.forEach($ngModel.$modelValue, function(value){
-									el.addItem(value.value);
-								});
-							}
-						});
-					});
+                    //Load initial values
+                    //Modified to load values on change
+                    $scope.$parent.$watch(attrs.ngModel, function(){
+                            $timeout(function(){
+                                    if ($ngModel.$modelValue instanceof Array){
+                                            angular.forEach($ngModel.$modelValue, function(value){
+                                                    el.addItem(value.value);
+                                            });
+                                    }
+                            });
+                    });
                 });
             }
     };

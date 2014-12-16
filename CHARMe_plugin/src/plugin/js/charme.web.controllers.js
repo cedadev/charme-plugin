@@ -103,6 +103,9 @@ function($rootScope, $scope, $timeout){
     $rootScope.$on('noModify', function() {
         $scope.confirmingModify = false;
     });
+    $rootScope.$on('yesornoFlagAnno', function() {
+        $scope.confirmingFlagAnno = false;
+    });
     
     //$('.shift-anno-buttons-holder').css('right', ($('.modal-footer').outerWidth() - $('.shift-anno-buttons-holder').outerWidth()) / 2);
     $rootScope.$on('shiftButtons', function() {
@@ -127,6 +130,10 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
             var targetId = $routeParams.targetId;
             charme.web.close($.map(targetService.targets, function(value, index){return index;}).length === 1, targetId);
         };
+        
+        var targetId = $routeParams.targetId;
+        targetService.listViewTarget = targetId;
+        var searchCallId = 'listAnno' + targetId;
         
         $scope.isSearchOpen = searchBarService.isSearchOpen;
         if(searchBarService.targetDropdownFlag) {
@@ -212,9 +219,6 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
             });
         });
 
-        var targetId = $routeParams.targetId;
-        targetService.listViewTarget = targetId;
-
         // Remove the empty option from the dropdown by initialising the model value...
         $scope.selectedTarget = targetId;
         // ... then, after HTML rendering, ensure the correct option is shown as being selected
@@ -263,56 +267,64 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
 		 */
         $scope.targetId=targetId;
 
-        searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(){
-            $scope.entries = [];
-            $scope.loadingList = true;
-            $scope.errorMsg = '';
+        searchAnnotations.addListener(searchAnnotations.listenerTypes.BEFORE_SEARCH, function(_searchCallId){
+            if(searchCallId === _searchCallId) {
+                $scope.entries = [];
+                $scope.loadingList = true;
+                $scope.errorMsg = '';
+            }
         });
 
-        searchAnnotations.addListener(searchAnnotations.listenerTypes.AFTER_SEARCH, function(){
-            $scope.$apply(function(){
-                $scope.loadingList = false;
-            });
-        });
-
-        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, pageNum, lastPage){
-            $scope.$apply(function(){
-                $scope.entries = results;
-                $scope.pages = pages;
-                
-                if(pageNum <= Math.ceil(charme.logic.constants.NUM_PAGE_BUTTONS / 2) || lastPage <= charme.logic.constants.NUM_PAGE_BUTTONS)
-                    $scope.offset = 1;
-                else if(pageNum >= lastPage - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
-                    $scope.offset = lastPage - charme.logic.constants.NUM_PAGE_BUTTONS + 1;
-                else
-                    $scope.offset = pageNum - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2);
-
-                $scope.lastPage = lastPage;
-                $scope.pageIncrement = Math.ceil(lastPage / 10);
-
-                angular.forEach($scope.entries, function(entry) {
-                    //Double-escape URIs embedded within a URI in order to work with Angular routing
-                    entry.uri = '#/' + encodeURIComponent(encodeURIComponent(targetId)) + '/annotation/' 
-                                     + encodeURIComponent(encodeURIComponent(entry.id)) + '/';
+        searchAnnotations.addListener(searchAnnotations.listenerTypes.AFTER_SEARCH, function(_searchCallId){
+            if(searchCallId === _searchCallId) {
+                $scope.$apply(function(){
+                    $scope.loadingList = false;
                 });
-
-                shiftAnnoService.annoList[targetId] = $scope.entries;
-            });
+            }
         });
 
-        searchAnnotations.addListener(searchAnnotations.listenerTypes.ERROR, function(errorMsg){
-            $scope.$apply(function(){
-                $scope.errorMsg = errorMsg;
-                
-                if($scope.pages) {
-                    for(var i = 0; i < $scope.pages.length; i++) {
-                        if(i === criteria.pageNum - $scope.offset)
-                            $scope.pages[i] = {status: 'current'};
-                        else
-                            $scope.pages[i] = {status: 'notCurrent'};
+        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(_searchCallId, results, pages, pageNum, lastPage){
+            if(searchCallId === _searchCallId) {
+                $scope.$apply(function(){
+                    $scope.entries = results;
+                    $scope.pages = pages;
+
+                    if(pageNum <= Math.ceil(charme.logic.constants.NUM_PAGE_BUTTONS / 2) || lastPage <= charme.logic.constants.NUM_PAGE_BUTTONS)
+                        $scope.offset = 1;
+                    else if(pageNum >= lastPage - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
+                        $scope.offset = lastPage - charme.logic.constants.NUM_PAGE_BUTTONS + 1;
+                    else
+                        $scope.offset = pageNum - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2);
+
+                    $scope.lastPage = lastPage;
+                    $scope.pageIncrement = Math.ceil(lastPage / 10);
+
+                    angular.forEach($scope.entries, function(entry) {
+                        //Double-escape URIs embedded within a URI in order to work with Angular routing
+                        entry.uri = '#/' + encodeURIComponent(encodeURIComponent(targetId)) + '/annotation/' 
+                                         + encodeURIComponent(encodeURIComponent(entry.id)) + '/';
+                    });
+
+                    shiftAnnoService.annoList[targetId] = $scope.entries;
+                });
+            }
+        });
+
+        searchAnnotations.addListener(searchAnnotations.listenerTypes.ERROR, function(_searchCallId, errorMsg){
+            if(searchCallId === _searchCallId) {
+                $scope.$apply(function(){
+                    $scope.errorMsg = errorMsg;
+
+                    if($scope.pages) {
+                        for(var i = 0; i < $scope.pages.length; i++) {
+                            if(i === criteria.pageNum - $scope.offset)
+                                $scope.pages[i] = {status: 'current'};
+                            else
+                                $scope.pages[i] = {status: 'notCurrent'};
+                        }
                     }
-                }
-            });
+                });
+            }
         });
         
         $rootScope.$on('facetsFetched', function() {
@@ -440,13 +452,34 @@ charme.web.controllers.controller('ListAnnotationsCtrl', ['$rootScope', '$scope'
                 else if($scope.selectedTarget === cachedTarget)
                     $('#chooseTarget').blur(); 
             }, 200);
+            
+            $scope.$on('$destroy', function() {
+                searchAnnotations.clearListeners();
+            });
+            
+            // Refresh the target list dropdown when user clicks on target checkboxes
+            // (this code is only needed if user doesn't first minimise the iframe)
+            if(window.addEventListener)
+                window.addEventListener("message", listenMessage, false);
+            else
+                window.attachEvent("onmessage", listenMessage);
+            
+            function listenMessage(msg) {
+                if(msg.data === 'targetListChanged') {
+                    // Use debounce in case user selects/unselects all targets
+                    debounceApply();
+                }
+            }
+            var debounceApply = charme.logic.debounce(function() {
+                $scope.$apply();
+            }, 200);
     }]);
 
 /**
  * View details of individual annotation.
  */
-charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchAnnotation', 'fetchKeywords', 'fetchAllMotivations', 'searchAnnotations', 'deleteAnnotation', 'loginService', 'shiftAnnoService', 'targetService', 'replyToAnnoService', 
-    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchAnnotation, fetchKeywords, fetchAllMotivations, searchAnnotations, deleteAnnotation, loginService, shiftAnnoService, targetService, replyToAnnoService){
+charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$timeout', '$window', 'fetchTargetTypeVocab', 'fetchAnnotation', 'fetchKeywords', 'fetchAllMotivations', 'searchAnnotations', 'flagAnnotation', 'deleteAnnotation', 'loginService', 'shiftAnnoService', 'targetService', 'replyToAnnoService', 
+    function ($rootScope, $scope, $routeParams, $location, $timeout, $window, fetchTargetTypeVocab, fetchAnnotation, fetchKeywords, fetchAllMotivations, searchAnnotations, flagAnnotation, deleteAnnotation, loginService, shiftAnnoService, targetService, replyToAnnoService){
         $scope.viewAnnotationFlag=true;
 		$scope.allTargets = targetService.targets[charme.common.ALL_TARGETS];
         searchAnnotations.clearListeners();
@@ -454,6 +487,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         var targetId = $routeParams.targetId;
         $scope.loggedIn=loginService.isLoggedIn();
         $scope.shortTitleLength = charme.common.shortTargetTitle;
+        
+        var searchCallId = 'viewAnno' + targetId + Math.random();
         
         var criteria = {};
         var criteriaFromUrl = function() {
@@ -473,11 +508,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
         $timeout(function() {
             criteria = criteriaFromUrl();
         });
-        
-        $scope.flag = function(){
-            alert('Flag annotation as inappropriate (for review by moderator): this functionality will be enabled in a future iteration of CHARMe');
-        };
-        
+
         $scope.returnToList = function(){
             $location.path(encodeURIComponent(targetService.listViewTarget) + '/annotations/')
                      .search(charme.web.constants.PARAM_TARGET_TYPES, criteria.targetTypes)
@@ -651,10 +682,8 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         if(targets && targets.length > 0)
                             $scope.targetList = [];
                         
-                        //var date = anno.getValue(annoType.DATE);
-                        //$scope.date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
-                        var dates = anno.getValues(annoType.DATE);
-                        $scope.date = charme.logic.filterDates(dates);
+                        var date = anno.getValue(annoType.DATE);
+                        $scope.date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
 
                         var validTargetTypeLabels = {};
                         for(var i = 0; i < targetTypeVocab.length; i++) {
@@ -681,9 +710,12 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                             }
                             
                             if(targetType !== 'Annotation')
-                                $scope.targetList.push({uri: targetHref, name: targetName, desc: targetTypeLabel});
+                                $scope.targetList.push({uri: targetHref, name: targetName, desc: targetTypeLabel, whereToOpen: "_blank"});
                             else {
-                                var targetLoading = {uri: targetHref, name: 'Loading...', desc: 'Annotation'};
+                                var uri = '#/' + encodeURIComponent(encodeURIComponent(charme.common.ALL_TARGETS)) + '/annotation/' 
+                                               + encodeURIComponent(encodeURIComponent(targetHref)) + '/';
+                                                 
+                                var targetLoading = {uri: uri, name: 'Loading...', desc: 'Annotation', whereToOpen: "_self"};
                                 $scope.targetList.push(targetLoading);
                                 
                                 //targetName = charme.logic.fetchTargetComment(fetchAnnotation, targetHref, annoType);
@@ -705,11 +737,11 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                    }
                                    
                                    targetComment = '"' + charme.logic.shortTargetName(targetComment, charme.common.shortTargetTitle - 2) + '"';
-                                   var targetLoaded = {uri: targetHref, name: targetComment, desc: validTargetTypeLabels[targetType]};
+                                   var targetLoaded = {uri: uri, name: targetComment, desc: validTargetTypeLabels[targetType]};
                                    $scope.targetList.splice($scope.targetList.indexOf(targetLoading), 1, targetLoaded);
                                    $scope.$apply();
                                 }, function(error) {
-                                    var targetLoaded = {uri: targetHref, name: 'Error loading text', desc: validTargetTypeLabels[targetType]};
+                                    var targetLoaded = {uri: uri, name: 'Error loading text', desc: validTargetTypeLabels[targetType]};
                                     $scope.targetList.splice($scope.targetList.indexOf(targetLoading), 1, targetLoaded);
                                     $scope.$apply();
                                 });
@@ -741,25 +773,50 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         if($scope.loggedIn && auth && $scope.userName === auth.user.username) {
                                 $scope.creatorOfAnnotationFlag = true;
                                 $scope.modifyAnnotationFlag = true;
-                                
-                                $scope.confirmBoxContent = {
-                                    message: 'Delete this annotation?',
-                                    confirm: 'Yes',
-                                    cancel: 'No'
-                                };
-
                                 $scope.modify = function () {
                                         $location.path('/' + encodeURIComponent(targetId) + '/annotations/' + encodeURIComponent(annoId) + '/edit/');
                                 };
+                                
+                                $scope.getConfirmFlagAnno = function() {
+                                    $scope.confirmingFlagAnno = true;
+                                };
+                                $scope.noFlagAnno = function() {
+                                    $scope.confirmingFlagAnno = false;
+                                    $rootScope.$broadcast('yesornoFlagAnno');
+                                };
+                                $scope.confirmFlagAnnoBoxContent = {
+                                    message: 'Flag this annotation?\nAn email will be sent to the moderator at ' + $scope.organizationName + '.',
+                                    confirm: 'Yes',
+                                    cancel: 'No'
+                                };
+                                $scope.flagAnnotation = function() {
+                                    $scope.processing=true;
+                                    $scope.confirmingFlagAnno = false;
+                                    $rootScope.$broadcast('yesornoFlagAnno');
+                                    
+                                    flagAnnotation(annoId, $scope.userName).then(function() {
+                                        $scope.processing = false;
+                                    }, function(error) {
+                                        $scope.$apply(function() {
+                                            $scope.processing = false;
+                                            $scope.errorMsg = 'Unable to flag annotation. Please try again.';
+                                        });
+                                    });
+                                };
 
-                                $scope.getConfirm = function() {
+                                $scope.getConfirmDelete = function() {
                                     $scope.confirmingDelete = true;
                                 };
                                 $scope.noDelete = function() {
                                     $scope.confirmingDelete = false;
                                     $rootScope.$broadcast('noDelete');
                                 };
-                                
+                                $scope.confirmDeleteBoxContent = {
+                                    message: 'Delete this annotation?',
+                                    confirm: 'Yes',
+                                    cancel: 'No'
+                                };
+
                                 $scope.deleteAnnotation = function () {
                                     $scope.confirmingDelete = false;
                                     $scope.processing=true;
@@ -811,14 +868,29 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                 var numSearchesStarted = 1, numSearchesCompleted = 0;
                 $scope.loadingReplies = true;
                 var annoList = [];
+                var firstRepliesSearchFlag = true;
+                var moreReplies = {};
                 
                 // Fires twice: first time for searchAnnotations call in SearchCtrl, second time for searchAnnotations call in this Ctrl
-                searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, pageNum, lastPage, totalResults, targetIsAnno){
-                    if(targetIsAnno) {
+                searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(_searchCallId, results, pages, pageNum, lastPage, totalResults, targetIsAnno){
+                    if(searchCallId === _searchCallId && targetIsAnno) {
                         $scope.$apply(function() {
                             numSearchesCompleted++;
+
+                            if(results.length > 0) {
+                                criteria.targets = [];
+                                angular.forEach(results, function(result) {
+                                        criteria.targets.push(result.id);
+
+                                        //Double-escape URIs embedded within a URI in order to work with Angular routing
+                                        result.uri = '#/' + encodeURIComponent(encodeURIComponent(annoId)) + '/annotation/' 
+                                                          + encodeURIComponent(encodeURIComponent(result.id)) + '/';
+
+                                        annoList.push(result);
+                                });
+                            }
                             
-                            if(numSearchesCompleted === (numSearchesStarted + results.length)) {
+                            if(numSearchesCompleted === (numSearchesStarted + results.length) || (numSearchesCompleted === 2 && firstRepliesSearchFlag)) {
                                 var numAnnos = annoList.length;
                                 var depth = 1;
                                 var firstLevelAnnos = [];
@@ -840,14 +912,25 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 for(var i = 0; i < sortedAnnoList.length; i++) {
                                     newSortedAnnoList.push(sortedAnnoList[i]);
                                     firstLevelAnnos.push(sortedAnnoList[i]);
+                                    
+                                    if(firstRepliesSearchFlag)
+                                        moreReplies[sortedAnnoList[i].id] = {replies: [], hide: true};
                                 }
 
-                                threadedConvo = function(annoList, depth) {
+                                threadedConvo = function(annoList, depth, sortedAnnoList, newSortedAnnoList, numAnnos) {
                                     for(var i = 0; i < sortedAnnoList.length; i++) {
                                         var tempArr = [];
                                         for(var j = 0; j < annoList.length; j++) {
                                             if(annoList[j].targets[0] === sortedAnnoList[i].id) {
                                                 tempArr.push(annoList[j]);
+                                                tempArr[tempArr.length - 1].hide = true;
+
+                                                if(firstRepliesSearchFlag) {
+                                                    var pos = newSortedAnnoList.indexOf(sortedAnnoList[i]);
+                                                    newSortedAnnoList[pos].moreReplies = true;
+                                                    newSortedAnnoList[pos].loaded = false;
+                                                    newSortedAnnoList[pos].showing = false;
+                                                }
                                             }
                                         }
 
@@ -859,7 +942,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                         tempArr.sort(function(a, b) {return (Date.parse(b.date) - Date.parse(a.date));});
                                         for(var k = 0; k < tempArr.length; k++) {
                                             var insertionPoint = newSortedAnnoList.indexOf(sortedAnnoList[i]) + 1;
-                                            tempArr[k].title = spaceIndent + tempArr[k].title;
+                                            tempArr[k].indent = spaceIndent;
                                             newSortedAnnoList.splice(insertionPoint, 0, tempArr[k]);
                                         }
                                     }
@@ -881,11 +964,12 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                             }
                                         }
 
-                                        threadedConvo(_annoList, ++depth);
+                                        if(!firstRepliesSearchFlag)
+                                            threadedConvo(_annoList, ++depth, sortedAnnoList, newSortedAnnoList, numAnnos);
                                     }
                                 };
-
-                                threadedConvo(annoList, depth);
+                                
+                                threadedConvo(annoList, depth, sortedAnnoList, newSortedAnnoList, numAnnos);
                                 
                                 var annoBlockStartPos = [];
                                 for(var i = 0; i < firstLevelAnnos.length; i++) {
@@ -897,11 +981,25 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     var annoBlockLength = newSortedAnnoList.length - annoBlockStartPos[i];
                                     annoBlocks.push(newSortedAnnoList.splice(annoBlockStartPos[i], annoBlockLength));
                                 }
-                                
+
                                 for(var i = 0; i < annoBlocks.length; i++) {
                                     var dateArray = [];
                                     for(var j = 0; j < annoBlocks[i].length; j++) {
                                         dateArray.push(Date.parse(annoBlocks[i][j].date));
+
+                                        if(criteria.firstLevelAnnoId) {
+                                            if(criteria.firstLevelAnnoId === annoBlocks[i][0].id) {
+                                                annoBlocks[i][0].loading = false;
+                                                annoBlocks[i][0].loaded = true;
+                                                annoBlocks[i][0].showing = true;
+                                            }
+                                        }
+
+                                        if(j > 0) {
+                                            annoBlocks[i][j].hide = moreReplies[annoBlocks[i][0].id].hide;
+                                            annoBlocks[i][j].baseAnnoId = annoBlocks[i][0].id;
+                                            moreReplies[annoBlocks[i][0].id].replies.push(annoBlocks[i][j]);
+                                        }
                                     }
                                     
                                     annoBlocks[i].latestDate = Math.max.apply(null, dateArray);
@@ -915,32 +1013,60 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 }
 
                                 $scope.entries = newSortedAnnoList;
-                                shiftAnnoService.annoList[annoId] = $scope.entries;
+                                var visibleReplies = [];
+                                for(var i = 0; i < newSortedAnnoList.length; i++) {
+                                    if(!newSortedAnnoList[i].hide)
+                                        visibleReplies.push(newSortedAnnoList[i]);
+                                }
+                                shiftAnnoService.annoList[annoId] = visibleReplies;                                
+                                
                                 $scope.loadingReplies = false;
+                                firstRepliesSearchFlag = false;
                             }
                             else if(results.length > 0) {
-                                criteria.targets = [];
-                                angular.forEach(results, function(result) {
-                                        criteria.targets.push(result.id);
-
-                                        //Double-escape URIs embedded within a URI in order to work with Angular routing
-                                        result.uri = '#/' + encodeURIComponent(encodeURIComponent(annoId)) + '/annotation/' 
-                                                         + encodeURIComponent(encodeURIComponent(result.id)) + '/';
-
-                                        annoList.push(result);
-                                });
                                 numSearchesStarted++;
-                                searchAnnotations.searchAnnotations(criteria);
+                                searchAnnotations.searchAnnotations(criteria, searchCallId);
                             }
                         });
                     }
                 });
 
-                searchAnnotations.addListener(searchAnnotations.listenerTypes.ERROR, function(error) {
-                    $scope.repliesErrorMsg = error;
+                searchAnnotations.addListener(searchAnnotations.listenerTypes.ERROR, function(_searchCallId, error) {
+                    if(searchCallId === _searchCallId) {
+                        $scope.repliesErrorMsg = error;
+                    }
                 });
+                
+                $scope.showMoreReplies = function(annoId, isLoaded) {
+                    criteria.targets = [];
+                    for(var i = 0; i < moreReplies[annoId].replies.length; i++) {
+                        criteria.targets.push(moreReplies[annoId].replies[i].id);
+                    }
+                    
+                    moreReplies[annoId].hide = false;
+                    criteria.firstLevelAnnoId = annoId;
 
-                searchAnnotations.searchAnnotations(criteria);
+                    if(!isLoaded) {
+                        numSearchesStarted++;
+                        searchAnnotations.searchAnnotations(criteria, searchCallId);
+                    }
+                    else {
+                        for(var i = 0; i < annoList.length; i++) {
+                            if(annoList[i].baseAnnoId === annoId)
+                                annoList[i].hide = false;
+                        }
+                    }
+                };
+                $scope.hideMoreReplies = function(annoId) {
+                    moreReplies[annoId].hide = true;
+                    
+                    for(var i = 0; i < annoList.length; i++) {
+                        if(annoList[i].baseAnnoId === annoId)
+                            annoList[i].hide = true;
+                    }
+                };
+
+                searchAnnotations.searchAnnotations(criteria, searchCallId);
                 
             },
             function(error){
@@ -1019,8 +1145,11 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                 $scope.errorMsg = '';
 
                 //var selectedTargets = targetService.targets;
-                if(replyToAnnoService.replying && isFirstCall)
+                if(replyToAnnoService.replying && isFirstCall) {
+                    // The annotation being replied to will be included 
+                    // in $scope.targetList, but not in targetService.targets
                     var selectedTargets = $scope.targetList;
+                }
                 else
                     var selectedTargets = targetService.targets;
                 
@@ -1313,14 +1442,14 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
 		};
 
                 if(annoId) {
-                    $scope.getConfirm = function() {
+                    $scope.getConfirmModify = function() {
                         $scope.confirmingModify = true;
                     };
                     $scope.noModify = function() {
                         $scope.confirmingModify = false;
                         $rootScope.$broadcast('noModify');
                     };
-                    $scope.confirmBoxContent = {
+                    $scope.confirmModifyBoxContent = {
                         message: 'Save this modified annotation?',
                         confirm: 'Yes',
                         cancel: 'No'
@@ -1377,9 +1506,10 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
 charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$routeParams', '$location', '$window', '$timeout', 'fetchAllSearchFacets', 'fetchTargetTypeVocab', 'searchAnnotations',
     function($rootScope, $scope, $routeParams, $location, $window, $timeout, fetchAllSearchFacets, fetchTargetTypeVocab, searchAnnotations) {
         var targetId = $routeParams.targetId;
+        var searchCallId = 'listAnno' + targetId;
         targetId = targetId === charme.common.ALL_TARGETS ? '' : targetId;
         
-        $scope.loading = true;
+        $scope.loadingList = true;
         $scope.resultsPerPage = [10, 20, 30];  // first value in this array must be a number (not 'All')
         //$scope.listOrderOptions = [{text: 'Newest', sortNum: -1}, {text: 'Oldest', sortNum: 1}];
 
@@ -1448,7 +1578,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         });
         
         var criteriaFromSearch = function(){
-            $scope.loading = true;
+            $scope.loadingList = true;
 
             // In case facets are undefined in the URL, define them here
             criteria.targetTypes = criteria.citingTypes = criteria.motivations = criteria.domainsOfInterest = criteria.organization = criteria.creator = '';
@@ -1583,7 +1713,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
 
         var criteriaOnLoad = criteriaFromSearch();
         loadCriteriaIntoModel(criteriaOnLoad);
-        searchAnnotations.searchAnnotations(criteriaOnLoad);
+        searchAnnotations.searchAnnotations(criteriaOnLoad, searchCallId);
  
         var debounceHandle;
         $scope.$watch('criteria', function(newVal, oldVal){
@@ -1668,7 +1798,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         }, true);
         
         $scope.$on('$routeUpdate', function(){
-            searchAnnotations.searchAnnotations(criteriaFromSearch());
+            searchAnnotations.searchAnnotations(criteriaFromSearch(), searchCallId);
         });
 
         $rootScope.$on('changePage', function(event, newPage, lastPage, pages) {
@@ -1689,18 +1819,20 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
         });
 
         var maxResults, firstSearchFlag = true;
-        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(results, pages, pageNum, lastPage, totalResults){
-            $scope.$apply(function() {
-                $scope.numResults = totalResults;
-                $scope.loading = false;
-                
-                // The first search, on loading, returns the total number of annotations in 'totalResults', and 
-                // we store that number as 'maxResults' for future reference
-                if(firstSearchFlag) {
-                    firstSearchFlag = false;
-                    maxResults = totalResults > 0 ? totalResults : 1;  // Node doesn't like 'count=0'
-                }
-            });
+        searchAnnotations.addListener(searchAnnotations.listenerTypes.SUCCESS, function(_searchCallId, results, pages, pageNum, lastPage, totalResults){
+            if(searchCallId === _searchCallId) {
+                $scope.$apply(function() {
+                    $scope.numResults = totalResults;
+                    $scope.loadingList = false;
+
+                    // The first search, on loading, returns the total number of annotations in 'totalResults', and 
+                    // we store that number as 'maxResults' for future reference
+                    if(firstSearchFlag) {
+                        firstSearchFlag = false;
+                        maxResults = totalResults > 0 ? totalResults : 1;  // Node doesn't like 'count=0'
+                    }
+                });
+            }
         });
         $scope.setResultsPerPage = function(rpp) {
             if(typeof rpp === "number")

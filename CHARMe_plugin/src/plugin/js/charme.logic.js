@@ -94,6 +94,9 @@ charme.logic.urls.existRequest = function(uri) {
 charme.logic.urls.createRequest = function() {
 	return charme.logic.urls._baseURL() + 'insert/annotation';
 };
+charme.logic.urls.flagRequest = function(annoID) {
+	return charme.logic.urls._baseURL() + annoID + '/reporttomoderator/';
+};
 charme.logic.urls.updateRequest = function() {
 	return charme.logic.urls._baseURL() + 'modify/annotation';
 };
@@ -775,7 +778,7 @@ charme.logic.searchAnnotations = function(criteria) {
         var reqUrl = charme.logic.urls.fetchAnnotations(criteria);
         $.ajax(reqUrl, {
             type : 'GET'
-        }).then(function(data) {          
+        }).then(function(data) {
             // Data is returned as ATOM wrapped json-ld
             var result = new charme.atom.Result(data);
             // Extract json-ld from the multiple 'content' payloads returned
@@ -830,6 +833,31 @@ charme.logic.searchAnnotations = function(criteria) {
     return promise;
 };
 
+// Flags the annotation for review by moderator
+charme.logic.flagAnnotation = function(annotationId, username) {
+    alert('Flagging a dead annotation');
+    return; // Until node can deal with this request
+
+    var shortId = charme.logic.shortAnnoId(annotationId);
+    
+    var url = charme.logic.urls.flagRequest(shortId);
+    return new Promise(function(resolver) {
+        $.ajax(url, {
+            dataType: 'xml',
+            type: 'PUT',
+            headers : {
+                'Username': username
+            },
+            contentType: 'application/json'
+        }).then(function(result){
+                resolver.fulfill(result);
+            },
+            function(error){
+                resolver.reject(error);
+            });
+    });
+};
+
 /*
  * Deletes the given annotation by changing its state to 'retired'.
  * @param annotationId
@@ -857,8 +885,6 @@ charme.logic.deleteAnnotation=function(annotationId, token){
                 resolver.reject(error);
             });
     });
-
-
 };
 
 /*
@@ -950,7 +976,7 @@ charme.logic.filterAnnoList = function(annoList, annoType) {
 };
 
 // Temporary fix to deal with annotations having array of dates
-charme.logic.filterDates = function(dates) {
+/*charme.logic.filterDates = function(dates) {
     var _date, sortedDates = [];
     angular.forEach(dates, function(date) {
         _date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
@@ -961,7 +987,7 @@ charme.logic.filterDates = function(dates) {
                         
     sortedDates.sort(function(b, a) {return (Date.parse(b) - Date.parse(a));});
     return(sortedDates[0]);
-};
+};*/
 
 charme.logic.fetchTargetComment = function(fetchAnnotation, targetHref, annoType) {
     var targetComment;
@@ -1004,8 +1030,6 @@ charme.logic.fetchTargetComment = function(fetchAnnotation, targetHref, annoType
     
     return targetComment;
 };
-
-
 
 charme.logic.modelEdited = function(annoModel, annoModelPristine) {
     var editedFlag = false;

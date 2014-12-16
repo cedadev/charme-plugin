@@ -85,7 +85,8 @@
                                 <input name="annoURI" data-ng-model="anno.linkURI" type="text"
                                        class="input-block-level"
                                        title="Please enter a URI. Use DOI where available."
-                                       placeholder="Annotation URI" data-ng-required="anno.linkType" data-validated-uri>
+                                       placeholder="Enter valid URI, e.g. 'http://www.example.com' or 'doi:12.34.5678/example123'" 
+                                       data-ng-required="anno.linkType" data-validated-uri>
                             </div>
                         </div>
                         <div class="span1" data-ng-show="citoText">
@@ -102,7 +103,7 @@
         </div>-->
         
         <div data-ng-show="confirmingModify"
-            confirm-box content="confirmBoxContent" on-confirm="save(anno)" on-cancel="noModify()">
+            confirm-box content="confirmModifyBoxContent" on-confirm="save(anno)" on-cancel="noModify()">
         </div>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

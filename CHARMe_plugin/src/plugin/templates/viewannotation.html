@@ -55,21 +55,26 @@
                     </thead>
                     <tbody>
                     <tr data-ng-repeat="target in (filteredTargets = (targetList | filter:searchText))">
-                        <td>{{target.name | truncate: shortTitleLength}}</td>
+                        <td><a href="{{target.uri}}" target="{{target.whereToOpen}}">{{target.name | truncate: shortTitleLength}}</a></td>
                         <td>{{target.desc}}</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
             <div class="tab-pane active .fade" id="tab1">
+        <div>
+            <a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
+            <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> - 
+            <span>{{modificationOf ? 'Edited at' : 'Created at'}} {{date | date:' HH:mm, d MMM yyyy'}}</span>
+        </div>
+        <br>
         <div class="popover popover-visible">
-            <!--<h3 class="popover-title"><a href="{{email}}">{{author}}</a> - {{organization}}</h3>-->
-            <h3 class="popover-title"><a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
-                                      <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> - 
-                                      <span>{{modificationOf ? 'Edited at' : 'Created at'}}</span>
-                                      {{date | date:' HH:mm, d MMM yyyy'}}</h3>
+            <!--<h3 class="popover-title"><a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
+            <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> - 
+            <span>{{modificationOf ? 'Edited at' : 'Created at'}}</span>
+            {{date | date:' HH:mm, d MMM yyyy'}}</h3>-->
             <div class="popover-content">
-                <p data-ng-show="comment">"{{comment}}"</p>
+                <p class="anno-comments" data-ng-show="comment">"{{comment}}"</p>
                 <p data-ng-show="noComment">No comment</p>
             </div>
         </div>
@@ -117,16 +122,31 @@
             <h4>Replies</h4>
             <table class="table search-results-table">
                 <div class="alert alert-error" data-ng-show="repliesErrorMsg">{{repliesErrorMsg}}</div>
-                <thead><tr><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
+                <thead><tr><td> </td><td>Title</td><td>Annotated by</td><td>Organisation</td><td>Date</td></tr></thead>
                 <tbody>
                     <tr data-ng-hide="!loadingReplies">
-                        <td colspan="4" class="spinner spinner-small">
+                        <td colspan="5" class="spinner spinner-small">
                             <img src ="img/ajaxspinner.gif" />
                         </td>
                     </tr>
-                    <tr data-ng-show="!loadingReplies && !repliesErrorMsg && entries.length===0"><td colspan="4">No annotations</td></tr>
-                    <tr data-ng-repeat="entry in entries">
-                        <td><a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
+                    <tr data-ng-show="!loadingReplies && !repliesErrorMsg && entries.length===0"><td colspan="5">No annotations</td></tr>
+                    <tr data-ng-repeat="entry in entries" data-ng-hide="entry.hide">
+                        <td class="more-replies-button">
+                            <span class="badge badge-info" 
+                                  data-ng-show="entry.moreReplies && !entry.loading && !entry.showing" 
+                                  title="Click to see more replies"
+                                  data-ng-click="entry.loading=!entry.loaded; entry.showing=entry.loaded; 
+                                                 showMoreReplies(entry.id, entry.loaded)">&plus;</span>
+                            <span class="spinner spinner-small" 
+                                  data-ng-show="entry.loading">
+                                  <img src ="img/ajaxspinner.gif"/></span>
+                            <span class="badge badge-info" 
+                                  data-ng-show="entry.showing" 
+                                  title="Click to hide replies"
+                                  data-ng-click="entry.showing=false; hideMoreReplies(entry.id)">&minus;</span>
+                        </td>
+                        <td><span class="threading-indent">{{entry.indent}}</span>
+                            <a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
                                title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
 
                         <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('userName', entry.userName, $event)">{{entry.author}}</a></td>
@@ -136,9 +156,12 @@
                 </tbody>
             </table>
         </div>
-                
+        
+        <div data-ng-show="confirmingFlagAnno"
+            confirm-box content="confirmFlagAnnoBoxContent" on-confirm="flagAnnotation()" on-cancel="noFlagAnno()">
+        </div>
         <div data-ng-show="confirmingDelete"
-            confirm-box content="confirmBoxContent" on-confirm="deleteAnnotation()" on-cancel="noDelete()">
+            confirm-box content="confirmDeleteBoxContent" on-confirm="deleteAnnotation()" on-cancel="noDelete()">
         </div>
     </div>
     </div>

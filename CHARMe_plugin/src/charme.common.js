@@ -61,6 +61,9 @@ charme.common.ALL_TARGETS = 'http://alltargets/';
 // Length of target title in targets tab (viewAnno, editAnno)
 charme.common.shortTargetTitle = 75;
 
+// Max length of comment line when viewing annotation
+charme.common.maxCommentLineLength = 146;
+
 /**
  * Finds the path to the current script (for referencing images etc.) DO NOT INVOKE THIS FUNCTION
  * DIRECTLY

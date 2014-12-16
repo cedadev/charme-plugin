@@ -93,7 +93,7 @@
     </div>
 
     <div>
-        <button class="btn reset-button" data-ng-disabled="loading" data-ng-click="reset(false);" type="reset">Reset</button>
+        <button class="btn reset-button" data-ng-disabled="loadingList" data-ng-click="reset(false);" type="reset">Reset</button>
     </div>
     
     <div class="annoListOptions">
@@ -102,7 +102,7 @@
             <span data-ng-repeat="rpp in resultsPerPage" data-ng-click="setResultsPerPage(rpp)">
                 &nbsp;&nbsp;<a data-ng-class="rpp === selectedRPP ? 'selected' : 'notSelected'" href="">{{rpp}}</a>
             </span>
-            <span data-ng-show="!loading && numResults > 0">
+            <span data-ng-show="!loadingList && numResults > 0">
                 &nbsp; Total: {{numResults}}
             </span>
         </div>
