@@ -449,6 +449,16 @@ jsonoa.types.Platform=(function Platform(){
 	Platform.TEMPLATE = {"@id": "?", "@type": [Platform.TYPE]};
 	return Platform;
 })();
+jsonoa.types.Concept=(function Concept(){
+    Concept.TYPE='http://www.w3.org/2004/02/skos/core#Concept';
+    Concept.TEMPLATE = {"@id": "?", "@type": [Concept.TYPE]};
+    return Concept;
+})();
+jsonoa.types.Class=(function Class(){
+    Class.TYPE='http://www.w3.org/2002/07/owl#Class';
+    Class.TEMPLATE = {"@id": "?", "@type": [Class.TYPE]};
+    return Class;
+})();
 
 /**
  * The following types should NOT be created on the client, and as such have no template
