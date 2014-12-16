@@ -641,8 +641,6 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
         }
     }
 
-
-    
     var selectCountText = document.getElementById('charme-select-count');
     selectCountText.innerHTML = ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
 };
@@ -991,4 +989,4 @@ charme.plugin.init = function () {
 
 charme.plugin.preInit();
 
-//Iteration6Fixes
+// master

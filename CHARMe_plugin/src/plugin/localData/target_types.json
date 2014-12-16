@@ -1,9 +1,5 @@
 [
  {
-  "label": "Annotation",
-  "resource": "http://www.w3.org/ns/oa#Annotation"
- },
- {
   "label": "Dataset",
   "resource": "http://purl.org/dc/dcmitype/Dataset"
  },
@@ -26,10 +22,6 @@
  {
   "label": "Article",
   "resource": "http://purl.org/spar/fabio/Article"
- },
- {
-  "label": "Metadata Document",
-  "resource": "http://purl.org/spar/fabio/MetadataDocument"
  },
  {
   "label": "Academic Proceedings",
@@ -64,179 +56,11 @@
   "resource": "http://purl.org/voc/charme#KnownProductDisruption"
  },
  {
-  "label": "Significant Events",
-  "resource": "http://purl.org/voc/charme#SignificantEvents"
+  "label": "Metadata Document",
+  "resource": "http://purl.org/spar/fabio/MetadataDocument"
  },
  {
-  "label": "Significant Event",
-  "resource": "http://purl.org/voc/charme#SignificantEvent"
- },
- {
-  "label": "Location",
-  "resource": "http://purl.org/voc/charme#Location"
- },
- {
-  "label": "country",
-  "resource": "http://purl.org/voc/charme#country"
- },
- {
-  "label": "named Region",
-  "resource": "http://purl.org/voc/charme#namedRegion"
- },
- {
-  "label": "location",
-  "resource": "http://purl.org/voc/charme#location"
- },
- {
-  "label": "event Name",
-  "resource": "http://purl.org/voc/charme#eventName"
- },
- {
-  "label": "event Summary",
-  "resource": "http://purl.org/voc/charme#eventSummary"
- },
- {
-  "label": "Climate Event",
-  "resource": "http://purl.org/voc/charme#ClimateEvent"
- },
- {
-  "label": "Hurricane Event",
-  "resource": "http://purl.org/voc/charme#HurricaneEvent"
- },
- {
-  "label": "Volcanic Eruption Event",
-  "resource": "http://purl.org/voc/charme#VolcanicEruptionEvent"
- },
- {
-  "label": "El Nino Event",
-  "resource": "http://purl.org/voc/charme#ElNinoEvent"
- },
- {
-  "label": "Drought Event",
-  "resource": "http://purl.org/voc/charme#DroughtEvent"
- },
- {
-  "label": "Storm Event",
-  "resource": "http://purl.org/voc/charme#StormEvent"
- },
- {
-  "label": "Wildfires Event",
-  "resource": "http://purl.org/voc/charme#WildfiresEvent"
- },
- {
-  "label": "Software And System Event",
-  "resource": "http://purl.org/voc/charme#SoftwareAndSystemEvent"
- },
- {
-  "label": "Ifs Event",
-  "resource": "http://purl.org/voc/charme#IfsEvent"
- },
- {
-  "label": "System Event",
-  "resource": "http://purl.org/voc/charme#SystemEvent"
- },
- {
-  "label": "Data And Observing System Events",
-  "resource": "http://purl.org/voc/charme#DataAndObservingSystemEvents"
- },
- {
-  "label": "Satellite Event",
-  "resource": "http://purl.org/voc/charme#SatelliteEvent"
- },
- {
-  "label": "Dropsonde Event",
-  "resource": "http://purl.org/voc/charme#DropsondeEvent"
- },
- {
-  "label": "Aircraft Event",
-  "resource": "http://purl.org/voc/charme#AircraftEvent"
- },
- {
-  "label": "Buoy Event",
-  "resource": "http://purl.org/voc/charme#BuoyEvent"
- },
- {
-  "label": "Ship Event",
-  "resource": "http://purl.org/voc/charme#ShipEvent"
- },
- {
-  "label": "Land Station Event",
-  "resource": "http://purl.org/voc/charme#LandStationEvent"
- },
- {
-  "label": "Mobile Event",
-  "resource": "http://purl.org/voc/charme#MobileEvent"
- },
- {
-  "label": "Alarm Event",
-  "resource": "http://purl.org/voc/charme#AlarmEvent"
- },
- {
-  "label": "Operational Event",
-  "resource": "http://purl.org/voc/charme#OperationalEvent"
- },
- {
-  "label": "Dataset Subset",
-  "resource": "http://purl.org/voc/charme#DatasetSubset"
- },
- {
-  "label": "Subset Selector",
-  "resource": "http://purl.org/voc/charme#SubsetSelector"
- },
- {
-  "label": "has Variable",
-  "resource": "http://purl.org/voc/charme#hasVariable"
- },
- {
-  "label": "Variable",
-  "resource": "http://purl.org/voc/charme#Variable"
- },
- {
-  "label": "has Spatial Extent",
-  "resource": "http://purl.org/voc/charme#hasSpatialExtent"
- },
- {
-  "label": "has Vertical Extent",
-  "resource": "http://purl.org/voc/charme#hasVerticalExtent"
- },
- {
-  "label": "has Temporal Extent",
-  "resource": "http://purl.org/voc/charme#hasTemporalExtent"
- },
- {
-  "label": "has Internal Name",
-  "resource": "http://purl.org/voc/charme#hasInternalName"
- },
- {
-  "label": "has Cf Name",
-  "resource": "http://purl.org/voc/charme#hasCfName"
- },
- {
-  "label": "has Named Region",
-  "resource": "http://purl.org/voc/charme#hasNamedRegion"
- },
- {
-  "label": "has Calendar",
-  "resource": "http://purl.org/voc/charme#hasCalendar"
- },
- {
-  "label": "has Temporal Start",
-  "resource": "http://purl.org/voc/charme#hasTemporalStart"
- },
- {
-  "label": "has Temporal End",
-  "resource": "http://purl.org/voc/charme#hasTemporalEnd"
- },
- {
-  "label": "Calendars",
-  "resource": "http://purl.org/voc/charme#Calendars"
- },
- {
-  "label": "Calendar",
-  "resource": "http://purl.org/voc/charme#Calendar"
- },
- {
-  "label": "Gregorian",
-  "resource": "http://purl.org/voc/charme#Gregorian"
+  "label": "Annotation",
+  "resource": "http://www.w3.org/ns/oa#Annotation"
  }
 ]

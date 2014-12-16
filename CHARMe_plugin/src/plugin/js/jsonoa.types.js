@@ -437,6 +437,16 @@ jsonoa.types.ConceptScheme=(function ConceptScheme(){
         ConceptScheme.TEMPLATE = {"@id": "?", "@type": [ConceptScheme.TYPE]};
 	return ConceptScheme;
 })();
+jsonoa.types.Concept=(function Concept(){
+    Concept.TYPE='http://www.w3.org/2004/02/skos/core#Concept';
+    Concept.TEMPLATE = {"@id": "?", "@type": [Concept.TYPE]};
+    return Concept;
+})();
+jsonoa.types.Class=(function Class(){
+    Class.TYPE='http://www.w3.org/2002/07/owl#Class';
+    Class.TEMPLATE = {"@id": "?", "@type": [Class.TYPE]};
+    return Class;
+})();
 
 // Old types no longer valid but kept here for now, as used by old annotations still in the node
 jsonoa.types.Instrument=(function Instrument(){
@@ -448,16 +458,6 @@ jsonoa.types.Platform=(function Platform(){
 	Platform.TYPE='http://blah.org/blah/Platform';
 	Platform.TEMPLATE = {"@id": "?", "@type": [Platform.TYPE]};
 	return Platform;
-})();
-jsonoa.types.Concept=(function Concept(){
-    Concept.TYPE='http://www.w3.org/2004/02/skos/core#Concept';
-    Concept.TEMPLATE = {"@id": "?", "@type": [Concept.TYPE]};
-    return Concept;
-})();
-jsonoa.types.Class=(function Class(){
-    Class.TYPE='http://www.w3.org/2002/07/owl#Class';
-    Class.TEMPLATE = {"@id": "?", "@type": [Class.TYPE]};
-    return Class;
 })();
 
 /**
