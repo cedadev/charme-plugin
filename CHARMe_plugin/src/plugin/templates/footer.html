@@ -44,13 +44,14 @@
             <button class="btn btn-primary" 
                     data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing" 
                     data-ng-click="save(anno)">Save</button>
-            <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
+            <button class="btn" data-ng-disabled="loading || processing" data-ng-click="cancel()">Cancel</button>
         </div>
         <div data-ng-show="editAnnotationFlag && modifying">
             <button class="btn btn-primary" 
-                    data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing || confirmingModify" 
-                    data-ng-click="confirmingModify=true; getConfirmModify();">Save</button>
-            <button class="btn" data-ng-disabled="loading" data-ng-click="cancel()">Cancel</button>
+                    data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing || confirmingContinue || confirmingModify" 
+                    data-ng-click="checkIsEdited(anno);">Save</button>
+            <button class="btn" data-ng-disabled="loading || processing || confirmingContinue || confirmingModify" 
+                    data-ng-click="cancel()">Cancel</button>
         </div>
 
         <div data-ng-show="viewAnnotationFlag">

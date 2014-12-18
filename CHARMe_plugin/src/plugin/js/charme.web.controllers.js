@@ -106,6 +106,9 @@ function($rootScope, $scope, $timeout){
     $rootScope.$on('yesornoFlagAnno', function() {
         $scope.confirmingFlagAnno = false;
     });
+    $rootScope.$on('yesContinue', function() {
+        $scope.confirmingContinue = false;
+    });
     
     //$('.shift-anno-buttons-holder').css('right', ($('.modal-footer').outerWidth() - $('.shift-anno-buttons-holder').outerWidth()) / 2);
     $rootScope.$on('shiftButtons', function() {
@@ -1488,6 +1491,28 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
 		};
 
                 if(annoId) {
+                    $scope.checkIsEdited = function(annoModel) {
+                        var isEdited = charme.logic.modelEdited(annoModel, pristineModel);
+                        if(isEdited) {
+                            $scope.getConfirmModify();
+                        }
+                        else {
+                            $scope.confirmingContinue = true;
+                        }
+                    };
+                    $scope.continueEditing = function() {
+                        $scope.confirmingContinue = false;
+                        $rootScope.$broadcast('yesContinue');
+                    };
+                    $scope.endEditing = function() {
+                        window.history.back();
+                    };
+                    $scope.confirmContinueBoxContent = {
+                        message: 'Annotation is unchanged.\nContinue editing?',
+                        confirm: 'Yes',
+                        cancel: 'No'
+                    };
+                    
                     $scope.getConfirmModify = function() {
                         $scope.confirmingModify = true;
                     };

@@ -102,6 +102,9 @@
             <h5>{{anno.modificationOf ? 'Modified at:' : 'Created at:'}}</h5> {{anno.date | date}}
         </div>-->
         
+        <div data-ng-show="confirmingContinue"
+            confirm-box content="confirmContinueBoxContent" on-confirm="continueEditing()" on-cancel="endEditing()">
+        </div>
         <div data-ng-show="confirmingModify"
             confirm-box content="confirmModifyBoxContent" on-confirm="save(anno)" on-cancel="noModify()">
         </div>

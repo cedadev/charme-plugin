@@ -1039,19 +1039,30 @@ charme.logic.modelEdited = function(annoModel, annoModelPristine) {
         //check item counts
         if((annoModelPristine.comment !== annoModel.comment) ||
             ((annoModelPristine.linkType !== annoModel.linkType) || (annoModelPristine.linkURI !== annoModel.linkURI)) ||
-            (annoModelPristine.domain.length != annoModel.domain.length) ||
-            (annoModelPristine.motivation.length != annoModel.motivation.length) ||
-            (annoModelPristine.targets.length != annoModel.targets.length))
+            (annoModelPristine.domain.length !== annoModel.domain.length) ||
+            (annoModelPristine.motivation.length !== annoModel.motivation.length) ||
+            (annoModelPristine.targets.length !== annoModel.targets.length))
         {
             editedFlag = true;
         }
 
         if(!editedFlag)
         {   //Check if the set of motivations match exactly
+            var modelMotivationValues = [];
+            var pristineMotivationValues = [];
             var len = annoModel.motivation.length;
+            var plen = annoModelPristine.length;
+
+            for(var i = 0; i < len; i++) {
+                modelMotivationValues.push(annoModel.motivation[i].value);
+            }
+            for(var i = 0; i < len; i++) {
+                pristineMotivationValues.push(annoModelPristine.motivation[i].value);
+            }
+            
             for(var i=0; i<len; i++ )
             {
-                if(!charme.logic.isInArray(annoModelPristine.motivation, annoModel.motivation[i]))
+                if(!charme.logic.isInArray(pristineMotivationValues, modelMotivationValues[i]))
                 {
                     editedFlag = true;
                     break;
@@ -1061,10 +1072,21 @@ charme.logic.modelEdited = function(annoModel, annoModelPristine) {
 
         if(!editedFlag)
         {   //Check if the set of domains match exactly
+            var modelDomainValues = [];
+            var pristineDomainValues = [];
             var len = annoModel.domain.length;
+            var plen = annoModelPristine.domain.length;
+            
+            for(var i = 0; i < len; i++) {
+                modelDomainValues.push(annoModel.domain[i].value);
+            }
+            for(var i = 0; i < len; i++) {
+                pristineDomainValues.push(annoModelPristine.domain[i].value);
+            }
+            
             for(var i=0; i<len; i++ )
             {
-                if(!charme.logic.isInArray(annoModelPristine.domain, annoModel.domain[i]))
+                if(!charme.logic.isInArray(pristineDomainValues, modelDomainValues[i]))
                 {
                     editedFlag = true;
                     break;
