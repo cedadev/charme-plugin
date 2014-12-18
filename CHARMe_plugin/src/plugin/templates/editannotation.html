@@ -45,7 +45,7 @@
                 <div class="tab-pane active .fade" id="tab1">
                     <form name="annoForm">
                     <div data-ng-show="anno.id">
-                        {{anno.organizationName}} - {{anno.author}} - Edited at {{anno.date | date:' hh:mm, d/M/yyyy'}}
+                        {{anno.organizationName}} - {{anno.author}} - {{anno.modificationOf ? 'Edited at' : 'Created at'}} {{anno.date | date:' HH:mm, d MMM yyyy'}}
                     </div>
                     
                     <h4>Comments <span title="Free text comments (&le;{{commentMaxLength}} characters) go here; a link may be included below" class="icon-question-sign"></span></h4>

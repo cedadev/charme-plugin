@@ -562,9 +562,9 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                     //Process graph
                     var annoList = graph.getAnnotations();
                     if (annoList.length > 0) {
-                        //var anno = graph.getNode(annoId);
-                        var anno = charme.logic.filterAnnoList(annoList, annoType);
-                        anno = anno[0];
+                        var anno = graph.getNode(annoId);
+                        //var anno = charme.logic.filterAnnoList(annoList, annoType);
+                        //anno = anno[0];
 
                         var motivations = anno.getValues(annoType.MOTIVATED_BY);
                         if (motivations && motivations.length > 0) {
@@ -635,14 +635,20 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 var prefLabel = body.getValue(jsonoa.types.SemanticTag.PREF_LABEL);
                                 $scope.domainTags.push({uri: tagURI, desc: prefLabel});
                             } else {
+                                if(!$scope.linkTypes) {
+                                    $scope.linkTypes = [];
+                                }
                                 //Match the citation type to a text description.
-                                var type = body.getValue(body.TYPE_ATTR_NAME);
+                                var types = body.getValues(body.TYPE_ATTR_NAME);
                                 $scope.link = {};
                                 $scope.link.uri = body.getValue(jsonoa.types.Common.ID);
-                                angular.forEach(targetTypeVocab, function(targetType){
-                                    if (type === targetType.resource){
-                                        $scope.link.linkTypeDesc = targetType.label;
-                                    }
+                                angular.forEach(types, function(type) {
+                                    angular.forEach(targetTypeVocab, function(targetType) {
+                                        if(type === targetType.resource) {
+                                            //$scope.link.linkTypeDesc = targetType.label;
+                                            $scope.linkTypes.push(targetType.label);
+                                        }
+                                    });
                                 });
                             }
                         });
@@ -723,9 +729,9 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 fetchAnnotation(targetHref).then(function(graph) {
                                     var annoList = graph.getAnnotations();
                                     if(annoList.length > 0) {
-                                        //var anno = annoList[0];
-                                        var anno = charme.logic.filterAnnoList(annoList, annoType);
-                                        anno = anno[0];
+                                        var anno = graph.getNode(targetHref);
+                                        //var anno = charme.logic.filterAnnoList(annoList, annoType);
+                                        //anno = anno[0];
                                         var bodies = anno.getValues(annoType.BODY);
                                         var textType = jsonoa.types.Text;
                                         targetComment = '(No comment)';
@@ -734,6 +740,13 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                                targetComment = body.getValue(textType.CONTENT_CHARS);
                                             }
                                         });
+                                   } else {
+                                       // $timeout used to avoid 'apply already in progress' error
+                                       $timeout(function() {
+                                           $scope.$apply(function(){
+                                               $scope.errorMsg='Error: No annotation returned';
+                                           });
+                                       });
                                    }
                                    
                                    targetComment = '"' + charme.logic.shortTargetName(targetComment, charme.common.shortTargetTitle - 2) + '"';
@@ -1178,8 +1191,28 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                                     console.error('Invalid target type defined for ' + key);
                                     $scope.errorMsg = 'Error: Invalid/undefined target type(s). Annotation may not be saved.';
                                 }
+                                
+                                var uri, whereToOpen;
+                                if(selectedTargetDetails.label !== 'Annotation') {
+                                    uri = key;
+                                    whereToOpen = "_blank";
+                                }
+                                else {
+                                    uri = '#/' + encodeURIComponent(encodeURIComponent(charme.common.ALL_TARGETS)) + '/annotation/' 
+                                               + encodeURIComponent(encodeURIComponent(key)) + '/';
+                                    whereToOpen = "_self";
+                                }
 
-                                $scope.anno.targets.push({id: key, name: selectedTargetDetails.name, typeId: typeId, label: selectedTargetDetails.label, desc: selectedTargetDetails.desc, unDeletable: selectedTargetDetails.unDeletable ? true : false});
+                                $scope.anno.targets.push({
+                                    id: key, 
+                                    name: selectedTargetDetails.name, 
+                                    typeId: typeId, 
+                                    label: selectedTargetDetails.label, 
+                                    desc: selectedTargetDetails.desc, 
+                                    unDeletable: selectedTargetDetails.unDeletable ? true : false,
+                                    uri: uri,
+                                    whereToOpen: whereToOpen
+                                });
                             }
                         }
                     }
@@ -1266,7 +1299,9 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                             target.label = target.desc.replace(/ /g, "");
 
                             if(target.label !== 'Annotation') {
-                                target.name = target.id
+                                target.uri = target.id,
+                                target.whereToOpen = "_blank",
+                                target.name = target.id,
                                 targetCount++;
                             }
                             else {
@@ -1275,8 +1310,9 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                                 fetchAnnotation(target.id).then(function(graph) {
                                     var annoList = graph.getAnnotations();
                                     if(annoList.length > 0) {
-                                        var targetAnno = charme.logic.filterAnnoList(annoList, annoType);
-                                        targetAnno = targetAnno[0];
+                                        var targetAnno = graph.getNode(target.id);
+                                        //var targetAnno = charme.logic.filterAnnoList(annoList, annoType);
+                                        //targetAnno = targetAnno[0];
                                         var bodies = targetAnno.getValues(annoType.BODY);
                                         var textType = jsonoa.types.Text;
                                         targetComment = '(No comment)';
@@ -1285,8 +1321,18 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                                                targetComment = body.getValue(textType.CONTENT_CHARS);
                                             }
                                         });
+                                    } else {
+                                        // $timeout used to avoid 'apply already in progress' error
+                                        $timeout(function() {
+                                            $scope.$apply(function(){
+                                                $scope.errorMsg='Error: No annotation returned';
+                                            });
+                                        });
                                     }
 
+                                    target.uri = '#/' + encodeURIComponent(encodeURIComponent(charme.common.ALL_TARGETS)) + '/annotation/' 
+                                                      + encodeURIComponent(encodeURIComponent(target.id)) + '/';
+                                    target.whereToOpen = "_self",
                                     target.name = '"' + charme.logic.shortTargetName(targetComment, charme.common.shortTargetTitle - 2) + '"';
                                     targetCount++;
 
@@ -1476,7 +1522,8 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                         
                         // Don't use location.path with targetId, as targetId may be an annotation that you've just replied to
                         //$location.path(encodeURIComponent(targetId) + '/annotations/');
-                        window.history.back();
+                        $location.path(encodeURIComponent(targetService.listViewTarget) + '/annotations/');
+                        //window.history.back();
                         
                         // Issue the refressch message(s)
                         for(var i = 0; i < annoModel.targets.length; i++) {

@@ -87,25 +87,31 @@
 
         <div data-ng-show="domainTags">
             <br>
-            <h4>Domain<span data-ng-show="multipleDomains">s</span> of interest <span title="Tag(s) describing the subject of the annotation (hover on tags for full description)" 
-                            class="icon-question-sign"></span></h4>
+            <h4>Domain<span data-ng-show="multipleDomains">s</span> of interest 
+                <span title="Tag(s) describing the subject of the annotation (hover on tags for full description)" 
+                      class="icon-question-sign"></span></h4>
             <div>
-                    <span title="{{tag.desc}}" data-ng-repeat="tag in domainTags" class="badge badge-info semanticTag">{{tag.desc | shortDomainLabel}}</span>
+                <span title="{{tag.desc}}" data-ng-repeat="tag in domainTags" class="badge badge-info semanticTag">{{tag.desc | shortDomainLabel}}</span>
             </div>
         </div>
         
 	<div data-ng-show="link">
             <br>
-            <h4>{{link.linkTypeDesc}} <span title="This link is relevant to the dataset/item that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
-            <p><a href="{{link.uri}}" target="_blank">{{link.uri | truncate:100 }}</a></p>
+            <h4>Link <span title="This link is relevant to the target(s) that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
+                <div data-ng-show="linkTypes">
+                    <p><strong>Classified as: &nbsp;</strong>
+                    <span data-ng-repeat="linkType in linkTypes"
+                    class="badge badge-info semanticTag">{{linkType}}</span></p>
+                </div>
+                <a href="{{link.uri}}" target="_blank">{{link.uri | truncate:100 }}</a>
 	</div>    
 	<div data-ng-show="citation">
             <br>
-        <h4>Citation <span
-                title="This link is relevant to the dataset/item that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
-            <div data-ng-show="citation.types"><p><strong>Classified as: &nbsp;</strong><span
-                    data-ng-repeat="citoType in citation.types"
-                    class="badge badge-info semanticTag">{{citoType}}</span></p>
+        <h4>Citation <span title="This link is relevant to the target(s) that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
+            <div data-ng-show="citation.types">
+                <p><strong>Classified as: &nbsp;</strong>
+                <span data-ng-repeat="citoType in citation.types"
+                class="badge badge-info semanticTag">{{citoType}}</span></p>
             </div>
             <div data-ng-show="citation.loading" class="spinner spinner-small">
                 <img src="img/ajaxspinner.gif"/> Fetching bibliographic information...

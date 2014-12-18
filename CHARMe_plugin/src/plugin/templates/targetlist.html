@@ -20,7 +20,7 @@
     </thead>
     <tbody>
     <tr data-ng-repeat="target in filteredTargets = (anno.targets | filter:searchText)">
-        <td><a href="target.uri">{{target.name | truncate: shortTitleLength}}</a></td>
+        <td><a href="{{target.uri}}" target="{{target.whereToOpen}}">{{target.name | truncate: shortTitleLength}}</a></td>
         <!--<td>{{knownTargetTypeLabels[target.typeId] ? knownTargetTypeLabels[target.typeId] : 'Unknown'}}</td>-->
         <td class="target-type-{{knownTargetTypeLabels[target.typeId] ? 'valid' : 'invalid'}}">{{target.desc}}</td>
         <td style="text-align: right;">
