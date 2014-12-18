@@ -53,7 +53,6 @@ charme.logic.constants = {
     CROSSREF_URL : 'http://data.crossref.org/',
     CROSSREF_CRITERIA_ID : 'id',
     NERC_SPARQL_EP : 'http://vocab.nerc.ac.uk/sparql/sparql',
-    //FABIO_URL : 'http://eelst.cs.unibo.it/apps/LODE/source?url=http://purl.org/spar/fabio',
     TARGET_URL : 'localData/target_types.json', // use locally cached file for now
 
     SPARQL_GCMD : 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>			' +
@@ -64,8 +63,6 @@ charme.logic.constants = {
             '	?p skos:prefLabel ?l								' +
             '}											' +
              'ORDER BY ?l									',
-
-    //FABIO_XP_CLASSES : '//owl:Class',
 
     FACET_TYPE_TARGET_TYPE: 'dataType',
     FACET_TYPE_CITING_TYPE: 'citingType',
@@ -143,9 +140,6 @@ charme.logic.urls.authRequest = function() {
 		charme.settings.AUTH_CLIENT_ID + '&response_type=' + 
 		charme.settings.AUTH_RESPONSE_TYPE;
 };
-//charme.logic.urls.fabioTypesRequest = function() {
-//	return charme.logic.constants.FABIO_URL;
-//};
 charme.logic.urls.gcmdVocabRequest = function(sparqlQry) {
 	var url = charme.logic.constants.NERC_SPARQL_EP;
 	url += '?query=' + encodeURIComponent(charme.logic.constants.SPARQL_GCMD);
@@ -239,7 +233,6 @@ charme.logic.regExpEscape = function(s) {
 	return ns[prefix] || null;
 };*/
 
-
 charme.logic.shortAnnoId = function(longformId){
 	var matches = longformId.match(/([^\/]+)\/?$/g);
 	var shortId = longformId;
@@ -283,11 +276,11 @@ charme.logic.validURI = function(uri){
 	var matches = regex.exec(uri);
 	//Did we find a match, and does it match the entire string?
 	if (matches && matches.length > 0 && matches[0].length === uri.length){
-		return true
+		return true;
 	} else {
 		return false;
 	}
-}
+};
 
 /*
  * Functions for fetching data
@@ -466,27 +459,6 @@ charme.logic.fetchMotivationVocab = function() {
     return promise;
 
 };
-
-/*charme.logic.fetchFabioTypes = function() {
-	var promise = new Promise(function(resolver) {
-
-		var fabioTypes = [ {
-			label : 'Technical Report',
-			resource : 'http://purl.org/spar/fabio/TechnicalReport'
-		}, {
-			label : 'Conference Paper',
-			resource : 'http://purl.org/spar/fabio/ConferencePaper'
-		}, {
-			label : 'Journal Article',
-			resource : 'http://purl.org/spar/fabio/JournalArticle'
-		}, {
-			label : 'Dataset',
-			resource : 'http://purl.org/dc/dcmitype/Dataset'
-		} ];
-		resolver.fulfill(fabioTypes);
-	});
-	return promise;
-};*/
 
 /*charme.logic.fetchTargetType = function(targetId) {
     var promise = new Promise(function(resolver) {
@@ -723,22 +695,19 @@ charme.logic.fetchAllSearchFacets = function(criteria){
 	return promise;
 };
 
-charme.logic.shortAnnoTitle = function(anno){
+charme.logic.shortAnnoTitle = function(anno) {
 	var out = '';
 	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
-	angular.forEach(bodies, function(body){
-		if (body.hasType) { // Check is necessary as sometimes the body of a value is simply a string, not a jsonoa object
-			if (body.hasType(jsonoa.types.Text.TEXT) ||
-				body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT)) {
-				out = body.getValue(jsonoa.types.Text.CONTENT_CHARS);
-			} else if (body.hasType(jsonoa.types.CitationAct.TYPE) && out.length === 0) {
-				out = body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
-			}
-		}
+	angular.forEach(bodies, function(body) {
+            if(body.hasType) { // Check is necessary as sometimes the body of a value is simply a string, not a jsonoa object
+                if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT))
+                    out = body.getValue(jsonoa.types.Text.CONTENT_CHARS);
+            }
 	});
-	//if (typeof out === 'undefined'){
-	//	return 'No title.';
-	//}
+        
+        //if(out.length === 0 && anno.hasType(jsonoa.types.CitationAct.TYPE))
+        //    out = anno.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
+        
 	return out;
 };
 
@@ -834,7 +803,7 @@ charme.logic.searchAnnotations = function(criteria) {
 };
 
 // Flags the annotation for review by moderator
-charme.logic.flagAnnotation = function(annotationId, username) {
+charme.logic.flagAnnotation = function(annotationId, token) {
     var shortId = charme.logic.shortAnnoId(annotationId);
     
     var url = charme.logic.urls.flagRequest(shortId);
@@ -843,7 +812,7 @@ charme.logic.flagAnnotation = function(annotationId, username) {
             dataType: 'xml',
             type: 'POST',
             headers : {
-                //'Username': username
+                'Authorization': ' Bearer ' + token
             },
             contentType: 'application/json'
         }).then(function(result){
@@ -1131,5 +1100,5 @@ charme.logic.modelEdited = function(annoModel, annoModelPristine) {
 charme.logic.isInArray = function(array, searchTerm)
 {
     return (array.indexOf(searchTerm) >= 0) ? true : false;
-}
+};
 

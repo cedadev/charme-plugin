@@ -48,7 +48,7 @@
         </div>
         <div data-ng-show="editAnnotationFlag && modifying">
             <button class="btn btn-primary" 
-                    data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length == 0 || processing || confirmingContinue || confirmingModify" 
+                    data-ng-disabled="annoForm.$invalid || loading || errorMsg || anno.targets.length === 0 || processing || confirmingContinue || confirmingModify" 
                     data-ng-click="checkIsEdited(anno);">Save</button>
             <button class="btn" data-ng-disabled="loading || processing || confirmingContinue || confirmingModify" 
                     data-ng-click="cancel()">Cancel</button>

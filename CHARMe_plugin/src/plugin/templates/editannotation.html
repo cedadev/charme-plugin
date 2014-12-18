@@ -71,7 +71,7 @@
 
                     <div class="row-fluid">
                         <div class="span3">
-                            <select class="input-large" data-ng-model="anno.linkType"
+                            <select class="input-block-level" data-ng-model="anno.linkType"
                                     title="Please select a link subtype"
                                     data-ng-options="type.value as type.text for type in citoTypes"
                                     data-ng-required="anno.linkType"
@@ -81,7 +81,8 @@
                         </div>
                         <div class="span1"></div>
                         <div class="span7" data-ng-show="anno.linkType">
-                            <div data-ng-class="{'control-group error': (annoForm.annoURI.$invalid) || (anno.linkType && !anno.linkURI), 'control-group success': citoText}">
+                            <div data-ng-class="{'control-group error': (annoForm.annoURI.$invalid) || (anno.linkType && !anno.linkURI) || !citoText, 
+                                                 'control-group success': citoText && !annoForm.annoURI.$invalid}">
                                 <input name="annoURI" data-ng-model="anno.linkURI" type="text"
                                        class="input-block-level"
                                        title="Please enter a URI. Use DOI where available."
@@ -89,7 +90,7 @@
                                        data-ng-required="anno.linkType" data-validated-uri>
                             </div>
                         </div>
-                        <div class="span1" data-ng-show="citoText">
+                        <div class="span1" data-ng-show="citoText && !annoForm.annoURI.$invalid">
                             <span class="icon-tag" title="{{citoText}}"></span>
                         </div>
                     </div>

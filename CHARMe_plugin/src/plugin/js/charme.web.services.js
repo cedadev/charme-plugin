@@ -265,6 +265,13 @@ charme.web.services.factory('annotationService', function(){
 		if (typeof modificationOf !== 'undefined'){
 			anno.modificationOf = modificationOf.getValue(jsonoa.types.Common.ID);
 		}
+                
+                if(annoGraphNode.hasType(jsonoa.types.CitationAct.TYPE)) {
+                    var linkURI = annoGraphNode.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
+                    // Trim off 'http://dx.doi.org/' from URL, then insert 'doi' so that URL still passes validity test
+                    anno.linkURI = 'doi:' + linkURI.substring(charme.logic.constants.DXDOI_URL.length, linkURI.length);
+                    anno.linkType = annoGraphNode.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.TYPE);
+                }
 
 		angular.forEach(bodies, function(body){
 			if (body.hasType) {
@@ -275,16 +282,6 @@ charme.web.services.factory('annotationService', function(){
 					anno.domain.push({
 						value: body.getValue(jsonoa.types.Common.ID)
 					});
-				} else if (body.hasType(jsonoa.types.CitationAct.TYPE)) {
-					/**
-					 * If the body is a citation act, the URI will start with dx.doi.org... Trim it off.
-					 */
-					var linkURI = body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
-					var doiTxt = linkURI.substring(charme.logic.constants.DXDOI_URL.length,
-						linkURI.length);
-					anno.linkURI = doiTxt;
-					anno.linkType =
-						body.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.TYPE);
 				} else {
 					anno.linkURI = body.getValue(jsonoa.types.Common.ID);
 					anno.linkType = body.getValue(jsonoa.types.Common.TYPE);
@@ -698,20 +695,6 @@ charme.web.services.factory('fetchAllMotivations', function(){
     };
 });
 
-
-/*charme.web.services.factory('fetchFabioTypes', function(){
-	return function(annoModel, targetId){	
-		var promise = new Promise(function(resolver){
-			charme.logic.fetchFabioTypes().then(function(types){
-				resolver.fulfill(types);
-			});
-		}, function(error){
-			resolver.reject(error);
-		});
-		return promise;
-	};
-});*/
-
 /*charme.web.services.factory('fetchTargetType', function() {
     return function(targetId) {
         return charme.logic.fetchTargetType(targetId);
@@ -828,5 +811,5 @@ charme.web.services.factory('replyToAnnoService', function() {
 charme.web.services.factory('fetchReplies', function() {
     return function(targetList) {
         return charme.logic.fetchReplies(targetList);
-    }
+    };
 });

@@ -576,6 +576,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         angular.forEach(motivations, function (motivation){
                             var motivURI =  motivation.getValue(motivation.ID);
                             $scope.motivationTags.push({uri: motivURI, desc: motivation_keywords[motivURI]});
+                            $scope.motivationTags.sort(function(a, b) {return a.desc.localeCompare(b.desc);});
                         });
 
                         //Retrieve citations if present
@@ -597,9 +598,10 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                         if (!$scope.citation.types){
                                             $scope.citation.types = [];
                                         }
-                                        $scope.citation.types.push(fType.label);
+                                        $scope.citation.types.push(fType.label);  
                                     }
                                 });
+                                $scope.citation.types.sort(function(a, b) {return a.localeCompare(b);});
 
                                 //Trim the 'doi:' from the front
                                 var doiTxt = citoURI.substring(charme.logic.constants.DXDOI_URL.length, citoURI.length);
@@ -612,7 +614,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     });
                                 }, function(error){
                                     $scope.$apply(function(){
-                                        $scope.citation.text = citoURI;
+                                        //$scope.citation.text = citoURI;
                                         $scope.citation.error='Error: Could not fetch citation metadata';
                                         $scope.citation.loading=false;
                                     });
@@ -625,7 +627,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         var bodies = anno.getValues(annoType.BODY);
                         //Create local alias to avoid having to use fully qualified name everywhere
                         var textType = jsonoa.types.Text;
-                        var citoSpec = jsonoa.types.CitationAct;
+                        //var citoSpec = jsonoa.types.CitationAct;
                         angular.forEach(bodies, function(body){
                             if (body.hasType(textType.TEXT) || body.hasType(textType.CONTENT_AS_TEXT)){
                                 $scope.comment = body.getValue(textType.CONTENT_CHARS);
@@ -637,6 +639,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                 var tagURI = body.getValue(jsonoa.types.Common.ID);
                                 var prefLabel = body.getValue(jsonoa.types.SemanticTag.PREF_LABEL);
                                 $scope.domainTags.push({uri: tagURI, desc: prefLabel});
+                                $scope.domainTags.sort(function(a, b) {return a.desc.localeCompare(b.desc);});
                             } else {
                                 if(!$scope.linkTypes) {
                                     $scope.linkTypes = [];
@@ -653,6 +656,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                         }
                                     });
                                 });
+                                $scope.linkTypes.sort(function(a, b) {return a.localeCompare(b);});
                             }
                         });
 
@@ -810,7 +814,7 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     $scope.confirmingFlagAnno = false;
                                     $rootScope.$broadcast('yesornoFlagAnno');
                                     
-                                    flagAnnotation(annoId, $scope.userName).then(function() {
+                                    flagAnnotation(annoId, auth.token).then(function() {
                                         $scope.processing = false;
                                     }, function(error) {
                                         $scope.$apply(function() {
@@ -1262,7 +1266,7 @@ charme.web.controllers.controller('EditAnnotationCtrl', ['$rootScope', '$scope',
                         //validTargetTypeLabels[label] = '';
                         citoTypeOptions.push({text: types[i].label, value: types[i].resource});
                 }
-                $scope.citoTypes = citoTypeOptions;
+                $scope.citoTypes = citoTypeOptions.sort(function(a, b) {return a.text.localeCompare(b.text);});
 
                 /*var numTargets = 0;
                 for(var target in $scope.targetList) {
