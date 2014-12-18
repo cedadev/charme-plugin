@@ -533,14 +533,14 @@ charme.web.services.factory('saveAnnotation', function () {
                      * Check if the annotation model already has a 'linking' type defined (selected manually by user, or on existing annotation. If it does not, add it.
                      */
                     var linkingType = "http://www.w3.org/ns/oa#linking";
-                    var match = false;
+                    var matchLink = false;
                     //Automatically add the "Linking" Motivation
                     angular.forEach(annoModel.motivation, function (existingMotivation) {
                         if (existingMotivation.value === linkingType) {
-                            match = true;
+                            matchLink = true;
                         }
                     });
-                    if (!match) {
+                    if (!matchLink) {
                         //Add it to the model, will be picked up later and added to annotation graph.
                         annoModel.motivation.push({value: linkingType});
                     }
@@ -557,14 +557,14 @@ charme.web.services.factory('saveAnnotation', function () {
                 });
 
                 var taggingType = "http://www.w3.org/ns/oa#tagging";
-                var match = false;
+                var matchTag = false;
                 //Automatically add the "tagging" Motivation
                 angular.forEach(annoModel.motivation, function (existingMotivation) {
-                    if (existingMotivation.value === linkingType) {
-                        match = true;
+                    if (existingMotivation.value === taggingType) {
+                        matchTag = true;
                     }
                 });
-                if (!match) {
+                if (!matchTag) {
                     //Add it to the model, will be picked up later and added to annotation graph.
                     annoModel.motivation.push({value: taggingType});
                 }
