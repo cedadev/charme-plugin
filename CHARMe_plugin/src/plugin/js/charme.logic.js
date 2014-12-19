@@ -702,11 +702,13 @@ charme.logic.shortAnnoTitle = function(anno) {
             if(body.hasType) { // Check is necessary as sometimes the body of a value is simply a string, not a jsonoa object
                 if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT))
                     out = body.getValue(jsonoa.types.Text.CONTENT_CHARS);
+                else if(out.length === 0 && !body.hasType(jsonoa.types.SemanticTag.TYPE))
+                    out = body.getValue(jsonoa.types.Common.ID);
             }
 	});
         
-        //if(out.length === 0 && anno.hasType(jsonoa.types.CitationAct.TYPE))
-        //    out = anno.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
+        if(out.length === 0 && anno.hasType(jsonoa.types.CitationAct.TYPE))
+            out = anno.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
         
 	return out;
 };
@@ -770,7 +772,8 @@ charme.logic.searchAnnotations = function(criteria) {
             var graph = new jsonoa.core.Graph();
             graph.load(graphSrc, false).then(function(graph) {
                 var annoList = graph.getAnnotations();
-                annoList = charme.logic.filterAnnoList(annoList, jsonoa.types.Annotation);
+                if(criteria.targetIsAnno)
+                    annoList = charme.logic.filterAnnoList(annoList, jsonoa.types.Annotation);
 
                 var newResult = [];
                 $.each(annoList, function(index, anno) {
@@ -804,17 +807,23 @@ charme.logic.searchAnnotations = function(criteria) {
 
 // Flags the annotation for review by moderator
 charme.logic.flagAnnotation = function(annotationId, token) {
+    // Until this feature is supported by the node...
+    return new Promise(function(resolver) {
+        alert('Flag annotation as inappropriate (for review by moderator): this functionality is due to be enabled in January 2015');
+        resolver.fulfill();
+    });
+
     var shortId = charme.logic.shortAnnoId(annotationId);
     
     var url = charme.logic.urls.flagRequest(shortId);
     return new Promise(function(resolver) {
         $.ajax(url, {
             dataType: 'xml',
-            type: 'POST',
+            type: 'PUT',
             headers : {
                 'Authorization': ' Bearer ' + token
             },
-            contentType: 'application/json'
+            contentType: 'text/html'
         }).then(function(result){
                 resolver.fulfill(result);
             },

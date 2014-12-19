@@ -69,9 +69,9 @@
                     data-ng-click="confirmingFlagAnno=true; getConfirmFlagAnno()">Flag</button>
             <button class="btn" data-ng-show="loggedIn" title="Reply to this annotation" data-ng-disabled="confirmingDelete || confirmingFlagAnno || processing" 
                     data-ng-click="replyToAnno()">Reply</button>
-            <button class="btn" title="Modify this annotation" data-ng-show="modifyAnnotationFlag" data-ng-disabled="confirmingDelete || confirmingFlagAnno || processing"
+            <button class="btn" title="Modify this annotation" data-ng-show="modifyAnnotationFlag || isModerator" data-ng-disabled="confirmingDelete || confirmingFlagAnno || processing"
                     data-ng-click="modify()">Modify</button>
-            <button class="btn btn-danger" title="Delete this annotation" data-ng-show="creatorOfAnnotationFlag" data-ng-disabled="confirmingDelete || confirmingFlagAnno || processing" 
+            <button class="btn btn-danger" title="Delete this annotation" data-ng-show="creatorOfAnnotationFlag || isModerator" data-ng-disabled="confirmingDelete || confirmingFlagAnno || processing" 
                     data-ng-click="confirmingDelete=true; getConfirmDelete()">Delete</button>
             <button class="btn" title="Return to annotation list page" data-ng-disabled="confirmingDelete || confirmingFlagAnno || processing"
                     data-ng-click="returnToList()">Return</button>

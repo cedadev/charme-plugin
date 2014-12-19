@@ -745,7 +745,7 @@ charme.plugin.loadPlugin = function () {
     plugin.style.paddingTop = '50px';
     plugin.style.paddingLeft = '25px';
     plugin.style.paddingRight = '25px';
-    
+
     if(top.window.innerWidth <= charme.common.SMALL_WINDOW)
         plugin.style.width = plugin.style.minWidth = charme.common.SMALL_WIDTH + 'px';
     else if(top.window.innerWidth >= charme.common.LARGE_WINDOW)
@@ -757,7 +757,7 @@ charme.plugin.loadPlugin = function () {
 /**
  * A callback function used for hiding the plugin. Because the iFrame that the plugin is held in is created outside of the plugin itself (within the scope of the hosted environment), it must also be hidden from this scope. Using a callback avoids the plugin having to know anything about its hosted environment.
  */
-charme.plugin.closeFunc = function (isOneTarget, targetId) { //targetId) {
+charme.plugin.closeFunc = function (isOneTarget, targetId) {
 	var plugin = document.getElementById('charme-plugin-frame');
 	plugin.contentWindow.location.href = 'about:blank';
         charme.plugin.maximiseFunc(); // In case GUI was closed while minimised
@@ -769,6 +769,7 @@ charme.plugin.closeFunc = function (isOneTarget, targetId) { //targetId) {
         }
 
         charme.plugin.isOpenFlag = false;
+        sessionStorage.isOpenFlag = 'no';
 };
 
 charme.plugin.minimiseFunc = function(topOffset) {
@@ -838,13 +839,13 @@ charme.plugin.stopBubble = function(e){
  */
 charme.plugin.showPlugin = function (e) {
         charme.plugin.stopBubble(e);
-        
+
         if(charme.plugin.isOpenFlag)
-            return;        
-    
+            return;
+
 	var plugin = document.getElementById('charme-plugin-frame');
 	charme.common.addEvent(plugin, 'load', charme.plugin.loadFunc);
-
+        
         //charme.plugin.stopBubble(e);
 	var targetHref = '', targetType = '';
 	if (typeof e.target === 'undefined') {
@@ -890,6 +891,7 @@ charme.plugin.showPlugin = function (e) {
             encodeURIComponent(encodeURIComponent(targetHref)) + '/init';
         
         charme.plugin.isOpenFlag = true;
+        sessionStorage.isOpenFlag = 'yes';
 
     ////charme.plugin.populateTargetList();
     //charme.plugin.setAsSelected(targetHref, targetType);
@@ -902,6 +904,14 @@ charme.plugin.showPlugin = function (e) {
 
 var scriptPath;
 charme.plugin.preInit = function () {
+    // If user opens plugin, then visits another page without closing plugin, then returns to page, the 
+    // plugin window will have disappeared, and clicking the CHARMe icons will not bring it back, so we must 
+    // force the page to reload. If the plugin was closed, no reload is necessary upon returning to the page.
+    if(sessionStorage.isOpenFlag === 'yes') {
+        sessionStorage.isOpenFlag = 'no';
+        location.reload();
+    }
+    
 	/**
 	 * This is duplicated (unfortunately) from charme.common.js. The code below should not be used anywhere else.
 	 */

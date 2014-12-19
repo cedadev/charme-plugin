@@ -24,7 +24,7 @@
 
 <div data-ng-include="'templates/header.html'"></div>
 <div class="modal-body modal-body-new">
-    <div data-ng-show="processing" class="ajaxModal">
+    <div data-ng-show="processing && !errorMsg" class="ajaxModal">
         <div class="modalProgress spinner">
             <img src="img/ajaxspinner.gif"/>
         </div>
@@ -81,7 +81,7 @@
                         </div>
                         <div class="span1"></div>
                         <div class="span7" data-ng-show="anno.linkType">
-                            <div data-ng-class="{'control-group error': (annoForm.annoURI.$invalid) || (anno.linkType && !anno.linkURI) || !citoText, 
+                            <div data-ng-class="{'control-group error': (annoForm.annoURI.$invalid) || (anno.linkType && !anno.linkURI) || (isCitation && !citoText), 
                                                  'control-group success': citoText && !annoForm.annoURI.$invalid}">
                                 <input name="annoURI" data-ng-model="anno.linkURI" type="text"
                                        class="input-block-level"

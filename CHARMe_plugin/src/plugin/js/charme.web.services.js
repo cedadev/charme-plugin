@@ -279,9 +279,7 @@ charme.web.services.factory('annotationService', function(){
 					anno.comment = body.getValue(textSpec.CONTENT_CHARS);
 					anno.commentId = body.getValue(jsonoa.types.Common.ID);
 				} else if (body.hasType(jsonoa.types.SemanticTag.TYPE)) {
-					anno.domain.push({
-						value: body.getValue(jsonoa.types.Common.ID)
-					});
+					anno.domain.push({value: body.getValue(jsonoa.types.Common.ID)});
 				} else {
 					anno.linkURI = body.getValue(jsonoa.types.Common.ID);
 					anno.linkType = body.getValue(jsonoa.types.Common.TYPE);

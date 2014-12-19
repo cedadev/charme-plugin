@@ -24,7 +24,7 @@
 
 <div data-ng-include="'templates/header.html'"></div>
 <div class="modal-body modal-body-view">
-    <div data-ng-show="processing" class="ajaxModal">
+    <div data-ng-show="processing && !errorMsg" class="ajaxModal">
         <div class="modalProgress spinner">
             <img src="img/ajaxspinner.gif"/>
         </div>
@@ -49,10 +49,7 @@
                     </div>
                 </form>
                 <table class="table">
-                    <thead>
-                        <th>Target</th>
-                        <th>Type</th>
-                    </thead>
+                    <thead><tr><td>Target</td><td>Type</td></tr></thead>
                     <tbody>
                     <tr data-ng-repeat="target in (filteredTargets = (targetList | filter:searchText))">
                         <td><a href="{{target.uri}}" target="{{target.whereToOpen}}">{{target.name | truncate: shortTitleLength}}</a></td>
@@ -172,10 +169,6 @@
     </div>
     </div>
     <br />
-    <!--<div class="modifications">
-        <h5>{{modificationOf ? 'Modified by:' : 'Created by:'}}</h5> {{author}} &nbsp;
-        <h5>{{modificationOf ? 'Modified at:' : 'Created at:'}}</h5> {{annoDate | date}}
-    </div>-->
 </div>
 </div>
 <div data-ng-include="'templates/footer.html'"></div>

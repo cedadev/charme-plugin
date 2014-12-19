@@ -7,22 +7,24 @@
 
 <table class="table">
     <thead>
-    <th>Target</th>
-    <th>Type</th>
-    <th class="pull-right">
-        <button class="btn btn-danger btn-small" 
-                data-ng-click="deleteTarget(filteredTargets); searchText=''">Delete all{{searchText ? ' Matches' : ''}}
-        </button>&nbsp;
-        <a data-ng-click="addSelected()" class="btn btn-default btn-small" 
-           title="Targets can be added by minimising/moving this window and selecting them by clicking on the corresponding checkboxes. Clicking on this button will then add them to the annotation.">
-           <i class="icon icon-plus"></i>&nbsp; Add selected targets</a>
-    </th>
+        <tr>
+            <td>Target</td>
+            <td>Type</td>
+            <td class="pull-right">
+                <button class="btn btn-danger btn-small" 
+                        data-ng-click="deleteTarget(filteredTargets); searchText=''">Delete all{{searchText ? ' Matches' : ''}}
+                </button>&nbsp;
+                <a data-ng-click="addSelected()" class="btn btn-default btn-small" 
+                   title="Targets can be added by minimising/moving this window and selecting them by clicking on the corresponding checkboxes. Clicking on this button will then add them to the annotation.">
+                   <i class="icon icon-plus"></i>&nbsp; Add selected targets</a>
+            </td>
+        </tr>
     </thead>
     <tbody>
     <tr data-ng-repeat="target in filteredTargets = (anno.targets | filter:searchText)">
         <td><a href="{{target.uri}}" target="{{target.whereToOpen}}">{{target.name | truncate: shortTitleLength}}</a></td>
         <!--<td>{{knownTargetTypeLabels[target.typeId] ? knownTargetTypeLabels[target.typeId] : 'Unknown'}}</td>-->
-        <td class="target-type-{{knownTargetTypeLabels[target.typeId] ? 'valid' : 'invalid'}}">{{target.desc}}</td>
+        <td class="target-type-{{target.validity}}">{{target.desc}}</td>
         <td style="text-align: right;">
             <button class="btn btn-danger btn-mini" data-ng-disabled="target.unDeletable" data-ng-click="deleteTarget(target)">Delete</button>
         </td>
