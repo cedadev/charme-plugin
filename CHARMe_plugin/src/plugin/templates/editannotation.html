@@ -51,8 +51,10 @@
                     <h4>Comments <span title="Free text comments (&le;{{commentMaxLength}} characters) go here; a link may be included below" class="icon-question-sign"></span></h4>
                     <textarea data-ng-model="anno.comment" maxlength="{{commentMaxLength}}" rows="3"></textarea>
 
-                    <h4>Motivation <span title="Select tag(s) describing the motivation of this annotation"
-                                         class="icon-question-sign"></span></h4>
+                    <h4>Motivation <a title="Select tag(s) describing the motivation of this annotation &mdash; for more information on how motivations are used and defined, see http://www.openannotation.org/spec/core/core.html#Motivations (click on this help icon)"
+                                      href="http://www.openannotation.org/spec/core/core.html#Motivations"
+                                      target="_blank"
+                                      class="icon-question-sign"></a></h4>
                     <select data-motivations-to-show="motivationCategoriesForNewAnno" multiple
                             data-ng-model="anno.motivation" data-motivation-keywords
                             placeholder="Select motivations...">
@@ -60,13 +62,13 @@
 
                     <h4>Domain classification <span title="Select tag(s) describing the subject of this annotation"
                                                     class="icon-question-sign"></span></h4>
-                    <select data-keywords-to-show="domainCategoriesForNewAnno"  multiple
+                    <select data-keywords-to-show="domainCategoriesForNewAnno" multiple
                             data-ng-model="anno.domain" data-domain-keywords
                             placeholder="Select tags...">
                     </select>
 
                     <h4>Link <span
-                            title="Select type of reference (e.g. journal article) you wish to link to - a textbox will then open for the address"
+                            title="Select type of reference (e.g. journal article) you wish to link to &mdash; a textbox will then open for the address"
                             class="icon-question-sign"></span></h4>
 
                     <div class="row-fluid">

@@ -32,7 +32,8 @@
                     placeholder=" Select tags...">
             </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving targetTypeCategoriesForSearch -->
             <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by type of the annotation’s target"></span>
+                  title="Search by type of the annotation’s target (e.g. 'Dataset', 'Metadata Document').
+Only those types that apply to the annotations listed (on the right) are presented here as available search terms."></span>
         </div>
     </div>
     <div class="control-group">
@@ -44,7 +45,8 @@
                     placeholder=" Select tags...">
             </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving citingTypeCategoriesForSearch -->
             <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by type of the annotation’s body"></span>
+                  title="Search by type of the resource that the annotation links to (e.g. 'Journal article', 'Technical Report').
+Only those types that apply to the annotations listed (on the right) are presented here as available search terms."></span>
         </div>
     </div>
     <div class="control-group">
@@ -55,8 +57,12 @@
                     data-ng-model="criteria.selectedDomains" 
                     placeholder=" Select tags...">
             </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving domainCategoriesForSearch -->
-            <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by tagged domains of interest"></span>
+            <a class="span1 search-question-icon icon-question-sign"
+               href="http://gcmdservices.gsfc.nasa.gov/static/kms/sciencekeywords/sciencekeywords.csv"
+               target="_blank"
+               title='Search by domain of interest: one or more semantic tags describing the subject of the annotation, from the GCMD "Earth Science" vocabulary. This is a subset of the GCMD science keywords list, which is available at http://gcmdservices.gsfc.nasa.gov/static/kms/sciencekeywords/sciencekeywords.csv (click on this help icon).
+Only those tags that apply to the annotations listed (on the right) are presented here as available search terms.'>
+            </a>
         </div>
     </div>
     <div class="control-group">
@@ -67,8 +73,12 @@
                     data-ng-model="criteria.selectedMotivations"
                     placeholder=" Select tags...">
             </select>  <!-- 'multiple' property is inserted into the select tag by the directive, upon receiving motivationCategoriesForSearch -->
-            <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by tagged motivations"></span>
+            <a class="span1 search-question-icon icon-question-sign"
+               href="http://www.openannotation.org/spec/core/core.html#Motivations"
+               target="_blank"
+               title="Search by motivation: one or more labels indicating why the annotation was made. For more information on how motivations are used and defined, see http://www.openannotation.org/spec/core/core.html#Motivations (click on this help icon).
+Only those motivations that apply to the annotations listed (on the right) are presented here as available search terms.">
+            </a>
         </div>
     </div>
     <div class="control-group">
@@ -80,7 +90,8 @@
                 <option value="">Select data provider...</option>
             </select>
             <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by data provider"></span>
+                  title="Search by data provider (you may also simply click on an organisation's name wherever it appears).
+Only those organisations that apply to the annotations listed (on the right) are presented here as available search terms."></span>
         </div>
     </div>
     <div class="control-group">
@@ -88,7 +99,7 @@
         <div class="controls controls-row">
             <input id="chooseCreator" data-ng-model="criteria.selectedCreator" class="span5 creator" type="text" placeholder=" Enter author's username..."/>
             <span class="span1 search-question-icon icon-question-sign"
-                  title="Search by author's username"></span>
+                  title="Search by author's username (you may also simply click on an author's name wherever it appears)."></span>
         </div>
     </div>
 

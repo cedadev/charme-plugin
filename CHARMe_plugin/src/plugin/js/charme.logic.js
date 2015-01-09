@@ -70,7 +70,7 @@ charme.logic.constants = {
     FACET_TYPE_MOTIVATION: 'motivation',
     FACET_TYPE_DOMAIN: 'domainOfInterest',
     FACET_TYPE_ORGANIZATION: 'organization',
-    STATE_DELETE: 'retired',
+    //STATE_DELETE: 'retired',
         
     NUM_PAGE_BUTTONS: 15 // Odd number
 };
@@ -92,7 +92,7 @@ charme.logic.urls.createRequest = function() {
 	return charme.logic.urls._baseURL() + 'insert/annotation';
 };
 charme.logic.urls.flagRequest = function(annoID) {
-	return charme.logic.urls._baseURL() + annoID + '/reporttomoderator/';
+	return charme.logic.urls._baseURL() + 'resource/' + annoID + '/reporttomoderator/';
 };
 charme.logic.urls.updateRequest = function() {
 	return charme.logic.urls._baseURL() + 'modify/annotation';
@@ -807,12 +807,6 @@ charme.logic.searchAnnotations = function(criteria) {
 
 // Flags the annotation for review by moderator
 charme.logic.flagAnnotation = function(annotationId, token) {
-    // Until this feature is supported by the node...
-    return new Promise(function(resolver) {
-        alert('Flag annotation as inappropriate (for review by moderator): this functionality is due to be enabled in January 2015');
-        resolver.fulfill();
-    });
-
     var shortId = charme.logic.shortAnnoId(annotationId);
     
     var url = charme.logic.urls.flagRequest(shortId);
@@ -820,10 +814,15 @@ charme.logic.flagAnnotation = function(annotationId, token) {
         $.ajax(url, {
             dataType: 'xml',
             type: 'PUT',
-            headers : {
+            headers: {
                 'Authorization': ' Bearer ' + token
             },
-            contentType: 'text/html'
+            contentType: 'text/html',
+            data: ''//No message (flagged via the CHARMe Plugin)'
+                    // If this string is non-empty, the email to moderator will include an extra line, 'The following reason was 
+                    // given:', followed by the string. We could potentially provide an input field to allow the user to give a reason, 
+                    // but this shouldn't be necessary as if an annotation is inappropriate the reason should usually be obvious, and 
+                    // also the email includes the user's email address in case the moderator does need clarification
         }).then(function(result){
                 resolver.fulfill(result);
             },
@@ -852,7 +851,6 @@ charme.logic.deleteAnnotation=function(annotationId, token){
                 'Authorization' : ' Bearer ' + token
             },
             contentType: 'application/json'
-            //data: JSON.stringify({annotation: annotationId, toState: newState})
         }).then(function(result){
                 resolver.fulfill(result);
             },

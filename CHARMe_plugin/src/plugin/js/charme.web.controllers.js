@@ -675,9 +675,16 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         });
                         
                         // Annotation moderation
-                        //if($scope.loggedIn && auth && $scope.organizationName === auth.user.moderator_of) {
-                        //    $scope.isModerator = true;
-                        //}
+                        if($scope.loggedIn && auth) {
+                            var adminOrgs = auth.user.admin_for.split(",");
+                            // auth.user.admin_for is either an empty string or a comma-separated list
+                            
+                            for(var i = 0; i < adminOrgs.length; i++) {
+                                if($scope.organizationName === adminOrgs[i]) {
+                                    $scope.isModerator = true;
+                                }
+                            }
+                        }
 
                         var modificationOf = anno.getValue(annoType.WAS_REVISION_OF);
                         if (typeof modificationOf !== 'undefined'){
@@ -789,47 +796,54 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                         });
                         
                         // Replying to annotation
-                        $scope.replyToAnno = function() {
-                            $location.path(encodeURIComponent(annoId) + '/annotations/new/');
-                            replyToAnnoService.replying = true;
-                            replyToAnnoService.comments = $scope.comment;
-                        };
+                        if($scope.loggedIn) {
+                            $scope.replyToAnno = function() {
+                                $location.path(encodeURIComponent(annoId) + '/annotations/new/');
+                                replyToAnnoService.replying = true;
+                                replyToAnnoService.comments = $scope.comment;
+                            };
+                        }
+
+                        // Flagging annotation
+                        if($scope.loggedIn) {
+                            $scope.getConfirmFlagAnno = function() {
+                                $scope.confirmingFlagAnno = true;
+                            };
+                            $scope.noFlagAnno = function() {
+                                $scope.confirmingFlagAnno = false;
+                                $rootScope.$broadcast('yesornoFlagAnno');
+                            };
+                            $scope.confirmFlagAnnoBoxContent = {
+                                message: 'Flag this annotation?\nAn email will be sent to the moderator at ' + $scope.organizationName + '.',
+                                confirm: 'Yes',
+                                cancel: 'No'
+                            };
+                            $scope.flagAnnotation = function() {
+                                $scope.confirmingFlagAnno = false;
+                                $scope.processing = true;
+                                $rootScope.$broadcast('yesornoFlagAnno');
+                                $('.ajaxModal').height($('.modal-body-view')[0].scrollHeight);
+                                $('.popover-visible').css('z-index', '0');
+
+                                flagAnnotation(annoId, auth.token).then(function() {
+                                    $scope.processing = false;
+                                }, function(error) {
+                                    $scope.$apply(function() {
+                                        $scope.processing = false;
+                                        $scope.errorMsg = 'Unable to flag annotation. Please try again.';
+                                    });
+                                });
+                            };
+                        }
 
                         /*
-                         Annotation modification, flagging and deletion.
+                         Annotation modification and deletion.
                          */
                         if($scope.loggedIn && auth && ($scope.userName === auth.user.username || $scope.isModerator)) {
                                 $scope.creatorOfAnnotationFlag = true;
                                 $scope.modifyAnnotationFlag = true;
                                 $scope.modify = function () {
                                         $location.path('/' + encodeURIComponent(targetId) + '/annotations/' + encodeURIComponent(annoId) + '/edit/');
-                                };
-                                
-                                $scope.getConfirmFlagAnno = function() {
-                                    $scope.confirmingFlagAnno = true;
-                                };
-                                $scope.noFlagAnno = function() {
-                                    $scope.confirmingFlagAnno = false;
-                                    $rootScope.$broadcast('yesornoFlagAnno');
-                                };
-                                $scope.confirmFlagAnnoBoxContent = {
-                                    message: 'Flag this annotation?\nAn email will be sent to the moderator at ' + $scope.organizationName + '.',
-                                    confirm: 'Yes',
-                                    cancel: 'No'
-                                };
-                                $scope.flagAnnotation = function() {
-                                    $scope.processing=true;
-                                    $scope.confirmingFlagAnno = false;
-                                    $rootScope.$broadcast('yesornoFlagAnno');
-                                    
-                                    flagAnnotation(annoId, auth.token).then(function() {
-                                        $scope.processing = false;
-                                    }, function(error) {
-                                        $scope.$apply(function() {
-                                            $scope.processing = false;
-                                            $scope.errorMsg = 'Unable to flag annotation. Please try again.';
-                                        });
-                                    });
                                 };
 
                                 $scope.getConfirmDelete = function() {
@@ -844,7 +858,6 @@ charme.web.controllers.controller('ViewAnnotationCtrl', ['$rootScope', '$scope',
                                     confirm: 'Yes',
                                     cancel: 'No'
                                 };
-
                                 $scope.deleteAnnotation = function () {
                                     $scope.confirmingDelete = false;
                                     $scope.processing=true;
@@ -1976,7 +1989,7 @@ charme.web.controllers.controller('SearchCtrl', ['$rootScope', '$scope', '$route
             $('#searchContainer').removeClass('search-overflow-y');
         };
         $scope.yOverflow = function() {
-            $('#searchContainer').addClass('search-overflow-y');
+            setTimeout(function() {$('#searchContainer').addClass('search-overflow-y');}, 0);
         };
 
         selectizeMixins.addToOnFocus('chooseDomainDiv', $scope.xOverflow);
