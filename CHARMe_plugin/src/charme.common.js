@@ -58,8 +58,12 @@ charme.common.LARGE_WIDTH = 1368;
 // Dummy URL for when we view annotations for all targets
 charme.common.ALL_TARGETS = 'http://alltargets/';
 
-// Length of target title in targets tab (viewAnno, editAnno)
+// Length of target title in listView and targets tab (viewAnno, editAnno)
 charme.common.shortTargetTitle = 75;
+charme.common.longTargetTitle = 150;
+
+// Length of link URI in viewAnno
+charme.common.linkLength = 150;
 
 // Max length of comment line when viewing annotation
 charme.common.maxCommentLineLength = 146;

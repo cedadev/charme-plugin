@@ -52,7 +52,9 @@
                     <thead><tr><td>Target</td><td>Type</td></tr></thead>
                     <tbody>
                     <tr data-ng-repeat="target in (filteredTargets = (targetList | filter:searchText))">
-                        <td><a href="{{target.uri}}" target="{{target.whereToOpen}}">{{target.name | truncate: shortTitleLength}}</a></td>
+                        <td><a href="{{target.uri}}" target="{{target.whereToOpen}}" 
+                               data-ng-click="viewAnnotation(target.whereToOpen)"
+                               title="{{target.fullName | truncate:longTitleLength}}">{{target.shortName | truncate:shortTitleLength}}</a></td>
                         <td>{{target.desc}}</td>
                     </tr>
                     </tbody>
@@ -61,15 +63,12 @@
             <div class="tab-pane active .fade" id="tab1">
         <div>
             <a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
-            <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> - 
+            <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> 
+            <span data-ng-show="email">({{email}})</span> - 
             <span>{{modificationOf ? 'Edited at' : 'Created at'}} {{date | date:' HH:mm, d MMM yyyy'}}</span>
         </div>
         <br>
         <div class="popover popover-visible">
-            <!--<h3 class="popover-title"><a href="" data-ng-click="directSearch('organization', organizationUri)">{{organizationName}}</a> - 
-            <a href="" data-ng-click="directSearch('userName', userName)">{{author}}</a> - 
-            <span>{{modificationOf ? 'Edited at' : 'Created at'}}</span>
-            {{date | date:' HH:mm, d MMM yyyy'}}</h3>-->
             <div class="popover-content">
                 <p class="anno-comments" data-ng-show="comment">"{{comment}}"</p>
                 <p data-ng-show="noComment">No comment</p>
@@ -92,7 +91,7 @@
             </div>
         </div>
         
-	<div data-ng-show="link">
+	<div data-ng-show="link && !citation">
             <br>
             <h4>Link <span title="This link is relevant to the target(s) that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
                 <div data-ng-show="linkTypes">
@@ -100,24 +99,31 @@
                     <span data-ng-repeat="linkType in linkTypes"
                     class="badge badge-info semanticTag">{{linkType}}</span></p>
                 </div>
-                <a href="{{link.uri}}" target="_blank">{{link.uri | truncate:100 }}</a>
+                <div data-ng-show="link.loading" class="spinner spinner-small">
+                    <img src="img/ajaxspinner.gif"/> Fetching bibliographic information...
+                </div>
+                <p>
+                    {{link.text}}
+                </p>
+                <div class="text-warning" data-ng-show="link.error">{{link.error}}</div>
+                <a href="{{link.uri}}" target="_blank">{{link.uri | truncate:linkLength}}</a>
 	</div>    
 	<div data-ng-show="citation">
             <br>
-        <h4>Citation <span title="This link is relevant to the target(s) that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
-            <div data-ng-show="citation.types">
-                <p><strong>Classified as: &nbsp;</strong>
-                <span data-ng-repeat="citoType in citation.types"
-                class="badge badge-info semanticTag">{{citoType}}</span></p>
-            </div>
-            <div data-ng-show="citation.loading" class="spinner spinner-small">
-                <img src="img/ajaxspinner.gif"/> Fetching bibliographic information...
-            </div>
-        <p>
-        	{{citation.text}}
-        </p>
-        <div class="text-warning" data-ng-show="citation.error">{{citation.error}}</div>
-        <a href="{{citation.uri}}" target="_blank">{{citation.uri | truncate:100}}</a>
+            <h4>Citation <span title="This link is relevant to the target(s) that this CHARMe annotation applies to" class="icon-question-sign"></span></h4>
+                <div data-ng-show="citation.types">
+                    <p><strong>Classified as: &nbsp;</strong>
+                    <span data-ng-repeat="citoType in citation.types"
+                    class="badge badge-info semanticTag">{{citoType}}</span></p>
+                </div>
+                <div data-ng-show="citation.loading" class="spinner spinner-small">
+                    <img src="img/ajaxspinner.gif"/> Fetching bibliographic information...
+                </div>
+                <p>
+                    {{citation.text}}
+                </p>
+                <div class="text-warning" data-ng-show="citation.error">{{citation.error}}</div>
+                <a href="{{citation.uri}}" target="_blank">{{citation.uri | truncate:linkLength}}</a>
         </div>
                 
         <div>
@@ -149,8 +155,8 @@
                                   data-ng-click="entry.showing=false; hideMoreReplies(entry.id)">&minus;</span>
                         </td>
                         <td><span class="threading-indent">{{entry.indent}}</span>
-                            <a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
-                               title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a></td>
+                            <a data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation()"
+                               title="{{entry.title | truncate:longTitleLength}}">{{entry.title | truncate:shortTitleLength}}</a></td>
 
                         <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('userName', entry.userName, $event)">{{entry.author}}</a></td>
                         <td class="listViewAuthorDetail"><a href="{{entry.uri}}" data-ng-click="directSearch('organization', entry.organizationUri, $event);">{{entry.organizationName}}</a></td>

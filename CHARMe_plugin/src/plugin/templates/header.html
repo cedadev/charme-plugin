@@ -23,17 +23,17 @@
 -->
 
 <div id="charmeDragHandle" class="modal-header" data-ng-controller="HeaderCtrl">
-    <button type="button" class="close window-controls" data-ng-click="close()"><i class="icon-remove" title="Close"></i></button>
-    <button data-ng-show="size==='max'" type="button" class="close window-controls" title="Minimise" data-ng-click="minimise()"><i class="icon-resize-small"></i></button>
-    <button data-ng-show="size==='min'" type="button" class="close window-controls" title="Maximise" data-ng-click="maximise()"><i class="icon-resize-full"></i></button>
+    <button type="button" class="close window-controls" title="Close" data-ng-click="close()"><i class="icon-remove"></i></button>
+    <button type="button" class="close window-controls" title="Minimise" data-ng-click="minimise()" data-ng-show="size==='max'"><i class="icon-resize-small"></i></button>
+    <button type="button" class="close window-controls" title="Maximise" data-ng-click="maximise()" data-ng-show="size==='min'"><i class="icon-resize-full"></i></button>
 
     <h3>
         <span class="browser-history">
-            <button data-ng-show="size==='max'" class="btn btn-mini" title="Go back to previous page" data-ng-click="back();"><i class="icon-arrow-left"></i></button>
-            <button data-ng-show="size==='max'" class="btn btn-mini" title="Go forward to next page" data-ng-click="forward();"><i class="icon-arrow-right"></i></button>
+            <button class="btn btn-mini" data-ng-show="size==='max'" title="Go back to previous page" data-ng-click="back();"><i class="icon-arrow-left"></i></button>
+            <button class="btn btn-mini" data-ng-show="size==='max'" title="Go forward to next page" data-ng-click="forward();"><i class="icon-arrow-right"></i></button>
             <!--<button data-ng-show="size==='max'" class="btn btn-mini" title="Reload this page" data-ng-click="reload();"><i class="icon-repeat"></i></button>-->
         </span>
-        <a href="http://www.charme.org.uk/" title="CHARMe Plugin BETA VERSION" target="_blank">
+        <a href="http://www.charme.org.uk/" title="You are using the CHARMe Plugin &mdash; for more information about the CHARMe project, click here to visit the CHARMe website at http://www.charme.org.uk/" target="_blank">
         <img src="img/CHARMe_title_small.png" id="charmeTitle" /></a>Annotations
     </h3>
 </div>

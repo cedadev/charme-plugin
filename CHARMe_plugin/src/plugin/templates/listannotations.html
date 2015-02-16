@@ -26,7 +26,6 @@
 <div class="modal-body modal-body-list">
     <div id="searchContainer" data-ng-class="['search-container', 'search-' + searchOpen, 'search-overflow-y']" >
        <div class="btn search-button-holder" data-ng-click="setSearchOpen()" style="float:right;">
-           <!--<span data-ng-class="searchOpen ? 'icon-chevron-left' : 'icon-search'"></span>-->
            <span data-ng-class="isSearchOpen ? 'icon-chevron-left' : 'icon-search'"></span>
        </div>
        <div class="search-content">
@@ -60,9 +59,9 @@
                 </tr>
                 <tr data-ng-show="!loadingList && !loadingFacets && entries.length===0"><td colspan="4">No annotations</td></tr>
                 <tr data-ng-show="!loadingList && !loadingFacets" data-ng-repeat="entry in entries">
-                    <td><a data-ng-show="entry.title" data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
-                           title="{{entry.title | truncate:150}}">{{entry.title | truncate:75}}</a>
-                        <a data-ng-hide="entry.title" data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation(entry.id)"
+                    <td><a data-ng-show="entry.title" data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation()"
+                           title="{{entry.title | truncate:longTitleLength}}">{{entry.title | truncate:shortTitleLength}}</a>
+                        <a data-ng-hide="entry.title" data-ng-href="{{entry.uri}}" data-ng-click="viewAnnotation()"
                            title="No comment was included in this annotation">(No comment)</a>
                     </td>
 

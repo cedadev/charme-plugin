@@ -57,9 +57,10 @@ charme.web.services.factory('loginService', ['persistence', function(persistence
 	 * Load stored credentials (if any)
 	 */
 	loginService._loadState=function(){
-		persistence.retrieve(charme.web.constants.CHARME_TK).then(function(auth){
-			loginService._doLogin(auth);
-		});
+            persistence.retrieve(charme.web.constants.CHARME_TK).then(function(auth) {
+                if(auth.expiry && (new Date(auth.expiry) > new Date()))
+                    loginService._doLogin(auth);
+            });
 	};
 	
 	loginService.setAuth=function(auth){
@@ -220,7 +221,9 @@ charme.web.services.factory('annotationService', function(){
 			date: '',
 			domain: [],
 			linkType: '',
-			linkURI: ''
+			linkURI: '',
+                        isCitation: false,
+                        linkIsDOI: false
 		};
 		//If no anno graph provided, just return a new simple anno object.
 		if (typeof annoGraphNode === 'undefined'){
@@ -250,8 +253,9 @@ charme.web.services.factory('annotationService', function(){
 		var authors = annoGraphNode.getValues(annoSpec.ANNOTATED_BY);
 		angular.forEach(authors, function(author){
 			if (author.hasType(jsonoa.types.Person.TYPE)) {
-				anno.author = author.getValue(jsonoa.types.Person.GIVEN_NAME) + ' ' +
-					author.getValue(jsonoa.types.Person.FAMILY_NAME);
+                            anno.author = author.getValue(jsonoa.types.Person.GIVEN_NAME) + ' ' +
+					  author.getValue(jsonoa.types.Person.FAMILY_NAME);
+                            anno.email = author.getValue(jsonoa.types.Person.EMAIL);
 			}
                         else if(author.hasType(jsonoa.types.Organization.TYPE)){
                             anno.organizationName = author.getValue(jsonoa.types.Organization.NAME);
@@ -267,24 +271,39 @@ charme.web.services.factory('annotationService', function(){
 		}
                 
                 if(annoGraphNode.hasType(jsonoa.types.CitationAct.TYPE)) {
+                    anno.isCitation = true;
                     var linkURI = annoGraphNode.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);
-                    // Trim off 'http://dx.doi.org/' from URL, then insert 'doi' so that URL still passes validity test
-                    anno.linkURI = 'doi:' + linkURI.substring(charme.logic.constants.DXDOI_URL.length, linkURI.length);
+                    anno.linkURI = linkURI;
                     anno.linkType = annoGraphNode.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.TYPE);
+                    
+                    // If the URI is a doi
+                    if(linkURI.search(charme.logic.constants.DXDOI_URL) === 0) {
+                        // Trim off 'http://dx.doi.org/' from URL, then insert 'doi' so that URL still passes validity test
+                        anno.linkURI = 'doi:' + linkURI.substring(charme.logic.constants.DXDOI_URL.length, linkURI.length);
+                        anno.linkIsDOI = true;
+                    }
                 }
 
-		angular.forEach(bodies, function(body){
-			if (body.hasType) {
-				if (body.hasType(textSpec.TEXT) || body.hasType(textSpec.CONTENT_AS_TEXT)) {
-					anno.comment = body.getValue(textSpec.CONTENT_CHARS);
-					anno.commentId = body.getValue(jsonoa.types.Common.ID);
-				} else if (body.hasType(jsonoa.types.SemanticTag.TYPE)) {
-					anno.domain.push({value: body.getValue(jsonoa.types.Common.ID)});
-				} else {
-					anno.linkURI = body.getValue(jsonoa.types.Common.ID);
-					anno.linkType = body.getValue(jsonoa.types.Common.TYPE);
-				}
-			}
+		angular.forEach(bodies, function(body) {
+                    if(body.hasType) {
+                        if(body.hasType(textSpec.TEXT) || body.hasType(textSpec.CONTENT_AS_TEXT)) {
+                            anno.comment = body.getValue(textSpec.CONTENT_CHARS);
+                            anno.commentId = body.getValue(jsonoa.types.Common.ID);
+                        } else if(body.hasType(jsonoa.types.SemanticTag.TYPE)) {
+                            anno.domain.push({value: body.getValue(jsonoa.types.Common.ID)});
+                        } else {
+                            var linkURI = body.getValue(jsonoa.types.Common.ID);
+                            anno.linkURI = linkURI;
+                            anno.linkType = body.getValue(jsonoa.types.Common.TYPE);
+                            
+                            // If the URI is a doi
+                            if(linkURI.search(charme.logic.constants.DXDOI_URL) === 0) {
+                                // Trim off 'http://dx.doi.org/' from URL, then insert 'doi' so that URL still passes validity test
+                                anno.linkURI = 'doi:' + linkURI.substring(charme.logic.constants.DXDOI_URL.length, linkURI.length);
+                                anno.linkIsDOI = true;
+                            }
+                        }
+                    }
 		});
 
 		angular.forEach(targets, function(target){
@@ -304,7 +323,7 @@ charme.web.services.factory('annotationService', function(){
 				});
 		});
 		return anno;
-	}
+	};
 	return api;
 });
 
@@ -363,11 +382,12 @@ charme.web.services.factory('searchAnnotations', function(){
 				//Prepare the model for the view
 				angular.forEach(feed.entries, function(value, key){
 					var anno = value.annotation;
+                                        var graph = value.graph;
 					var title = charme.logic.shortAnnoTitle(anno);
-					//var updated = value.updated;
 					var person = anno.getValues(annoSpec.ANNOTATED_BY);
 					var author = '';
 					var userName = '';
+                                        var email = '';
 					var organizationName = '';
                                         var organizationUri = '';
 
@@ -380,12 +400,16 @@ charme.web.services.factory('searchAnnotations', function(){
                         if (detail.hasType(personType.TYPE)){
                                 author = detail.getValue(personType.GIVEN_NAME) + ' ' + detail.getValue(personType.FAMILY_NAME);
                                 userName = detail.getValue(personType.USER_NAME);
+                                email = detail.getValue(personType.EMAIL);
                         } else if (detail.hasType(organizationType.TYPE)){
                                 organizationName = detail.getValue(organizationType.NAME);
                                 organizationUri = detail.getValue(organizationType.URI);
                         }
 					});
                                         
+                                        var modificationOf = anno.getValue(jsonoa.types.Annotation.WAS_REVISION_OF);
+                                        var isModified = typeof modificationOf !== 'undefined' ? true : false;
+
                                         var targets;
                                         var composite = anno.getValue(jsonoa.types.Annotation.TARGET);
                                         if (composite.hasType(jsonoa.types.Composite.TYPE))
@@ -402,19 +426,37 @@ charme.web.services.factory('searchAnnotations', function(){
 						{
                                                     'id': value.id,
 						    'title': title,
-						    //'updated': updated,
 						    'author': author,
                                                     'userName': userName,
+                                                    'email': email,
                                                     'organizationName': organizationName,
                                                     'organizationUri': organizationUri,
                                                     'date': date,
+                                                    'isModified': isModified,
                                                     //'targets': criteria.targets
-                                                    'targets': targetIds
+                                                    'targets': targetIds,
+                                                    'graph': graph,
+                                                    'anno': anno
 						}
 					);
 				});
 
                                 results.sort(function(a, b) {return (Date.parse(b.date) - Date.parse(a.date));});
+                                
+                                // This (results.length > criteria.resultsPerPage) can happen in certain cases - for example:
+                                // There is an annotation 'Blah', and a reply, 'Reply to Blah'. I launch the plugin for all 
+                                // targets, expecting a list of the 10 most recent annotations, but instead I see 11 - 'Reply 
+                                // to Blah' is the 10th most-recent annotation, but 'Blah' is also shown (instead of only 
+                                // being visible on the next page of results). This is because 'Reply to Blah' contains a copy 
+                                // of 'Blah', and the jsonoa.js function getAnnotations() 'extracts' this copy, returning 11 
+                                // annotations instead of 10. (This is understandable, but here's where it gets weird: say 
+                                // 'Reply to Blah' was only the 5th most-recent annotation, and so 'Blah' *should* be 
+                                // included in the list. You might think that then, 'Blah' would be included twice, once 
+                                // properly, and once for the extracted copy. But instead it's still only included once, which 
+                                // of course is what we want.) The only way to deal with this issue is the following code:
+                                if(results.length > criteria.resultsPerPage) {
+                                    results.length = criteria.resultsPerPage;
+                                }
 
 				var pages = [];
                                 var lastPage = Math.ceil(feed.totalResults / criteria.resultsPerPage);
@@ -426,7 +468,7 @@ charme.web.services.factory('searchAnnotations', function(){
                                             Math.abs(i - criteria.pageNum) <= Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
                                         pages.push({status: 'notCurrent'});
 				}
-
+                                
                                 var targetIsAnno = criteria.targetIsAnno || false;
                                 
 				searchService.tellListeners(searchService.listenerTypes.SUCCESS, searchCallId, results, pages, criteria.pageNum, lastPage, feed.totalResults, targetIsAnno);
@@ -497,12 +539,13 @@ charme.web.services.factory('saveAnnotation', function () {
                 if (annoModel.linkURI) {
                     var linkURI = encodeURI(annoModel.linkURI);
                     var doiVal = charme.logic.findDOI(linkURI);
-
-                    //If a DOI is provided, create a citation act for the body ( Only if the report type is a ConferencePaper or Journal Article )
-                    if ((doiVal) && (( type === jsonoa.types.ConferencePaper) || (type === jsonoa.types.JournalArticle)))
-                    {
-                        //Create a fully qualified canonical URI for the DOI
+                    
+                    // Create a fully qualified canonical URI for the DOI
+                    if(doiVal)
                         linkURI = charme.logic.constants.DXDOI_URL + doiVal;
+
+                    if(annoModel.isCitation)
+                    {
                         //Auto-generating IDs at the moment on client side, which shouldn't happen. The Node must take responsibility for this, but no method is available yet for multiple bodies
                         var citoId = charme.logic.generateId();
 
@@ -519,13 +562,18 @@ charme.web.services.factory('saveAnnotation', function () {
                         anno.setValue(citoType.CITED_ENTITY, graph.createStub(targetId));
                         anno.setValue(citoType.CITING_ENTITY, graph.createStub(linkURI));
 
-                    } else {
-                        var linkBody = graph.createNode({type: type, id: linkURI});
-                        anno.addValue(annoSpec.BODY, linkBody);
-                    }
+                    }// else {
+
+                    // Always add the link to the graph body, even if it's a citation (if it's a citation, then we're 
+                    // adding it twice: once in a citation act, and once in the body). This is so that the faceted search 
+                    // can look at all attached links, including citation acts.
+                    var linkBody = graph.createNode({type: type, id: linkURI});
+                    anno.addValue(annoSpec.BODY, linkBody);
+                    
+                    //}
 
                     /*
-                     * Check if the annotation model already has a 'linking' type defined (selected manually by user, or on existing annotation. If it does not, add it.
+                     * Check if the annotation model already has a 'linking' type defined (selected manually by user, or on existing annotation). If it does not, add it.
                      */
                     var linkingType = "http://www.w3.org/ns/oa#linking";
                     var matchLink = false;
@@ -543,6 +591,20 @@ charme.web.services.factory('saveAnnotation', function () {
                     resolver.reject('No URI entered');
                 }
             }
+            
+            if(annoModel.isReply) {
+                // Check if the annotation model already has a 'replying' motivation (selected 
+                // manually by user, or on existing annotation). If it doesn't, add it.
+                var replyingType = "http://www.w3.org/ns/oa#replying";
+                var replyingMotivation = false;
+                angular.forEach(annoModel.motivation, function(existingMotivation) {
+                    if(existingMotivation.value === replyingType)
+                        replyingMotivation = true;
+                });
+                if(!replyingMotivation)
+                    annoModel.motivation.push({value: replyingType});
+            }
+            
             if (annoModel.domain.length > 0) {
                 angular.forEach(annoModel.domain, function (domain) {
                     var tagId = domain.value;
@@ -693,12 +755,6 @@ charme.web.services.factory('fetchAllMotivations', function(){
     };
 });
 
-/*charme.web.services.factory('fetchTargetType', function() {
-    return function(targetId) {
-        return charme.logic.fetchTargetType(targetId);
-    };
-});*/
-
 charme.web.services.factory('fetchTargetTypeVocab', function() {
     return function() {	
         var promise = new Promise(function(resolver) {
@@ -734,9 +790,7 @@ charme.web.services.factory('fetchAllSearchFacets', function(){
  */
 charme.web.services.factory('targetService', function() {
         return {
-            targets: [],   /* This array is initialised in the InitCtrl */
-            //targetsHighlighted: []
-            
+            targets: [], /* This array is initialised in the InitCtrl */
             listViewTarget: ''
         };
     }
@@ -762,18 +816,24 @@ charme.web.services.factory('shiftAnnoService', function() {
         shiftAnnoService.annoList = {};
         
         shiftAnnoService.getPosition = function(targetId, annoId) {
+            if(shiftAnnoService.latestId[targetId])
+                targetId = shiftAnnoService.latestId[targetId];
+            
             if(shiftAnnoService.annoList[targetId]) {
                 for(var i = 0; i < shiftAnnoService.annoList[targetId].length; i++) {
                     if(annoId === shiftAnnoService.annoList[targetId][i].id)
                         return i + 1;
                 }
+                return -1; // The annotation is not in the array (there are valid circumstances where this may be the case)
             }
-            else {
+            else
                 return 1;
-            }
         };
         
         shiftAnnoService.getListLength = function(targetId) {
+            if(shiftAnnoService.latestId[targetId])
+                targetId = shiftAnnoService.latestId[targetId];
+            
             if(shiftAnnoService.annoList[targetId])
                 return shiftAnnoService.annoList[targetId].length;
             else
@@ -781,6 +841,9 @@ charme.web.services.factory('shiftAnnoService', function() {
         };
     
         shiftAnnoService.getNewAnno = function(targetId, annoId, direction) {
+            if(shiftAnnoService.annoList[targetId].hasLatestVersion)
+                targetId = shiftAnnoService.annoList[targetId].hasLatestVersion;
+            
             for(var i = 0; i < shiftAnnoService.annoList[targetId].length; i++) {
                 if(shiftAnnoService.annoList[targetId][i].id === annoId) {
                     if(i + direction === -1)
@@ -792,6 +855,8 @@ charme.web.services.factory('shiftAnnoService', function() {
                 }
             }
         };
+        
+        shiftAnnoService.latestId = {};
 
         return shiftAnnoService;
     }
@@ -810,4 +875,18 @@ charme.web.services.factory('fetchReplies', function() {
     return function(targetList) {
         return charme.logic.fetchReplies(targetList);
     };
+});
+
+charme.web.services.factory('prevIdsService', function() {
+        var prevIdsService = {};
+        prevIdsService.targetList = {};
+        
+        return prevIdsService;
+});
+
+charme.web.services.factory('latestIdService', function() {
+        var latestIdService = {};
+        latestIdService.targetList = {};
+        
+        return latestIdService;
 });

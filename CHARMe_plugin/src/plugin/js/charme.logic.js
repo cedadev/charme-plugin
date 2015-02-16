@@ -66,7 +66,7 @@ charme.logic.constants = {
 
     FACET_TYPE_TARGET_TYPE: 'dataType',
     FACET_TYPE_CITING_TYPE: 'citingType',
-    //FACET_TYPE_BODY_TYPE: 'bodyType',
+    FACET_TYPE_BODY_TYPE: 'bodyType',
     FACET_TYPE_MOTIVATION: 'motivation',
     FACET_TYPE_DOMAIN: 'domainOfInterest',
     FACET_TYPE_ORGANIZATION: 'organization',
@@ -171,8 +171,11 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
         if (typeof criteria.targetTypes !== 'undefined' && criteria.targetTypes.length > 0){
 		url+='&dataType=' + encodeURIComponent(criteria.targetTypes.join(' '));
 	}
+        //if (typeof criteria.citingTypes !== 'undefined' && criteria.citingTypes.length > 0){
+	//	url+='&citingType=' + encodeURIComponent(criteria.citingTypes.join(' '));
+	//}
         if (typeof criteria.citingTypes !== 'undefined' && criteria.citingTypes.length > 0){
-		url+='&citingType=' + encodeURIComponent(criteria.citingTypes.join(' '));    
+		url+='&bodyType=' + encodeURIComponent(criteria.citingTypes.join(' '));
 	}
 	if (typeof criteria.motivations !== 'undefined' && criteria.motivations.length > 0){
 		url+='&motivation=' + encodeURIComponent(criteria.motivations.join(' '));
@@ -194,10 +197,6 @@ charme.logic.urls.fetchAnnotations = function(criteria) {
         if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
 		url += '&count=' + encodeURIComponent(criteria.resultsPerPage.toString());
 	}
-        //if (typeof criteria.resultsPerPage !== 'undefined' && criteria.resultsPerPage !== null) {
-	//	url += '&count=' + encodeURIComponent(criteria.count.toString());
-	//}
-        
 	return url;
 };
 
@@ -459,43 +458,6 @@ charme.logic.fetchMotivationVocab = function() {
     return promise;
 
 };
-
-/*charme.logic.fetchTargetType = function(targetId) {
-    var promise = new Promise(function(resolver) {
-        var targetType, allTargetTypes = [];
-        var returnTargetType = ['Target type undefined', false];
-
-        charme.logic.fetchTargetTypeVocab().then(function(types) {
-            for(var i = 0; i < types.length; i++) {
-                allTargetTypes[i] = types[i].label;
-            }
-
-            var els = window.parent.document.getElementsByTagName('a');
-            for(var i = 0; i < els.length; i++) {
-                if(els[i].href === targetId && els[i].className) {
-                    targetType = els[i].className.split('-');
-
-                    if(targetType.length > 1 && targetType[0] === 'charme') {
-                        for(var j = 0; j < allTargetTypes.length; j++) {
-                            var regex = new RegExp(allTargetTypes[j], 'i');
-                            if(targetType[1].match(regex)) {
-                                targetType = targetType[1];
-                                returnTargetType = [targetType[0].toUpperCase() + targetType.substr(1).toLowerCase(), true];
-                            }
-                        }
-                    }
-                }
-            }
-            
-            resolver.fulfill(returnTargetType);
-        }, function(error) {
-            console.error('Error fetching target types');
-            resolver.reject('Error: Could not fetch target types');
-        });
-    });
-    
-    return promise;
-};*/
 
 charme.logic.fetchTargetTypeVocab = function() {
     var promise = new Promise(function(resolver) {
@@ -773,17 +735,18 @@ charme.logic.searchAnnotations = function(criteria) {
             graph.load(graphSrc, false).then(function(graph) {
                 var annoList = graph.getAnnotations();
                 if(criteria.targetIsAnno)
-                    annoList = charme.logic.filterAnnoList(annoList, jsonoa.types.Annotation);
-
+                    annoList = charme.logic.filterAnnoListByTarget(annoList, jsonoa.types.Annotation);
+                
                 var newResult = [];
                 $.each(annoList, function(index, anno) {
-                    anno = charme.logic.filterAnnoList([anno], jsonoa.types.Annotation);
+                    anno = charme.logic.filterAnnoListByTarget([anno], jsonoa.types.Annotation);
                     anno = anno[0];
                     var id = anno.getValue(jsonoa.types.Common.ID);
-
+                    
                     newResult.push({
                         id: id,
-                        annotation: anno
+                        annotation: anno,
+                        graph: graph
                     });
                 });
 
@@ -818,11 +781,11 @@ charme.logic.flagAnnotation = function(annotationId, token) {
                 'Authorization': ' Bearer ' + token
             },
             contentType: 'text/html',
-            data: ''//No message (flagged via the CHARMe Plugin)'
+            data: ''//'No message (flagged via the CHARMe Plugin)'
                     // If this string is non-empty, the email to moderator will include an extra line, 'The following reason was 
                     // given:', followed by the string. We could potentially provide an input field to allow the user to give a reason, 
                     // but this shouldn't be necessary as if an annotation is inappropriate the reason should usually be obvious, and 
-                    // also the email includes the user's email address in case the moderator does need clarification
+                    // also the email includes the user's email address in case the moderator does need clarification.
         }).then(function(result){
                 resolver.fulfill(result);
             },
@@ -912,7 +875,8 @@ charme.logic.debounce = function(func, wait, immediate) {
     };
 };
 
-charme.logic.filterAnnoList = function(annoList, annoType) {
+// Given an array of annotations, filter out those that are themselves targets of other annotations in the array
+charme.logic.filterAnnoListByTarget = function(annoList, annoType) {
     var composite, _annoTargets, _targetIds = [];
     var newAnnoList = [];
     
@@ -940,69 +904,103 @@ charme.logic.filterAnnoList = function(annoList, annoType) {
         if(pushFlag)
             newAnnoList.push(annoList[i]);
     }
-    
-    //if(newAnnoList.length > 1)
-    //    console.error('newAnnoList array contains multiple annotations');
 
-    //return(newAnnoList[0]);
     return(newAnnoList);
 };
 
-// Temporary fix to deal with annotations having array of dates
-/*charme.logic.filterDates = function(dates) {
-    var _date, sortedDates = [];
-    angular.forEach(dates, function(date) {
-        _date = (date !== undefined && date.hasOwnProperty('@value')) ? date['@value'] : 'undefined';
-        
-        if(_date !== 'undefined')
-            sortedDates.push(_date);
-    });
-                        
-    sortedDates.sort(function(b, a) {return (Date.parse(b) - Date.parse(a));});
-    return(sortedDates[0]);
-};*/
 
-charme.logic.fetchTargetComment = function(fetchAnnotation, targetHref, annoType) {
-    var targetComment;
+// Given the latest version of an annotation that has been modified, trace back through the graph's revision history 
+// to obtain the IDs of all the previous versions
+charme.logic.fetchAnnoPreviousVersionIds = function(graph, anno, annoId, annoType) {
+    var versionIds = [annoId];
+    var modificationOf;
     
     var promise = new Promise(function(resolver) {
-            var reqUrl = charme.logic.urls.fetchRequest(shortId);
-            $.ajax(reqUrl, {
-                    type : 'GET'
-            }).then(function(data) {
-                    var graph = new jsonoa.core.Graph();
-                    graph.load(data, true).then(function(graph) {
-                            resolver.fulfill(graph);
-                    }, function(e) {
-                            resolver.reject(e);
-                    });
-            }, function(jqXHR, textStatus, errorThrown) {
-                    resolver.reject();
-            });
-    });
-    return promise;
-    
-    fetchAnnotation(targetHref).then(function(graph) {
-        var annoList = graph.getAnnotations();
-        if(annoList.length > 0) {
-            //var anno = annoList[0];
-            var anno = charme.logic.filterAnnoList(annoList, annoType);
-            anno = anno[0];
-            var bodies = anno.getValues(annoType.BODY);
-            var textType = jsonoa.types.Text;
-            targetComment = '(No comment)';
-            angular.forEach(bodies, function(body){
-                if(body.hasType(textType.TEXT) || body.hasType(textType.CONTENT_AS_TEXT)){
-                   targetComment = body.getValue(textType.CONTENT_CHARS);
+        var searchChain = function(graph, anno, annoId, annoType) {
+            var reachedStartOfInnerChainFlag = false;
+            var needAnotherSearchFlag = false;
+
+            while(!reachedStartOfInnerChainFlag) {
+                modificationOf = anno.getValue(annoType.WAS_REVISION_OF);
+                if(modificationOf !== undefined) {
+                    annoId = modificationOf.getValue(jsonoa.types.Common.ID);
+                    versionIds.push(annoId);
+
+                    anno = graph.getNode(annoId);
+                    if(anno === undefined) {
+                        reachedStartOfInnerChainFlag = true;
+                        needAnotherSearchFlag = true;
+                    }
                 }
-            });
-       }
-    }, function(error) {
-        targetComment = 'Error loading text';
+                else
+                    reachedStartOfInnerChainFlag = true;
+            }
+            
+            if(needAnotherSearchFlag) {
+                charme.logic.fetchAnnotation(annoId).then(function(newGraph) {
+                    var newAnno = newGraph.getNode(annoId);
+                    searchChain(newGraph, newAnno, annoId, annoType);
+                }, function(error) {
+                    resolver.reject(error);
+                });
+            }
+            else
+                resolver.fulfill(versionIds);
+        };
+        
+        searchChain(graph, anno, annoId, annoType);
     });
-    
-    return targetComment;
+
+    return promise;
 };
+
+
+// Given an ID that points to an out-of-date version of a modified annotation, step through the graph's revision 
+// history to obtain the ID corresponding to the latest version
+charme.logic.fetchAnnoLatestVersionId = function(graph, anno, annoType, activityType) {
+    var versionId, annoId;
+    var invalidatedBy;
+    
+    var promise = new Promise(function(resolver) {
+        var searchChain = function(graph, anno, annoType, activityType) {
+            var reachedEndOfInnerChainFlag = false;
+            var needAnotherSearchFlag = false;
+
+            while(!reachedEndOfInnerChainFlag) {
+                invalidatedBy = anno.getValue(annoType.WAS_INVALIDATED_BY);
+                if(invalidatedBy !== undefined) {
+                    versionId = invalidatedBy.getValue(activityType.GENERATED);
+                    if(versionId !== undefined) {
+                        versionId = annoId = versionId.getValue(jsonoa.types.Common.ID);
+                        anno = graph.getNode(versionId);
+                        if(anno === undefined) {
+                            reachedEndOfInnerChainFlag = true;
+                            needAnotherSearchFlag = true;
+                        }
+                    }
+                }
+                else
+                    reachedEndOfInnerChainFlag = true;
+            }
+            
+            if(needAnotherSearchFlag) {
+                charme.logic.fetchAnnotation(annoId).then(function(newGraph) {
+                    var newAnno = newGraph.getNode(annoId);
+                    searchChain(newGraph, newAnno, annoType, activityType);
+                }, function(error) {
+                    resolver.reject(error);
+                });
+            }
+            else
+                resolver.fulfill([versionId, anno]);
+        };
+        
+        searchChain(graph, anno, annoType, activityType);
+    });
+
+    return promise;
+};
+
 
 charme.logic.modelEdited = function(annoModel, annoModelPristine) {
     var editedFlag = false;

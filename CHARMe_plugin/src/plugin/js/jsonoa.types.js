@@ -38,9 +38,10 @@ jsonoa.types.Annotation=(function Annotation(){
 	Annotation.MOTIVATED_BY='http://www.w3.org/ns/oa#motivatedBy';
 	Annotation.ANNOTATED_BY='http://www.w3.org/ns/oa#annotatedBy';
 	Annotation.BODY='http://www.w3.org/ns/oa#hasBody';
-    Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
+        Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
 	Annotation.DATE='http://www.w3.org/ns/oa#annotatedAt';
 	Annotation.WAS_REVISION_OF='http://www.w3.org/ns/prov#wasRevisionOf';
+        Annotation.WAS_INVALIDATED_BY='http://www.w3.org/ns/prov#wasInvalidatedBy';
 
 	Annotation.TEMPLATE={
 		"@id": "?",
@@ -102,6 +103,7 @@ jsonoa.types.Person=(function Person(){
 	Person.USER_NAME = 'http://xmlns.com/foaf/0.1/accountName';
 	Person.FAMILY_NAME = 'http://xmlns.com/foaf/0.1/familyName';
 	Person.GIVEN_NAME = 'http://xmlns.com/foaf/0.1/givenName';
+        Person.EMAIL = 'http://xmlns.com/foaf/0.1/mbox';
 
 	Person.TEMPLATE = {
 		"@id":"?",

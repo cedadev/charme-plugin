@@ -25,29 +25,43 @@
 
 "use strict";
 
-/**
- * Site-specific settings.
- */
+if(typeof charme==='undefined')
+    var charme = {};
 
-if (typeof charme==='undefined') {
-	var charme={};
-}
+if(!charme.settings)
+    charme.settings = {};
 
-if (!charme.settings) {
-	charme.settings = {};
-}
+
+// Site-specific settings:
 
 /*
- charme.settings.REMOTE_BASE_URL = The base URL of the CHARMe Node.
- charme.settings.AUTH_BASE_URL = Base URL of auth provider. Typically the same as the Node.
- charme.settings.AUTH_CLIENT_ID = The client ID is used to identify the integrator's site where a CHARMe Node is supporting multiple data providers.
- charme.settings.AUTH_PATH = The path relative to AUTH_BASE_URL where the authorization service is hosted.
- charme.settings.AUTH_RESPONSE_TYPE = What the authorization service should do upon successful authorization. Only 'token' is supported for now.
-*/
-
+ * Settings for the CHARMe Plugin to work (see the Integration Guide document):
+ * charme.settings.REMOTE_BASE_URL = The base URL of the CHARMe Node.
+ * charme.settings.AUTH_BASE_URL = Base URL of auth provider. Typically the same as the Node.
+ * charme.settings.AUTH_CLIENT_ID = The client ID is used to identify the integrator's site where a CHARMe Node is supporting multiple data providers.
+ * charme.settings.AUTH_PATH = The path relative to AUTH_BASE_URL where the authorization service is hosted.
+ * charme.settings.AUTH_RESPONSE_TYPE = What the authorization service should do upon successful authorization. Only 'token' is supported for now.
+ *
+ */
 charme.settings.REMOTE_BASE_URL='https://charme-dev.cems.rl.ac.uk/';
 charme.settings.AUTH_BASE_URL=charme.settings.REMOTE_BASE_URL;
 charme.settings.AUTH_CLIENT_ID='12345';
 charme.settings.AUTH_PATH='/oauth2/authorize';
 charme.settings.AUTH_RESPONSE_TYPE='token';
+
+/*
+ * Customisable display settings:
+ * charme.settings.COMMENT_LENGTH = The maximum number of characters allowed in the 'Comments' field when creating an annotation.
+ * charme.settings.SELECT_ALL_INNERHTML = The HTML to insert after the 'select all' checkbox.
+ * charme.settings.ALL_TARGETS_INNERHTML = The HTML to insert before the 'all targets' checkbox.
+ * charme.settings.SHOW_SELECT_COUNT = Whether to show the number of targets selected (e.g. '4 of 12 targets selected').
+ *
+ * HTML:
+ * - use '<br/>' for line breaks (e.g. charme.settings.SELECT_ALL_INNERHTML='Select/unselect all<br/>';)
+ * - use '&nbsp;' for extra spaces (e.g. charme.settings.SELECT_ALL_INNERHTML=' &nbsp;&nbsp;Select/unselect all';)
+ *
+ */
 charme.settings.COMMENT_LENGTH=500;
+charme.settings.SELECT_ALL_INNERHTML='Select/unselect all';
+charme.settings.ALL_TARGETS_INNERHTML='All targets ';
+charme.settings.SHOW_SELECT_COUNT=true;

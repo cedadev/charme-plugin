@@ -40,9 +40,6 @@ charme.plugin.numSelected = 0;
 //Map to hold selected target names as keys and the target hrefs as corresponding values
 charme.plugin.selectedTargets = {};
 
-//variable to hold the currently highlighted target from the set of selected targets
-charme.plugin.selectedTargetsHighlighted = {};
-
 charme.plugin.constants = (function constants() {
 	constants.XPATH_BASE = '//atm:feed';
 	constants.XPATH_TOTAL_RESULTS = constants.XPATH_BASE + '/os:totalResults';
@@ -365,95 +362,9 @@ charme.plugin.refreshSelectedTargetList = function(targetCheckbox) {
     plugin.postMessage('targetListChanged', '*');
 };
 
-/**
- * This function programmatically sets the selection checkbox to the checked state
- * and also inserts it in the selectedTarget map. This is specifically used when
- * a charme icon that is not in the set of selected datsets already, is clicked to
- * invoke the plugin on the main data provider page.
- * @param targetHref
- */
-/*charme.plugin.setAsSelected = function (targetHref, targetType) {
-
- var targetName = targetHref.substring(targetHref.lastIndexOf('/')+1);
- //var targetHrefEncoded = encodeURIComponent(targetHref);
- //var targetHrefEncoded = targetHref;
-
- //Load the clicked target into the selected list, if not in a clicked state.
- if (!(targetHref in charme.plugin.selectedTargets))
- {
- var targetTypeDesc = targetType.split('-');
- var tempArr = [];
- for(var i = 0; i < targetTypeDesc.length; i++) {
- var descFrag = targetTypeDesc[i];
- descFrag = descFrag[0].toUpperCase() + descFrag.substr(1).toLowerCase();
- tempArr.push(descFrag);
- }
- targetTypeDesc = tempArr.join(' ');
-
- //Add the target in the list
- charme.plugin.selectedTargets[targetHref] =  [targetName, targetType, targetTypeDesc];
-
- //Set the checkbox to 'checked' state
- var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
- for (var i = 0; i < targetCheckboxs.length; i++) {
- if (targetCheckboxs[i].id === targetHref) {
- targetCheckboxs[i].checked = true;
- }
- }
- }
-
- //Save the clicked target into the "highlighted" list.
- //charme.plugin.selectedTargetsHighlighted = {};
- //charme.plugin.selectedTargetsHighlighted[targetName] = targetHrefEncoded;
- }*/
-
-
-
 charme.plugin.getSelectedTargets = function() {
     return charme.plugin.selectedTargets;
 };
-
-
-//charme.plugin.getSelectedTargetsHighlighted = function () {
-//
-//    return charme.plugin.selectedTargetsHighlighted;
-//}
-
-
-
-//charme.plugin.populateTargetList = function (){
-//
-//
-//    var array_keys = new Array();
-//    var keys = '';
-//
-//    var count = 0;
-//
-//    for (var key in charme.plugin.selectedTargets) {
-//        array_keys.push(key);
-//        keys = keys + '\n' + key;
-//        count++;
-//    }
-//
-//    //alert('Current Selections : \n' + array_keys);
-//    alert('Current Selections : \n' + keys);
-//
-//
-//    for (var i=0; i<count; i++) {
-//        //var tempOpt = new Option(charme.plugin.selectedTargets[i], charme.plugin.selectedTargets[i]);
-//
-//        //charme.plugin.getByClass('targetMultiList')[0].options.add(tempOpt);
-//
-//        var tempOpt =  document.createElement('Option');
-//        tempOpt.value = charme.plugin.selectedTargets[i];
-//        tempOpt.innerHTML = charme.plugin.selectedTargets[i];
-//        charme.plugin.getByClass('targetMultiList')[0].appendChild(tempOpt);
-//
-//    }
-//
-//}
-
-
 
 /**
  * Cross browser class selector. Defined in order to avoid add external dependencies on libraries such as JQuery.
@@ -548,7 +459,7 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
 
         var text = document.createElement('span');
         text.id='charme-select-all';
-        text.innerHTML = 'Select/unselect all';
+        text.innerHTML = charme.settings.SELECT_ALL_INNERHTML; //'Select/unselect all';
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
 
         var selectCountText = document.createElement('span');
@@ -564,9 +475,8 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
         
         text = document.createElement('span');
         text.id = 'charme-all-targets';
-        text.innerHTML = 'All targets ';	
+        text.innerHTML = charme.settings.ALL_TARGETS_INNERHTML; //'All targets ';
         allTargetsContainer.insertBefore(text, anchor);
-
     }
     
     var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL);
@@ -582,10 +492,8 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
 
     for(var i = 0; i < els.length; i++) {
         if(els[i].href) {
-            //if(isFirstLoad || els[i].href === targetId)
-            //if(isFirstLoad || isRescan || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS)
-            if(isFirstLoad || isRescan || els[i].href === targetId) {
-                if(els[i].href === targetId) {
+            if(isFirstLoad || isRescan || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS) {
+                if(els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS) {
                     els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
                     els[i].style.backgroundSize = '18px 18px';
                 }
@@ -641,8 +549,10 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
         }
     }
 
-    var selectCountText = document.getElementById('charme-select-count');
-    selectCountText.innerHTML = ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
+    if(charme.settings.SHOW_SELECT_COUNT) {
+        var selectCountText = document.getElementById('charme-select-count');
+        selectCountText.innerHTML = ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
+    }
 };
 
 /**
@@ -893,9 +803,6 @@ charme.plugin.showPlugin = function (e) {
         charme.plugin.isOpenFlag = true;
         sessionStorage.isOpenFlag = 'yes';
 
-    ////charme.plugin.populateTargetList();
-    //charme.plugin.setAsSelected(targetHref, targetType);
-    
     if (!(targetHref in charme.plugin.selectedTargets)) {
         var targetCheckboxs = charme.plugin.getByClass('charme-select', charme.plugin.constants.MATCH_EXACT);
         targetCheckboxs[targetHref].click();
