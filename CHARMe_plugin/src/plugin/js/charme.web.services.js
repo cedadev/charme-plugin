@@ -376,7 +376,12 @@ charme.web.services.factory('searchAnnotations', function(){
 
 	searchService.searchAnnotations = function(criteria, searchCallId){
 		searchService.tellListeners(searchService.listenerTypes.BEFORE_SEARCH, searchCallId);
-		charme.logic.searchAnnotations(criteria).then(
+                
+                // Must make copy of criteria, as asynchronous changes to criteria's values in the controller 
+                // may still be reflected here (i.e. they may have changed before the .then() function below 
+                // is executed). Specifically, this is an issue for criteria.pageNum.
+                var copyOfCriteria = angular.copy(criteria);
+		charme.logic.searchAnnotations(copyOfCriteria).then(
 			function(feed){
 				var results = [];
 				//Prepare the model for the view
@@ -433,7 +438,6 @@ charme.web.services.factory('searchAnnotations', function(){
                                                     'organizationUri': organizationUri,
                                                     'date': date,
                                                     'isModified': isModified,
-                                                    //'targets': criteria.targets
                                                     'targets': targetIds,
                                                     'graph': graph,
                                                     'anno': anno
@@ -443,9 +447,10 @@ charme.web.services.factory('searchAnnotations', function(){
 
                                 results.sort(function(a, b) {return (Date.parse(b.date) - Date.parse(a.date));});
                                 
-                                // This (results.length > criteria.resultsPerPage) can happen in certain cases - for example:
-                                // There is an annotation 'Blah', and a reply, 'Reply to Blah'. I launch the plugin for all 
-                                // targets, expecting a list of the 10 most recent annotations, but instead I see 11 - 'Reply 
+                                // This condition (results.length > copyOfCriteria.resultsPerPage) can happen in certain 
+                                // cases - for example:
+                                // There is an annotation 'Blah', and a reply, 'Reply to Blah'. I launch the plugin for 'all 
+                                // targets', expecting a list of the 10 most recent annotations, but instead I see 11 - 'Reply 
                                 // to Blah' is the 10th most-recent annotation, but 'Blah' is also shown (instead of only 
                                 // being visible on the next page of results). This is because 'Reply to Blah' contains a copy 
                                 // of 'Blah', and the jsonoa.js function getAnnotations() 'extracts' this copy, returning 11 
@@ -454,24 +459,23 @@ charme.web.services.factory('searchAnnotations', function(){
                                 // included in the list. You might think that then, 'Blah' would be included twice, once 
                                 // properly, and once for the extracted copy. But instead it's still only included once, which 
                                 // of course is what we want.) The only way to deal with this issue is the following code:
-                                if(results.length > criteria.resultsPerPage) {
-                                    results.length = criteria.resultsPerPage;
-                                }
+                                if(results.length > copyOfCriteria.resultsPerPage)
+                                    results.length = copyOfCriteria.resultsPerPage;
 
 				var pages = [];
-                                var lastPage = Math.ceil(feed.totalResults / criteria.resultsPerPage);
+                                var lastPage = Math.ceil(feed.totalResults / copyOfCriteria.resultsPerPage);
 				for(var i = 1; i <= lastPage; i++) {
-                                    if(i === criteria.pageNum)
+                                    if(i === copyOfCriteria.pageNum)
                                         pages.push({status: 'current'});
-                                    else if((criteria.pageNum <= Math.ceil(charme.logic.constants.NUM_PAGE_BUTTONS / 2) && i <= charme.logic.constants.NUM_PAGE_BUTTONS) || 
-                                            (criteria.pageNum >= lastPage - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2) && i >= lastPage - charme.logic.constants.NUM_PAGE_BUTTONS + 1) ||
-                                            Math.abs(i - criteria.pageNum) <= Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
+                                    else if((copyOfCriteria.pageNum <= Math.ceil(charme.logic.constants.NUM_PAGE_BUTTONS / 2) && i <= charme.logic.constants.NUM_PAGE_BUTTONS) || 
+                                            (copyOfCriteria.pageNum >= lastPage - Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2) && i >= lastPage - charme.logic.constants.NUM_PAGE_BUTTONS + 1) ||
+                                            Math.abs(i - copyOfCriteria.pageNum) <= Math.floor(charme.logic.constants.NUM_PAGE_BUTTONS / 2))
                                         pages.push({status: 'notCurrent'});
 				}
                                 
-                                var targetIsAnno = criteria.targetIsAnno || false;
+                                var targetIsAnno = copyOfCriteria.targetIsAnno || false;
                                 
-				searchService.tellListeners(searchService.listenerTypes.SUCCESS, searchCallId, results, pages, criteria.pageNum, lastPage, feed.totalResults, targetIsAnno);
+				searchService.tellListeners(searchService.listenerTypes.SUCCESS, searchCallId, results, pages, copyOfCriteria.pageNum, lastPage, feed.totalResults, targetIsAnno);
 				searchService.tellListeners(searchService.listenerTypes.AFTER_SEARCH, searchCallId);
 			},
 			function(error){
@@ -531,6 +535,16 @@ charme.web.services.factory('saveAnnotation', function () {
                 comment.setValue(jsonoa.types.Text.CONTENT_CHARS, annoModel.comment);
                 anno.addValue(annoSpec.BODY, comment);
             }
+                               
+            var dateTime = jsonoa.types.DateTime.TEMPLATE;
+            dateTime['@value'] = new Date();         
+            anno.setValue(annoSpec.SERIALIZED_AT, dateTime);
+
+            var softwareAgent = graph.createNode({type: jsonoa.types.SoftwareAgent, 
+                                                  id: charme.logic.constants.AGENT_ID_PREFIX + 'agentID'});
+            softwareAgent.setValue(jsonoa.types.SoftwareAgent.NAME, 'CHARMe Plugin v' + charme.common.versionNo);
+            anno.setValue(annoSpec.SERIALIZED_BY, softwareAgent);
+
             if (annoModel.linkType) {
                 var type = jsonoa.util.templateFromType(annoModel.linkType);
                 if (typeof type !== 'function') {

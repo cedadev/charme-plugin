@@ -40,6 +40,8 @@ jsonoa.types.Annotation=(function Annotation(){
 	Annotation.BODY='http://www.w3.org/ns/oa#hasBody';
         Annotation.TARGET='http://www.w3.org/ns/oa#hasTarget';
 	Annotation.DATE='http://www.w3.org/ns/oa#annotatedAt';
+        Annotation.SERIALIZED_AT='http://www.w3.org/ns/oa#serializedAt';
+        Annotation.SERIALIZED_BY='http://www.w3.org/ns/oa#serializedBy';
 	Annotation.WAS_REVISION_OF='http://www.w3.org/ns/prov#wasRevisionOf';
         Annotation.WAS_INVALIDATED_BY='http://www.w3.org/ns/prov#wasInvalidatedBy';
 
@@ -136,6 +138,23 @@ jsonoa.types.Organization=(function Organization(){
 		"http://xmlns.com/foaf/0.1/name": "?"
 	};
 	return Organization;
+})();
+jsonoa.types.DateTime=(function DateTime(){
+        DateTime.TYPE = 'http://www.w3.org/2001/XMLSchema#dateTime';
+        DateTime.TEMPLATE = {"@type": DateTime.TYPE, "@value": "?"};
+	return DateTime;
+})();
+jsonoa.types.SoftwareAgent=(function SoftwareAgent(){
+	SoftwareAgent.TYPE='http://www.w3.org/ns/prov#SoftwareAgent';
+	SoftwareAgent.URI='@id';
+	SoftwareAgent.NAME='http://xmlns.com/foaf/0.1/name';
+
+	SoftwareAgent.TEMPLATE={
+		"@id": "?",
+		"@type": SoftwareAgent.TYPE,
+		"http://xmlns.com/foaf/0.1/name": "?"
+	};
+	return SoftwareAgent;
 })();
 jsonoa.types.Dataset=(function Dataset(){
 	Dataset.TYPE = 'http://purl.org/dc/dcmitype/Dataset';

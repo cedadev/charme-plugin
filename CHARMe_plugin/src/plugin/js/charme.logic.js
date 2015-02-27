@@ -45,6 +45,7 @@ charme.logic.constants = {
     ATN_ID_PREFIX : 'http://localhost/',
     BODY_ID_PREFIX : 'http://localhost/',
     COMPOSITE_ID_PREFIX : 'http://localhost/',
+    AGENT_ID_PREFIX : 'http://localhost/',
 
     URL_PREFIX : 'http://',
     DXDOI_URL : 'http://dx.doi.org/',
@@ -662,12 +663,17 @@ charme.logic.shortAnnoTitle = function(anno) {
 	var bodies = anno.getValues(jsonoa.types.Annotation.BODY);
 	angular.forEach(bodies, function(body) {
             if(body.hasType) { // Check is necessary as sometimes the body of a value is simply a string, not a jsonoa object
-                if (body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT))
+                if(body.hasType(jsonoa.types.Text.TEXT) || body.hasType(jsonoa.types.Text.CONTENT_AS_TEXT))
                     out = body.getValue(jsonoa.types.Text.CONTENT_CHARS);
-                else if(out.length === 0 && !body.hasType(jsonoa.types.SemanticTag.TYPE))
-                    out = body.getValue(jsonoa.types.Common.ID);
+                //else if(out.length === 0 && !body.hasType(jsonoa.types.SemanticTag.TYPE))
+                //    out = body.getValue(jsonoa.types.Common.ID);
             }
 	});
+        
+        // Annotations created by other programs may result in the above line
+        // 'out = body.getValue(jsonoa.types.Text.CONTENT_CHARS);' returning undefined
+        if(out === undefined)
+            out = '';
         
         if(out.length === 0 && anno.hasType(jsonoa.types.CitationAct.TYPE))
             out = anno.getValue(jsonoa.types.CitationAct.CITING_ENTITY).getValue(jsonoa.types.Common.ID);

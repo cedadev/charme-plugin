@@ -252,12 +252,12 @@ jsonoa.core.Graph = function(){
 			node.node = options.wrappedData;
 		}
 		
-		node.node['@id']=options.id;
-		
+                    node.node['@id']=options.id;
+                
 		node.graph = this;
 		if (!options.graphLess){
 			this.nodes.push(node);
-			this.idMap[options.id]=node;
+                            this.idMap[options.id]=node;
 		}
 		return node;
 	};
@@ -265,7 +265,7 @@ jsonoa.core.Graph = function(){
 	this.createStub = function(id){
 		return this.createNode({type: jsonoa.core.Stub, id: id, graphLess: true});
 	};
-	
+        
 	/**
 	 * Returns a node with the given ID
 	 */

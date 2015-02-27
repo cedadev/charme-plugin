@@ -68,6 +68,9 @@ charme.common.linkLength = 150;
 // Max length of comment line when viewing annotation
 charme.common.maxCommentLineLength = 146;
 
+// Version number of the plugin
+charme.common.versionNo = 1.2;
+
 /**
  * Finds the path to the current script (for referencing images etc.) DO NOT INVOKE THIS FUNCTION
  * DIRECTLY

@@ -109,6 +109,8 @@ function($rootScope, $scope, $timeout){
             });
         });
     });
+    
+    $scope.versionNo = charme.common.versionNo;
 }]);
 
 /**
