@@ -43,9 +43,9 @@ if(!charme.settings)
  * charme.settings.AUTH_RESPONSE_TYPE = What the authorization service should do upon successful authorization. Only 'token' is supported for now.
  *
  */
-charme.settings.REMOTE_BASE_URL='https://charme-dev.cems.rl.ac.uk/';
+charme.settings.REMOTE_BASE_URL='https://charme-test.cems.rl.ac.uk/';
 charme.settings.AUTH_BASE_URL=charme.settings.REMOTE_BASE_URL;
-charme.settings.AUTH_CLIENT_ID='12345';
+charme.settings.AUTH_CLIENT_ID='__PUT_AUTH_CLIENT_ID_HERE__';
 charme.settings.AUTH_PATH='/oauth2/authorize';
 charme.settings.AUTH_RESPONSE_TYPE='token';
 
@@ -64,4 +64,4 @@ charme.settings.AUTH_RESPONSE_TYPE='token';
 charme.settings.COMMENT_LENGTH=500;
 charme.settings.SELECT_ALL_INNERHTML='Select/unselect all';
 charme.settings.ALL_TARGETS_INNERHTML='All targets ';
-charme.settings.SHOW_SELECT_COUNT=true;
+charme.settings.SHOW_SELECT_COUNT=false;

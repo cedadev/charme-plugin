@@ -225,6 +225,7 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
             reloadTarget.parentNode.removeChild(reloadTarget);
     
         // Show the annotation count next to the CHARMe icon - use the className 'charme-count' to hide the count in CSS file if desired
+        
         var showCount = charme.plugin.getByClass('charme-count', charme.plugin.constants.MATCH_EXACT, el.parentNode);
         if(showCount.length > 0)
             showCount = showCount[0];
@@ -234,6 +235,8 @@ charme.plugin.getAnnotationCountForTarget = function (el, activeImgSrc, inactive
             el.parentNode.insertBefore(showCount, el.nextSibling);
         }
         showCount.innerHTML = ' (' + annoCount + ')';
+	showCount.style.visibility = 'hidden';
+
 
         charme.common.addEvent(el, 'click', charme.plugin.showPlugin);
 	}, function () {
@@ -438,9 +441,9 @@ charme.plugin.rescanPage = function () {
 // Find CHARMe icon insertion points / refresh icon insertion point for specified targetId
 charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
     var activeImage = new Image();
-    activeImage.src = charme.settings.path + '/activebuttonsmall.png';
+    activeImage.src = charme.settings.path + '/add_comments_button.png';
     var inactiveImage = new Image();
-    inactiveImage.src = charme.settings.path + '/inactivebuttonsmall.png';
+    inactiveImage.src = charme.settings.path + '/add_comments_button.png';
     var noConnectionImage = new Image();
     noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
     var reScanImage = new Image();
@@ -452,31 +455,41 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
     
     if(isFirstLoad) {
         var selectAllContainer = document.getElementById('charme-placeholder');
+
         var selectAllBox = document.createElement('input');
         selectAllBox.type = 'checkbox';
+	selectAllBox.style.visibility = 'hidden';
         selectAllContainer.parentNode.insertBefore(selectAllBox, selectAllContainer);
         charme.plugin.setSelectionEventOnTarget(selectAllBox, 'all');
+
 
         var text = document.createElement('span');
         text.id='charme-select-all';
         text.innerHTML = charme.settings.SELECT_ALL_INNERHTML; //'Select/unselect all';
+	text.style.visibility = 'hidden';
         selectAllContainer.parentNode.insertBefore(text, selectAllContainer);
 
         var selectCountText = document.createElement('span');
         selectCountText.id='charme-select-count';
         selectCountText.innerHTML = '';
         selectAllContainer.parentNode.insertBefore(selectCountText, selectAllContainer);
-        
+
+	selectCountText.style.visibility = 'hidden';
+	
+
         var allTargetsContainer = document.getElementById('charme-placeholder-all-targets');
         var anchor = document.createElement('a');
         anchor.href = charme.common.ALL_TARGETS;
         anchor.className = 'charme-all-types';
         allTargetsContainer.appendChild(anchor, allTargetsContainer);
-        
+       
         text = document.createElement('span');
         text.id = 'charme-all-targets';
         text.innerHTML = charme.settings.ALL_TARGETS_INNERHTML; //'All targets ';
         allTargetsContainer.insertBefore(text, anchor);
+
+	allTargetsContainer.style.visibility = 'hidden';
+
     }
     
     var els = charme.plugin.getByClass('charme-', charme.plugin.constants.MATCH_PARTIAL);
@@ -488,30 +501,31 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
                 charme.plugin.setRescanIconForTarget(els[i], reScanImage.src);
             }
         }
+
     }
 
     for(var i = 0; i < els.length; i++) {
+	
         if(els[i].href) {
             if(isFirstLoad || isRescan || els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS) {
                 if(els[i].href === targetId || els[i].href === charme.common.ALL_TARGETS) {
                     els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
                     els[i].style.backgroundSize = '18px 18px';
                 }
+
                 
                 charme.plugin.getAnnotationCountForTarget(els[i], activeImage.src, inactiveImage.src, noConnectionImage.src, reloadImage.src);
             }
 
             if(isFirstLoad || isRescan) {
-                els[i].style.display = 'inline-block';
-                els[i].style.width = '36px';
-                els[i].style.height = '26px';
 
+                els[i].style.width = '180px';
+                els[i].style.height = '50px';
+                els[i].style.float = 'left';
+                els[i].style.margin = '0 7px 0 0';
                 els[i].style.background = 'url("' + loadImage.src + '") no-repeat left top';
-                els[i].style.backgroundSize = '18px 18px';
-                els[i].style.backgroundPosition = '2px';
-                els[i].style.marginLeft = '10px';
-                els[i].style.marginRight = '-5px';
 
+               
                 // Insert checkboxes and attach selection events
                 //if(els[i].href !== charme.common.ALL_TARGETS) {
                     //Create a checkbox only if its already not preset on this target.
@@ -526,6 +540,8 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
                         
                         if(els[i].href !== charme.common.ALL_TARGETS)
                             charme.plugin.numTags++;
+
+			targetCheckbox.style.visibility = 'hidden';
                     }
                 //}
             }
@@ -552,6 +568,9 @@ charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
     if(charme.settings.SHOW_SELECT_COUNT) {
         var selectCountText = document.getElementById('charme-select-count');
         selectCountText.innerHTML = ' (<span id="showNumSelected">' + charme.plugin.numSelected + '</span> of ' + charme.plugin.numTags + ' targets selected)';
+    } else {
+        var selectCountText = document.getElementById('charme-select-count');
+        selectCountText.innerHTML = '<span id="showNumSelected"></span>';
     }
 };
 

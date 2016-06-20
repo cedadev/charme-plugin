@@ -27,13 +27,34 @@
     <button type="button" class="close window-controls" title="Minimise" data-ng-click="minimise()" data-ng-show="size==='max'"><i class="icon-resize-small"></i></button>
     <button type="button" class="close window-controls" title="Maximise" data-ng-click="maximise()" data-ng-show="size==='min'"><i class="icon-resize-full"></i></button>
 
-    <h3>
+    <h3 id="plugin-header-section" style="height: 110px;">
+        <span class="browser-history">
+            <button data-ng-click="back();" title="Go back to previous page" data-ng-show="size==='max'" class="btn btn-mini"><i class="icon-arrow-left"></i></button>
+            <button data-ng-click="forward();" title="Go forward to next page" data-ng-show="size==='max'" class="btn btn-mini"><i class="icon-arrow-right"></i></button>
+        </span>
+
+        <div style="float: top;">
+            <div id="ceda-logo" style="position: absolute; left: 100px; width: 500px;"><img title="Centre for Environmental Data Archival" src="/static/images/ceda_logo_charme.png"></div>
+
+            <div id="tool-title" style="position: absolute; left: 480px; top: 20px; font-size: 24px;">Data Commenting Tool</div>
+
+            <div style="position: absolute; right: 60px; top: 10px; font-size: 14px; width: 200px;"><span id="provided-by">Provided by:</span> <a target="_blank" title="You are using the CHARMe Plugin &mdash; for more information about the CHARMe project, click here to visit the CHARMe website at http://www.charme.org.uk/" href="http://www.charme.org.uk/"><img id="charmeTitle" src="img/activebuttonsmall.png"></a></div>
+
+            <div style="line-height: normal; font-size: 14px; font-weight: normal; position: absolute; top: 60px; left: 480px; width: 500px;"> 
+      Use this tool to read comments and information from other users and add your own annotations about the data too! For example, you might want to link it to relevant papers and websites or share information about ways that the data can be used to help the wider user community.
+            </div>
+        </div>
+    </h3>
+<!--
+    <h3 style="height: 100px;">
         <span class="browser-history">
             <button class="btn btn-mini" data-ng-show="size==='max'" title="Go back to previous page" data-ng-click="back();"><i class="icon-arrow-left"></i></button>
             <button class="btn btn-mini" data-ng-show="size==='max'" title="Go forward to next page" data-ng-click="forward();"><i class="icon-arrow-right"></i></button>
-            <!--<button data-ng-show="size==='max'" class="btn btn-mini" title="Reload this page" data-ng-click="reload();"><i class="icon-repeat"></i></button>-->
         </span>
-        <a href="http://www.charme.org.uk/" title="You are using the CHARMe Plugin &mdash; for more information about the CHARMe project, click here to visit the CHARMe website at http://www.charme.org.uk/" target="_blank">
-        <img src="img/CHARMe_title_small.png" id="charmeTitle" /></a>Annotations
+	<img src="/static/images/ceda_logo_charme.png" title="Centre for Environmental Data Archival" />Data Commenting Tool&nbsp;
+
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Provided by: <a href="http://www.charme.org.uk/" title="You are using the CHARMe Plugin &mdash; for more information about the CHARMe project, click here to visit the CHARMe website at http://www.charme.org.uk/" target="_blank">CHARMe</a>
+        <img src="img/CHARMe_title_small.png" id="charmeTitle" />
     </h3>
+-->
 </div>

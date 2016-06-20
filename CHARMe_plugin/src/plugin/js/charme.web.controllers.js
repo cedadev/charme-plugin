@@ -51,12 +51,17 @@ function ($scope, targetService, minimisedService, $routeParams){
     };
 
     $scope.size = 'max';
+
     $scope.minimise = function(){
         $scope.size = 'min';
         $scope.headerBorderBottomStyle = $('#charmeDragHandle').css('border-bottom');
         $('#charmeDragHandle').css('border-bottom', 'none');
         $('.modal-body').hide();
         $('.modal-footer').hide();
+        $('#ceda-logo').css('width', 150).css('left', 10);
+        $('#tool-title').css('font-size', 12);
+        $('#plugin-header-section').css('height', 44);
+        $('#provided-by').hide();
         minimisedService.isMinimised = true;
         charme.web.minimise(top.document.getElementById('charme-plugin-frame').offsetTop);
     };
@@ -65,6 +70,10 @@ function ($scope, targetService, minimisedService, $routeParams){
         $('#charmeDragHandle').css('border-bottom', $scope.headerBorderBottomStyle);
         $('.modal-body').show();
         $('.modal-footer').show();
+        $('#ceda-logo').css('width', 500).css('left', 100);
+        $('#tool-title').css('font-size', 24);
+        $('#plugin-header-section').css('height', 110);
+        $('#provided-by').show();
         minimisedService.isMinimised = false;
         charme.web.maximise();
     };
