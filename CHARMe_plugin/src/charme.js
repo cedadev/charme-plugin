@@ -441,9 +441,9 @@ charme.plugin.rescanPage = function () {
 // Find CHARMe icon insertion points / refresh icon insertion point for specified targetId
 charme.plugin.markupTags = function (isFirstLoad, isRescan, targetId) {
     var activeImage = new Image();
-    activeImage.src = charme.settings.path + '/add_comments_button.png';
+    activeImage.src = charme.settings.path + '/add_comment_button.png';
     var inactiveImage = new Image();
-    inactiveImage.src = charme.settings.path + '/add_comments_button.png';
+    inactiveImage.src = charme.settings.path + '/add_comment_button.png';
     var noConnectionImage = new Image();
     noConnectionImage.src = charme.settings.path + '/noconnectionbuttonsmall.png';
     var reScanImage = new Image();
