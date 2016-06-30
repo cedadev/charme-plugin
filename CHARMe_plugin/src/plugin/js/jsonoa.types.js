@@ -161,6 +161,11 @@ jsonoa.types.Dataset=(function Dataset(){
         Dataset.TEMPLATE = {"@id": "?", "@type": [Dataset.TYPE]};
 	return Dataset;
 })();
+jsonoa.types.Collection=(function Collection(){
+        Collection.TYPE = 'http://purl.org/voc/charme#Collection';
+        Collection.TEMPLATE = {"@id": "?", "@type": [Collection.TYPE]};
+        return Collection;
+})();
 jsonoa.types.Document=(function Document(){
 	Document.TYPE='http://purl.org/voc/charme#DocType';
         Document.TEMPLATE = {"@id": "?", "@type": [Document.TYPE]};

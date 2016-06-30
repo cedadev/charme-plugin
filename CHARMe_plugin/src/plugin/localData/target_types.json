@@ -4,6 +4,10 @@
   "resource": "http://purl.org/dc/dcmitype/Dataset"
  },
  {
+  "label": "Collection",
+  "resource": "http://purl.org/dc/dcmitype/Collection"
+ },
+ {
   "label": "Technical Report",
   "resource": "http://purl.org/spar/fabio/TechnicalReport"
  },
